@@ -1,0 +1,4 @@
+Different modes:
+- Letter editor
+- Language editor
+- Writing
