@@ -65,6 +65,7 @@ style.configure("secondary.TFrame", background="#1a1919")
 window.geometry("1000x800")
 background = Frame(window,width=1000,height=800,style="secondary.TFrame")
 background.pack()
+background.lift()
 
 window.lift()
 window.title("Scriptor - Letter Editor")
