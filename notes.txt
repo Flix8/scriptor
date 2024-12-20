@@ -2,3 +2,5 @@ Different modes:
 - Letter editor
 - Language editor
 - Writing
+
+Generalize the code to work with multiple segments

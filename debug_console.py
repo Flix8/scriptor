@@ -14,9 +14,13 @@ class DebugWindow:
         self.text_area.configure(state='disabled')
         
         # Entry field for commands
+        self.command_log = []
+        self.cur_pos_in_log = None
         self.command_entry = tk.Entry(self.root, width=60)
         self.command_entry.pack(fill='x', pady=5)
         self.command_entry.bind("<Return>", self.process_command)
+        self.command_entry.bind("<Up>", self.move_up_log)
+        self.command_entry.bind("<Down>", self.move_down_log)
 
         self.root.withdraw()
 
@@ -28,17 +32,42 @@ class DebugWindow:
         self.text_area.insert(tk.END, message + "\n")
         self.text_area.see(tk.END)
         self.text_area.configure(state='disabled')
+        with open("debug.log", "a") as file:
+            file.write(f"[{ctime(time())}]: {message}\n")
 
     def clear(self):
         """Clear the text area."""
         self.text_area.configure(state='normal')
         self.text_area.delete(1.0, tk.END)
         self.text_area.configure(state='disabled')
-
+    def move_up_log(self,event):
+        if len(self.command_log) == 0:
+            return
+        if self.cur_pos_in_log == None:
+            self.cur_pos_in_log = 0
+        elif self.cur_pos_in_log < len(self.command_log)-1:
+            self.cur_pos_in_log += 1
+        self.command_entry.delete(0,tk.END)
+        self.command_entry.insert(0,self.command_log[self.cur_pos_in_log])
+    def move_down_log(self,event):
+        if self.cur_pos_in_log == None:
+            return
+        elif self.cur_pos_in_log == 0:
+            self.command_entry.delete(0,tk.END)
+            self.cur_pos_in_log = None
+            return
+        else:
+            self.cur_pos_in_log -= 1
+        self.command_entry.delete(0,tk.END)
+        self.command_entry.insert(0,self.command_log[self.cur_pos_in_log])        
     def process_command(self, event):
         """Process the entered command."""
+        self.cur_pos_in_log = None
         command = self.command_entry.get()
         if command.strip():  # Avoid empty commands
+            self.command_log.insert(0,command)
+            if len(self.command_log) > 36:
+                self.command_log.pop()
             self.send(f"Trying to execute command: {command}")
             self.to_execute = command
             self.command_entry.delete(0, tk.END)  # Clear the entry field
@@ -50,8 +79,6 @@ def init(master):
 
 def send(message):
     debug_window.send(message)
-    with open("debug.log", "a") as file:
-        file.write(f"[{ctime(time())}]: {message}\n")
 
 def clear():
     debug_window.clear()
