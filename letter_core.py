@@ -1,4 +1,5 @@
 from math import sqrt
+import debug_console as debug
 class ScriptorCanvas():
     def __init__(self,canvas):
         self.canvas = canvas
@@ -49,6 +50,7 @@ class EditorCanvas(ScriptorCanvas):
                 self.num_selected
             else:
                 self.letter.segments[0].nodes.append(EditorNode(x,y))
+                self.letter.segments[0].connectors.append(Connector())
         self.update()
     def draw(self):
         editor_draw(self.letter,self.canvas)
@@ -101,6 +103,13 @@ class Segment():
         self.name = "Segment"
         self.nodes = []
         self.connectors = []
+class Connector():
+    def __init__(self,type="LINE"):
+        if type not in ["LINE","BEZIER"]:
+            debug.send("INCORRECT CONNECTOR TYPE!")
+            type = "LINE"
+        self.type = type
+        self.anchors = None
 class Letter():
     def __init__(self):
         self.segments = []
@@ -108,7 +117,10 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True):
         x,y = pos
         for segment in letter.segments:
             last_node = None
-            for node in segment.nodes:
+            for i in range(0,len(segment.nodes)):
+                node = segment.nodes[i]
+                connector = segment.connectors[i]
+                debug.send(connector.type)
                 if last_node != None:
                     canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill="#3d3d3d", width=3, tags="l_line")
                 last_node = node
@@ -120,3 +132,18 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True):
                     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=node.color, tags="l_node")
 def editor_draw(letter,canvas):
     draw_letter(letter,canvas,1,[350,300])
+
+def draw_bezier(node1,node2,anchor1,anchor2,canvas):
+    #Modified code from: https://stackoverflow.com/a/50302363
+    x_start = node1.x
+    y_start = node1.y
+
+    n = 50
+    for i in range(50):
+        t = i / n
+        x = (node1.x * (1-t)**3 + anchor1.x * 3 * t * (1-t)**2 + anchor2.x * 3 * t**2 * (1-t) + node2.x * t**3)
+        y = (node1.y * (1-t)**3 + anchor1.y * 3 * t * (1-t)**2 + anchor2.y * 3 * t**2 * (1-t) + node2.y * t**3)
+
+        canvas.create_line(x, y, x_start, y_start)
+        x_start = x
+        y_start = y
