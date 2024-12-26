@@ -50,9 +50,31 @@ class EditorCanvas(ScriptorCanvas):
             else:
                 self.letter.segments[0].nodes.append(EditorNode(x,y))
         self.update()
-        print(self.mode)
     def draw(self):
         editor_draw(self.letter,self.canvas)
+    def move_selection(self,x,y,is_relative=True):
+        if self.mode == "normal":
+            return
+        if is_relative:
+            for node in self.letter.segments[0].nodes:
+                if node.selected:
+                    node.x += x
+                    node.y += y
+                    node.deselect()
+        self.mode = "normal"
+        self.update()
+    def delete_selection(self):
+        if self.mode == "normal":
+            return
+        nodes_copy = self.letter.segments[0].nodes[:]
+        for node in self.letter.segments[0].nodes:
+            if node.selected:
+                nodes_copy.remove(node)
+        self.letter.segments[0].nodes = nodes_copy
+        self.mode = "normal"
+        self.update()
+        
+
 class Node():
     def __init__(self,x,y):
         self.x = x
@@ -90,6 +112,9 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True):
                 if last_node != None:
                     canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill="#3d3d3d", width=3, tags="l_line")
                 last_node = node
+            if len(segment.nodes) > 1:
+                    node = segment.nodes[0]
+                    canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill="#3d3d3d", width=3, tags="l_line")
             if draw_nodes:
                 for node in segment.nodes:
                     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=node.color, tags="l_node")

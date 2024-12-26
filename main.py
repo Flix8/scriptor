@@ -22,6 +22,7 @@ def flick_debug():
     debug_mode = not debug_mode
     if debug_mode:
         debug.root.deiconify()
+        debug.debug_window.command_entry.focus()
     else:
         debug.root.withdraw()
 
