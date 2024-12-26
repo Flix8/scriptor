@@ -1,8 +1,26 @@
 from math import sqrt
-class EditorCanvas():
+class ScriptorCanvas():
     def __init__(self,canvas):
         self.canvas = canvas
         self.canvas.bind("<Button-1>", self.on_click)
+    def on_click(self,event):
+        pass
+    def update(self):
+        self.clear()
+        self.draw()
+    def clear(self,tag="grid",del_all_except_tag=True):
+        if not del_all_except_tag:
+            self.canvas.delete(tag)
+        else:
+            for item in self.canvas.find_all():
+                if tag not in self.canvas.gettags(item):
+                    self.canvas.delete(item)
+    def draw(self):
+        pass
+
+class EditorCanvas(ScriptorCanvas):
+    def __init__(self,canvas):
+        super().__init__(canvas)
         self.letter = Letter()
         self.letter.segments.append(Segment())
         self.mode = "normal" #normal/selection_simple/selection_multiple
@@ -30,20 +48,16 @@ class EditorCanvas():
                 self.mode = "normal"
                 self.num_selected
             else:
-                self.letter.segments[0].nodes.append(Node(x,y))
+                self.letter.segments[0].nodes.append(EditorNode(x,y))
         self.update()
         print(self.mode)
-    def update(self):
-        self.clear()
-        self.letter.draw_letter_editor(self.canvas)
-    def clear(self,tag="grid",del_all_except_tag=True):
-        if not del_all_except_tag:
-            self.canvas.delete(tag)
-        else:
-            for item in self.canvas.find_all():
-                if tag not in self.canvas.gettags(item):
-                    self.canvas.delete(item)
+    def draw(self):
+        editor_draw(self.letter,self.canvas)
 class Node():
+    def __init__(self,x,y):
+        self.x = x
+        self.y = y
+class EditorNode(Node):
     def __init__(self,x,y,size=5,color="black"):
         self.x = x
         self.y = y
@@ -68,9 +82,9 @@ class Segment():
 class Letter():
     def __init__(self):
         self.segments = []
-    def draw(self,canvas,size,pos,draw_nodes=True):
+def draw_letter(letter,canvas,size,pos,draw_nodes=True):
         x,y = pos
-        for segment in self.segments:
+        for segment in letter.segments:
             last_node = None
             for node in segment.nodes:
                 if last_node != None:
@@ -79,5 +93,5 @@ class Letter():
             if draw_nodes:
                 for node in segment.nodes:
                     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=node.color, tags="l_node")
-    def draw_letter_editor(self,canvas):
-        self.draw(canvas,1,[350,300])
+def editor_draw(letter,canvas):
+    draw_letter(letter,canvas,1,[350,300])
