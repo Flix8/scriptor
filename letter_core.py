@@ -25,6 +25,7 @@ class EditorCanvas(ScriptorCanvas):
         self.letter = Letter()
         self.letter.segments.append(Segment())
         self.mode = "normal" #normal/selection_simple/selection_multiple
+        self.selection_type = None #node/None/connector
         self.num_selected = 0
     def on_click(self,event):
         x,y = event.x-350, event.y-300
@@ -32,25 +33,58 @@ class EditorCanvas(ScriptorCanvas):
         for node in self.letter.segments[0].nodes:
             dist = sqrt((x-node.x)**2+(y-node.y)**2)
             if dist <= node.size + 3:
+                if self.selection_type == "connector":
+                    for connector in self.letter.segments[0].connectors:
+                        if connector.selected:
+                            connector.deselect()
+                        self.mode = "normal"
+                        self.selection_type = None
+                        self.num_selected = 0
                 if node.selected:
                     node.deselect()
                     self.num_selected -= 1
                     self.mode = "selection_simple" if self.num_selected == 1 else "normal" if self.num_selected == 0 else self.mode
+                    if self.mode == "normal":
+                        self.selection_type = None
                 else:
                     node.select()
                     self.mode = "selection_simple" if self.mode == "normal" else "selection_multiple"
+                    if self.mode == "selection_simple":
+                        self.selection_type = "node"
                     self.num_selected += 1
                 selected = True
         if not selected:
-            if self.mode != "normal":
+            mode = self.mode
+            if mode != "normal":
                 for node in self.letter.segments[0].nodes:
                     if node.selected:
                         node.deselect()
                 self.mode = "normal"
-                self.num_selected
-            else:
+                self.selection_type = None
+                self.num_selected = 0
+            for i in range(0,len(self.letter.segments[0].connectors)):
+                p1 = self.letter.segments[0].nodes[i]
+                p2 = self.letter.segments[0].nodes[i+1]
+                dist = distance_to_line_segment(p1,p2,Node(x,y))
+                connector = self.letter.segments[0].connectors[i]
+                if dist <= 3:
+                    if connector.selected:
+                        self.mode = "selection_simple" if self.mode == "normal" else "selection_multiple"
+                        self.selection_type =  "connector"
+                        self.num_selected += 1
+                        connector.select()
+                        mode = None
+                    else:
+                        connector.deselect()
+                        self.num_selected -= 1
+                        self.mode = "selection_simple" if self.num_selected == 1 else "normal" if self.num_selected == 0 else self.mode
+                        if self.mode == "normal":
+                            self.selection_type = None
+                        mode = None
+            if mode == "normal":
                 self.letter.segments[0].nodes.append(EditorNode(x,y))
-                self.letter.segments[0].connectors.append(Connector())
+                if len(self.letter.segments[0].nodes) > 1:
+                    self.letter.segments[0].connectors.append(EditorConnector())
         self.update()
     def draw(self):
         editor_draw(self.letter,self.canvas)
@@ -75,7 +109,6 @@ class EditorCanvas(ScriptorCanvas):
         self.letter.segments[0].nodes = nodes_copy
         self.mode = "normal"
         self.update()
-        
 
 class Node():
     def __init__(self,x,y):
@@ -98,11 +131,13 @@ class EditorNode(Node):
         self.size = self.start_size + 1
         self.color = "#156185"
         self.selected = True
+
 class Segment():
     def __init__(self):
         self.name = "Segment"
         self.nodes = []
         self.connectors = []
+
 class Connector():
     def __init__(self,type="LINE"):
         if type not in ["LINE","BEZIER"]:
@@ -110,6 +145,26 @@ class Connector():
             type = "LINE"
         self.type = type
         self.anchors = None
+class EditorConnector(Connector):
+    def __init__(self,type="LINE",width=3,color="#3d3d3d"):
+        if type not in ["LINE","BEZIER"]:
+            debug.send("INCORRECT CONNECTOR TYPE!")
+            type = "LINE"
+        self.type = type
+        self.anchors = None
+        self.width = width
+        self.color = color
+        self.start_width = width
+        self.start_color = color
+    def deselect(self):
+        self.width = self.start_width
+        self.color = self.start_color
+        self.selected = False
+    def select(self):
+        self.width = self.start_width + 1
+        self.color = "#707070"
+        self.selected = True
+
 class Letter():
     def __init__(self):
         self.segments = []
@@ -117,11 +172,11 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True):
         x,y = pos
         for segment in letter.segments:
             last_node = None
+            connector = None
             for i in range(0,len(segment.nodes)):
                 node = segment.nodes[i]
-                connector = segment.connectors[i]
-                debug.send(connector.type)
                 if last_node != None:
+                    connector = segment.connectors[i-1]
                     canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill="#3d3d3d", width=3, tags="l_line")
                 last_node = node
             if len(segment.nodes) > 1:
@@ -147,3 +202,28 @@ def draw_bezier(node1,node2,anchor1,anchor2,canvas):
         canvas.create_line(x, y, x_start, y_start)
         x_start = x
         y_start = y
+
+def distance_to_line_segment(line_p1,line_p2,point):
+    """
+    Calculate the shortest distance from a point (Node point) to a line segment
+    defined by (Node line_p1) and (Node line_p1).
+    """
+    x1,y1 = line_p1.x,line_p1.y
+    x2,y2 = line_p2.x,line_p2.y
+    x3,y3 = point.x,point.y
+    # Calculate the length squared of the line segment
+    line_length_squared = (x2 - x1) ** 2 + (y2 - y1) ** 2
+
+    if line_length_squared == 0:
+        # The line segment is a single point
+        return sqrt((x3 - x1) ** 2 + (y3 - y1) ** 2)
+
+    # Project point onto the line segment, computing t
+    t = max(0, min(1, ((x3 - x1) * (x2 - x1) + (y3 - y1) * (y2 - y1)) / line_length_squared))
+    
+    # Find the projection point on the line
+    projection_x = x1 + t * (x2 - x1)
+    projection_y = y1 + t * (y2 - y1)
+
+    # Calculate the distance from the point to the projection
+    return sqrt((x3 - projection_x) ** 2 + (y3 - projection_y) ** 2)

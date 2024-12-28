@@ -78,7 +78,7 @@ def init(master):
     debug_window = DebugWindow(root)
 
 def send(message):
-    debug_window.send(message)
+    debug_window.send(str(message))
 
 def clear():
     debug_window.clear()

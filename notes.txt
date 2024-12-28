@@ -3,4 +3,4 @@ Different modes:
 - Language editor
 - Writing
 
-Generalize the code to work with multiple segments
+The connectors should be the same length as nodes, because the last connector is from last to first. Need to fix.
