@@ -34,12 +34,10 @@ class EditorCanvas(ScriptorCanvas):
             dist = sqrt((x-node.x)**2+(y-node.y)**2)
             if dist <= node.size + 3:
                 if self.selection_type == "connector":
-                    for connector in self.letter.segments[0].connectors:
-                        if connector.selected:
-                            connector.deselect()
-                        self.mode = "normal"
-                        self.selection_type = None
-                        self.num_selected = 0
+                    self.deselect_all_connectors()
+                    self.mode = "normal"
+                    self.selection_type = None
+                    self.num_selected = 0
                 if node.selected:
                     node.deselect()
                     self.num_selected -= 1
@@ -55,39 +53,46 @@ class EditorCanvas(ScriptorCanvas):
                 selected = True
         if not selected:
             mode = self.mode
-            if mode != "normal":
-                for node in self.letter.segments[0].nodes:
-                    if node.selected:
-                        node.deselect()
+            if mode != "normal" and self.selection_type == "node":
+                self.deselect_all_nodes()
                 self.mode = "normal"
                 self.selection_type = None
                 self.num_selected = 0
             for i in range(0,len(self.letter.segments[0].connectors)):
                 p1 = self.letter.segments[0].nodes[i]
-                p2 = self.letter.segments[0].nodes[i+1]
+                if len(self.letter.segments[0].connectors)-1 == i:
+                    p2 = p1 = self.letter.segments[0].nodes[0]
+                else:
+                    p2 = self.letter.segments[0].nodes[i+1]
                 dist = distance_to_line_segment(p1,p2,Node(x,y))
                 connector = self.letter.segments[0].connectors[i]
+                debug.send(dist)
                 if dist <= 3:
                     if connector.selected:
-                        self.mode = "selection_simple" if self.mode == "normal" else "selection_multiple"
-                        self.selection_type =  "connector"
-                        self.num_selected += 1
-                        connector.select()
-                        mode = None
-                    else:
                         connector.deselect()
                         self.num_selected -= 1
                         self.mode = "selection_simple" if self.num_selected == 1 else "normal" if self.num_selected == 0 else self.mode
                         if self.mode == "normal":
                             self.selection_type = None
                         mode = None
-            if mode == "normal":
+                    else:
+                        self.mode = "selection_simple" if self.mode == "normal" else "selection_multiple"
+                        self.selection_type =  "connector"
+                        self.num_selected += 1
+                        connector.select()
+                        mode = None
+            if mode != None and self.selection_type == "connector":
+                self.deselect_all_connectors()
+                self.mode = "normal"
+                self.selection_type = None
+                self.num_selected = 0
+            elif mode == "normal":
                 self.letter.segments[0].nodes.append(EditorNode(x,y))
-                if len(self.letter.segments[0].nodes) > 1:
-                    self.letter.segments[0].connectors.append(EditorConnector())
+                self.letter.segments[0].connectors.append(EditorConnector())
         self.update()
     def draw(self):
         editor_draw(self.letter,self.canvas)
+        self.recursive_line_dist_check()
     def move_selection(self,x,y,is_relative=True):
         if self.mode == "normal":
             return
@@ -109,6 +114,30 @@ class EditorCanvas(ScriptorCanvas):
         self.letter.segments[0].nodes = nodes_copy
         self.mode = "normal"
         self.update()
+    def deselect_all_connectors(self):
+        for connector in self.letter.segments[0].connectors:
+            if connector.selected: connector.deselect()
+    def deselect_all_nodes(self):
+        for node in self.letter.segments[0].nodes:
+            if node.selected: node.deselect()
+    def recursive_line_dist_check(self):
+        for x in range(-35,35):
+            x *= 10
+            for y in range(-30,30):
+                y *= 10
+                for i in range(0,len(self.letter.segments[0].connectors)):
+                    p1 = self.letter.segments[0].nodes[i]
+                    if len(self.letter.segments[0].connectors)-1 == i:
+                        p2 = p1 = self.letter.segments[0].nodes[0]
+                    else:
+                        p2 = self.letter.segments[0].nodes[i+1]
+                    dist = distance_to_line_segment(p1,p2,Node(x,y))
+                    if dist <= 3:
+                        self.canvas.create_oval(x+350, y+300, x+350 + 3, y +300 + 3, fill="red")
+                    else:
+                        self.canvas.create_oval(x+350, y+300, x+350 + 3, y +300 + 3, fill="green")
+
+
 
 class Node():
     def __init__(self,x,y):
@@ -156,6 +185,7 @@ class EditorConnector(Connector):
         self.color = color
         self.start_width = width
         self.start_color = color
+        self.selected = False
     def deselect(self):
         self.width = self.start_width
         self.color = self.start_color
@@ -172,16 +202,18 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True):
         x,y = pos
         for segment in letter.segments:
             last_node = None
-            connector = None
             for i in range(0,len(segment.nodes)):
+                if len(segment.nodes) == 1:
+                    break
                 node = segment.nodes[i]
                 if last_node != None:
                     connector = segment.connectors[i-1]
-                    canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill="#3d3d3d", width=3, tags="l_line")
+                    canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=connector.color, width=connector.width, tags="l_line")
                 last_node = node
             if len(segment.nodes) > 1:
                     node = segment.nodes[0]
-                    canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill="#3d3d3d", width=3, tags="l_line")
+                    connector = segment.connectors[-1]
+                    canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=connector.color, width=connector.width, tags="l_line")
             if draw_nodes:
                 for node in segment.nodes:
                     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=node.color, tags="l_node")
