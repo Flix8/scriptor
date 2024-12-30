@@ -1,0 +1,6 @@
+[
+      "manager.editor_canvas.update()",
+      "manager.editor_canvas.letter.segments[0].connectors[0].anchors[0].x = 50",
+      "manager.editor_canvas.update()",
+      "manager.editor_canvas.letter.segments[0].connectors[0].set_type(\"BEZIER\")"
+]

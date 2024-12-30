@@ -4,6 +4,7 @@ from pygame import mixer
 from tkinter.ttk import *
 from PIL import Image, ImageTk
 import sys
+import json
 
 import window_manager as manager
 import keypress_tracker as tracker
@@ -50,8 +51,11 @@ def on_update():
 
     manager.get("main").after(100,on_update)
 def on_exit():
+    cmd_log_file = open("debug_cmd_log.json","w")
+    json.dump(debug.debug_window.command_log,cmd_log_file,indent=6)
+    cmd_log_file.close()
     for window_name in manager.registered:
-        if window_name == "Main": continue
+        if window_name == "main": continue
         try:
             manager.registered[window_name].destroy()
         except TclError:
@@ -63,5 +67,7 @@ manager.get("main").after(0,on_update)
 
 # Set the custom hook
 sys.excepthook = custom_handler
-
+cmd_log_file = open("debug_cmd_log.json","r")
+debug.debug_window.command_log=json.load(cmd_log_file)
+cmd_log_file.close()
 manager.get("main").mainloop()

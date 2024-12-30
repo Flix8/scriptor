@@ -18,7 +18,8 @@ class ScriptorCanvas():
                     self.canvas.delete(item)
     def draw(self):
         pass
-
+#manager.editor_canvas.letter.segments[0].connectors[0].set_type("BEZIER")
+#manager.editor_canvas.letter.segments[0].connectors[0].anchors[0].x = 50
 class EditorCanvas(ScriptorCanvas):
     def __init__(self,canvas):
         super().__init__(canvas)
@@ -61,13 +62,12 @@ class EditorCanvas(ScriptorCanvas):
             for i in range(0,len(self.letter.segments[0].connectors)):
                 p1 = self.letter.segments[0].nodes[i]
                 if len(self.letter.segments[0].connectors)-1 == i:
-                    p2 = p1 = self.letter.segments[0].nodes[0]
+                    p2 = self.letter.segments[0].nodes[0]
                 else:
                     p2 = self.letter.segments[0].nodes[i+1]
                 dist = distance_to_line_segment(p1,p2,Node(x,y))
                 connector = self.letter.segments[0].connectors[i]
-                debug.send(dist)
-                if dist <= 3:
+                if dist <= 6:
                     if connector.selected:
                         connector.deselect()
                         self.num_selected -= 1
@@ -92,9 +92,8 @@ class EditorCanvas(ScriptorCanvas):
         self.update()
     def draw(self):
         editor_draw(self.letter,self.canvas)
-        self.recursive_line_dist_check()
     def move_selection(self,x,y,is_relative=True):
-        if self.mode == "normal":
+        if self.mode == "normal" or self.selection_type == "connector":
             return
         if is_relative:
             for node in self.letter.segments[0].nodes:
@@ -103,9 +102,11 @@ class EditorCanvas(ScriptorCanvas):
                     node.y += y
                     node.deselect()
         self.mode = "normal"
+        self.selection_type = None
+        self.num_selected = 0
         self.update()
     def delete_selection(self):
-        if self.mode == "normal":
+        if self.mode == "normal" or self.selection_type == "connector":
             return
         nodes_copy = self.letter.segments[0].nodes[:]
         for node in self.letter.segments[0].nodes:
@@ -113,6 +114,8 @@ class EditorCanvas(ScriptorCanvas):
                 nodes_copy.remove(node)
         self.letter.segments[0].nodes = nodes_copy
         self.mode = "normal"
+        self.selection_type = None
+        self.num_selected = 0
         self.update()
     def deselect_all_connectors(self):
         for connector in self.letter.segments[0].connectors:
@@ -125,17 +128,20 @@ class EditorCanvas(ScriptorCanvas):
             x *= 10
             for y in range(-30,30):
                 y *= 10
+                close = False
                 for i in range(0,len(self.letter.segments[0].connectors)):
                     p1 = self.letter.segments[0].nodes[i]
                     if len(self.letter.segments[0].connectors)-1 == i:
-                        p2 = p1 = self.letter.segments[0].nodes[0]
+                        p2 = self.letter.segments[0].nodes[0]
                     else:
                         p2 = self.letter.segments[0].nodes[i+1]
                     dist = distance_to_line_segment(p1,p2,Node(x,y))
-                    if dist <= 3:
-                        self.canvas.create_oval(x+350, y+300, x+350 + 3, y +300 + 3, fill="red")
-                    else:
-                        self.canvas.create_oval(x+350, y+300, x+350 + 3, y +300 + 3, fill="green")
+                    if dist <= 6:
+                        close = True
+                if close:
+                    self.canvas.create_oval(x+350, y+300, x+350 + 3, y +300 + 3, fill="red")
+                else:
+                    self.canvas.create_oval(x+350, y+300, x+350 + 3, y +300 + 3, fill="green")
 
 
 
@@ -169,18 +175,16 @@ class Segment():
 
 class Connector():
     def __init__(self,type="LINE"):
+        self.set_type(type)
+    def set_type(self,type):
         if type not in ["LINE","BEZIER"]:
             debug.send("INCORRECT CONNECTOR TYPE!")
             type = "LINE"
         self.type = type
-        self.anchors = None
+        self.anchors = None if type == "LINE" else [Node(0,0),Node(0,0)]
 class EditorConnector(Connector):
     def __init__(self,type="LINE",width=3,color="#3d3d3d"):
-        if type not in ["LINE","BEZIER"]:
-            debug.send("INCORRECT CONNECTOR TYPE!")
-            type = "LINE"
-        self.type = type
-        self.anchors = None
+        self.set_type(type)
         self.width = width
         self.color = color
         self.start_width = width
@@ -208,22 +212,38 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True):
                 node = segment.nodes[i]
                 if last_node != None:
                     connector = segment.connectors[i-1]
-                    canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=connector.color, width=connector.width, tags="l_line")
+                    if connector.type == "LINE":
+                        canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=connector.color, width=connector.width, tags="l_line")
+                    else:
+                        if isinstance(connector,EditorConnector) and connector.selected:
+                            anchor1 = Node(connector.anchors[0].x*size,connector.anchors[0].y*size)
+                            anchor2 = Node(connector.anchors[1].x*size,connector.anchors[1].y*size)
+                            canvas.create_oval(x + node.x + 5*size + anchor1.x, y + node.y + 5*size + anchor1.y, x + node.x - 5*size + anchor1.x, y + node.y - 5*size + anchor1.y, fill="red", tags="l_node")
+                            canvas.create_oval(x + last_node.x + 5*size + anchor2.x, y + last_node.y + 5*size + anchor2.y, x + last_node.x - 5*size + anchor2.x, y + last_node.y - 5*size + anchor2.y, fill="red", tags="l_node")
+                        draw_bezier(last_node,node,connector.anchors[0],connector.anchors[1],canvas,connector.width,connector.color)
                 last_node = node
             if len(segment.nodes) > 1:
                     node = segment.nodes[0]
                     connector = segment.connectors[-1]
-                    canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=connector.color, width=connector.width, tags="l_line")
+                    if connector.type == "LINE":
+                        canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=connector.color, width=connector.width, tags="l_line")
+                    else:
+                        if isinstance(connector,EditorConnector) and connector.selected:
+                            canvas.create_oval(x + node.x + 5*size + anchor1.x, y + node.x + 5*size + anchor1.y, x + node.x - 5*size + anchor1.x, y + node.x - 5*size + anchor1.y, fill="red", tags="l_node")
+                            canvas.create_oval(x + last_node.x + 5*size + anchor2.x, y + last_node.x + 5*size + anchor2.y, x + last_node.x - 5*size + anchor2.x, y + last_node.x - 5*size + anchor2.y, fill="red", tags="l_node")
+                        draw_bezier(last_node,node,connector.anchors[0],connector.anchors[1],canvas,connector.width,connector.color)
             if draw_nodes:
                 for node in segment.nodes:
                     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=node.color, tags="l_node")
 def editor_draw(letter,canvas):
     draw_letter(letter,canvas,1,[350,300])
 
-def draw_bezier(node1,node2,anchor1,anchor2,canvas):
+def draw_bezier(node1,node2,rel_anchor1,rel_anchor2,canvas,width=3,color="black"):
     #Modified code from: https://stackoverflow.com/a/50302363
     x_start = node1.x
     y_start = node1.y
+    anchor1 = Node(rel_anchor1.x+node1.x,rel_anchor1.y+node1.y)
+    anchor2 = Node(rel_anchor2.x+node2.x,rel_anchor2.y+node2.y)
 
     n = 50
     for i in range(50):
@@ -231,7 +251,7 @@ def draw_bezier(node1,node2,anchor1,anchor2,canvas):
         x = (node1.x * (1-t)**3 + anchor1.x * 3 * t * (1-t)**2 + anchor2.x * 3 * t**2 * (1-t) + node2.x * t**3)
         y = (node1.y * (1-t)**3 + anchor1.y * 3 * t * (1-t)**2 + anchor2.y * 3 * t**2 * (1-t) + node2.y * t**3)
 
-        canvas.create_line(x, y, x_start, y_start)
+        canvas.create_line(x+350, y+300, x_start+350, y_start+300,fill=color, width=width,tags="l_line")
         x_start = x
         y_start = y
 
