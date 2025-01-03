@@ -1,2 +1,1 @@
 THIS LOG IS FOR DEBUGGING PURPOSES. THANK YOU.
-[Mon Dec 30 16:53:19 2024]: LOADED OLD DEBUG COMMANDS: ['manager.editor_canvas.update()', 'manager.editor_canvas.letter.segments[0].connectors[0].anchors[0].x = 50', 'manager.editor_canvas.update()', 'manager.editor_canvas.letter.segments[0].connectors[0].set_type("BEZIER")']

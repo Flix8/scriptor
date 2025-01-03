@@ -10,11 +10,12 @@ import debug_console as debug
 import letter_core as letter
 #________GENERAL FUNCTIONS______________
 registered = {}
-def get(name):
+def get(name) -> Tk:
     if name in registered.keys():
         return registered[name]
     else:
-        print("ERROR in window_manager on line 13: Could not find window.")
+        debug.send("ERROR: Could not find window, defaulting to main")
+        return registered["main"]
 def register(name,root:Tk):
     global registered
     registered[name] = root

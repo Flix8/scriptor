@@ -33,14 +33,19 @@ def manual_exit():
 
 def on_update():
     #Process keys
-    if 'f8' in tracker.keypress_history:
+    if ('down','f8') in tracker.keypress_history:
         flick_debug()
-    if 'esc' in tracker.keypress_history:
+    if ('down','esc') in tracker.keypress_history:
         manual_exit()
+    if len(tracker.keypress_history) != 0:
+        #Need to send to focused canvas
+        manager.editor_canvas.on_key(tracker.keypress_history)
     tracker.keypress_history.clear()
     #Executing command in console
     if debug.debug_window.to_execute != "":
         try:
+            if debug.debug_window.to_execute.split(" ")[0] == "get":
+                debug.debug_window.to_execute = f"debug.send({debug.debug_window.to_execute.split(" ")[1]})"
             exec(debug.debug_window.to_execute,globals())
         except:
             debug.send("Error executing command!")

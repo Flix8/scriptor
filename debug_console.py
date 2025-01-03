@@ -77,8 +77,10 @@ def init(master):
     root = tk.Toplevel(master=master)
     debug_window = DebugWindow(root)
 
-def send(message):
-    debug_window.send(str(message))
+def send(*args):
+    # Changed by ChatGPT to work with any amount of args.
+    message = ";".join(map(str, args))
+    debug_window.send(message)
 
 def clear():
     debug_window.clear()
