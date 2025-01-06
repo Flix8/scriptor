@@ -34,6 +34,8 @@ class ScriptorCanvas():
 class EditorCanvas(ScriptorCanvas):
     def __init__(self,canvas):
         super().__init__(canvas)
+        self.letter_name = "Unnamed"
+        self.language_name = ""
         self.keys_pressed = []
         self.cursor = EditorNode(0,0,5,"green")
         self.cursor_step_size = 20
@@ -49,6 +51,21 @@ class EditorCanvas(ScriptorCanvas):
         self.mode = "normal" #normal/selection_simple/selection_multiple
         self.selection_type = None #node/None/connector
         self.num_selected = 0
+    def load_letter(self,letter,name,language):
+        self.letter_name = name
+        self.language_name = language
+        #Canvas Interaction Stuff___________
+        self.last_node_created = None
+        self.last_pos = None
+        self.to_deselect = None
+        self.info_selected_anchor_point = None
+        #____________________
+        self.mode = "normal" #normal/selection_simple/selection_multiple
+        self.selection_type = None #node/None/connector
+        self.num_selected = 0
+        self.letter = letter
+        self.update()
+
     def on_key(self,history):
         for type,key in history:
             if type == "down" and key not in self.keys_pressed:

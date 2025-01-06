@@ -3,4 +3,21 @@ Different modes:
 - Language editor
 - Writing
 
-The connectors should be the same length as nodes, because the last connector is from last to first. Need to fix.
+To-Do:
+- Implement Deleting
+- Support for multiple Segments (And List Showing all segments)
+- Configure Field (position, alignment)
+- Figure out where the loaded language name should be stored
+- Functionality with multiple frames and switching between them.
+- Make the new, save and load button work (and a create new language button)
+- Track whether letter was saved and if not and trying to switch window or close window, prompt to safe.
+- Consider whether settings menu is needed
+- Configure menu
+    - Positioning of letters
+    - An overview of all letters in text form (when clicked on one shows preview)
+        - The ability to delete and rename
+- Write menu
+    - You can choose background color (Color Picker?)
+    - Canvas is not interactive, button to add next letter
+        - Like configure menu -> Overview of all letters, you can choose one and search, the one you are currently selecting is previewed
+        - Set stroke size, size, fill color (custom or background color)

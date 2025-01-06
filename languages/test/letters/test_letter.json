@@ -1,0 +1,52 @@
+{
+      "segments": [
+            {
+                  "name": "Segment",
+                  "nodes": [
+                        {
+                              "x": -100,
+                              "y": -220
+                        },
+                        {
+                              "x": 60,
+                              "y": -200
+                        },
+                        {
+                              "x": 140,
+                              "y": 120
+                        },
+                        {
+                              "x": -160,
+                              "y": 80
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": -60,
+                                          "y": -80
+                                    },
+                                    {
+                                          "x": -100,
+                                          "y": 140
+                                    }
+                              ]
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        }
+                  ]
+            }
+      ]
+}

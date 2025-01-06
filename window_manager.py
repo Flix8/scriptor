@@ -10,6 +10,7 @@ import debug_console as debug
 import letter_core as letter
 #________GENERAL FUNCTIONS______________
 registered = {}
+focused = 0
 def get(name) -> Tk:
     if name in registered.keys():
         return registered[name]
@@ -28,8 +29,14 @@ def visibility(master:Tk,visible:bool):
         master.lift()
     else:
         master.withdraw()
+def show_frame(frame:Frame):
+    focused = frame.id
+    frame.tkraise()
 
 window = Tk()
+#Tk Variables
+txt_selected_label = StringVar(window)
+txt_selected_label.set("Selected: Placeholder [Placeholder]")
 #Style
 style = Style(window)
 style.configure("secondary.TFrame", background="#1a1919")
@@ -65,7 +72,9 @@ configure_button.place(x=220,y=7)
 navigation_frame.place(x=700,y=0)
 
 editor_header_frame = Frame(window,height=40,width=700,style="header.TFrame")
-selected_label = Label(editor_header_frame,text="Selected: Placeholder [Placeholder]",font=('Helvetica',15),background="#9e9d9d")
+selected_label = Label(editor_header_frame,font=('Helvetica',15),background="#9e9d9d",textvariable=txt_selected_label)
+selected_label.letter = ""
+selected_label.language = ""
 selected_label.place(x=5,y=7)
 editor_header_frame.place(x=0,y=60)
 

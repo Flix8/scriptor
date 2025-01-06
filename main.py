@@ -5,11 +5,13 @@ from tkinter.ttk import *
 from PIL import Image, ImageTk
 import sys
 import json
+import traceback
 
 import window_manager as manager
 import keypress_tracker as tracker
 import debug_console as debug
 import letter_core as letter
+import saving_agent as saving
 
 def custom_handler(exc_type, exc_value, exc_traceback):
     on_exit()
@@ -47,12 +49,16 @@ def on_update():
             if debug.debug_window.to_execute.split(" ")[0] == "get":
                 debug.debug_window.to_execute = f"debug.send({debug.debug_window.to_execute.split(" ")[1]})"
             exec(debug.debug_window.to_execute,globals())
-        except:
-            debug.send("Error executing command!")
+        except Exception as e:
+            error_message = traceback.format_exc()
+            debug.send(f"Error executing command: {error_message}")
         debug.debug_window.to_execute = ""
     #Updating all windows
     for window_name in manager.registered:
-        pass
+        if window_name == "main":
+            if True:#This should look if the editor is in focus
+                if manager.selected_label.letter != manager.editor_canvas.letter_name or manager.selected_label.language != manager.editor_canvas.language_name:
+                    manager.txt_selected_label.set(f"Selected: {manager.editor_canvas.letter_name} [{manager.editor_canvas.language_name}]")
 
     manager.get("main").after(100,on_update)
 def on_exit():
