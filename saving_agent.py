@@ -1,6 +1,8 @@
 import os, json
 import letter_core as l
 
+new_language = None
+
 def to_plain_letter(letter: l.Letter) -> l.Letter:
     #Written by Copilot
     plain_letter = l.Letter()
@@ -30,10 +32,11 @@ def save_letter(language: str, name_letter: str, letter: l.Letter) -> bool:
     return True
 
 def load_letter(language: str, name_letter: str, use_editor_versions: bool = False) -> l.Letter:
+    global new_language
     file_path = f"languages/{language}/letters/{name_letter}.json"
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"No such file: '{file_path}'")
-    
+    new_language = language
     with open(file_path, 'r') as file:
         data = json.load(file)
     

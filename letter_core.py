@@ -29,31 +29,28 @@ class ScriptorCanvas():
         pass
     def draw(self):
         pass
-#manager.editor_canvas.letter.segments[0].connectors[0].set_type("BEZIER")
-#manager.editor_canvas.letter.segments[0].connectors[0].anchors[0].x = 50
+#manager.editor_canvas.letter.segments[self.selected_segment].connectors[0].set_type("BEZIER")
+#manager.editor_canvas.letter.segments[self.selected_segment].connectors[0].anchors[0].x = 50
 class EditorCanvas(ScriptorCanvas):
     def __init__(self,canvas):
         super().__init__(canvas)
+        self.selected_segment = 0
         self.letter_name = "Unnamed"
-        self.language_name = ""
         self.keys_pressed = []
         self.cursor = EditorNode(0,0,5,"green")
         self.cursor_step_size = 20
         self.step_size_options = [20,10,5,1] #Needs to be imported from settings
-        #Canvas Interaction Stuff___________
-        self.last_node_created = None
-        self.last_pos = None
-        self.to_deselect = None
-        self.info_selected_anchor_point = None
-        #____________________
         self.letter = Letter()
         self.letter.segments.append(Segment())
-        self.mode = "normal" #normal/selection_simple/selection_multiple
-        self.selection_type = None #node/None/connector
-        self.num_selected = 0
-    def load_letter(self,letter,name,language):
+        self.light_reset()
+    def load_letter(self,letter,name):
         self.letter_name = name
-        self.language_name = language
+        self.light_reset()
+        self.letter = letter
+        self.update()
+    def light_reset(self,do_reload_segments=True):
+        self.deselect_all_connectors()
+        self.deselect_all_nodes()
         #Canvas Interaction Stuff___________
         self.last_node_created = None
         self.last_pos = None
@@ -63,9 +60,7 @@ class EditorCanvas(ScriptorCanvas):
         self.mode = "normal" #normal/selection_simple/selection_multiple
         self.selection_type = None #node/None/connector
         self.num_selected = 0
-        self.letter = letter
-        self.update()
-
+        if do_reload_segments: self.reload_segments = True
     def on_key(self,history):
         for type,key in history:
             if type == "down" and key not in self.keys_pressed:
@@ -82,10 +77,9 @@ class EditorCanvas(ScriptorCanvas):
             x,y,index,point = info
             dist = sqrt((real_x-x)**2+(real_y-y)**2)
             if dist <= 6:
-                debug.send("HOOKED")
                 self.info_selected_anchor_point = (index,point)
                 return
-        for node in self.letter.segments[0].nodes:
+        for node in self.letter.segments[self.selected_segment].nodes:
             dist = sqrt((real_x-node.x)**2+(real_y-node.y)**2)
             if dist <= node.size + 3:
                 if self.selection_type == "connector":
@@ -110,14 +104,13 @@ class EditorCanvas(ScriptorCanvas):
                 self.mode = "normal"
                 self.selection_type = None
                 self.num_selected = 0
-            for i in range(0,len(self.letter.segments[0].connectors)):
-                p1 = self.letter.segments[0].nodes[i]
-                if len(self.letter.segments[0].connectors)-1 == i:
-                    p2 = self.letter.segments[0].nodes[0]
+            for i,connector in enumerate(self.letter.segments[self.selected_segment].connectors):
+                p1 = self.letter.segments[self.selected_segment].nodes[i]
+                if len(self.letter.segments[self.selected_segment].connectors)-1 == i:
+                    p2 = self.letter.segments[self.selected_segment].nodes[0]
                 else:
-                    p2 = self.letter.segments[0].nodes[i+1]
+                    p2 = self.letter.segments[self.selected_segment].nodes[i+1]
                 dist = distance_to_line_segment(p1,p2,Node(real_x,real_y))
-                connector = self.letter.segments[0].connectors[i]
                 if dist <= 6:
                     if connector.selected:
                         connector.deselect()
@@ -140,8 +133,8 @@ class EditorCanvas(ScriptorCanvas):
             elif mode == "normal":
                 new_node = EditorNode(x,y)
                 self.last_node_created = new_node
-                self.letter.segments[0].nodes.append(new_node)
-                self.letter.segments[0].connectors.append(EditorConnector())
+                self.letter.segments[self.selected_segment].nodes.append(new_node)
+                self.letter.segments[self.selected_segment].connectors.append(EditorConnector())
         self.update()
     def on_click_release(self, event):
         self.last_node_created = None
@@ -175,22 +168,22 @@ class EditorCanvas(ScriptorCanvas):
             self.last_pos = (x,y)
             if isinstance(self.info_selected_anchor_point,tuple):
                 index,point = self.info_selected_anchor_point
-                self.letter.segments[0].connectors[index].anchors[point].x += dx
-                self.letter.segments[0].connectors[index].anchors[point].y += dy
+                self.letter.segments[self.selected_segment].connectors[index].anchors[point].x += dx
+                self.letter.segments[self.selected_segment].connectors[index].anchors[point].y += dy
             else:
                 self.to_deselect = None
-                for node in self.letter.segments[0].nodes:
+                for node in self.letter.segments[self.selected_segment].nodes:
                     if node.selected:
                         node.x += dx
                         node.y += dy
             self.update()
     def draw(self):
-        editor_draw(self.letter,self.canvas)
+        editor_draw(self.letter,self.canvas,self.selected_segment)
     def move_selection(self,x,y,is_relative=True) -> None:
         if self.mode == "normal" or self.selection_type == "connector":
             return
         if is_relative:
-            for node in self.letter.segments[0].nodes:
+            for node in self.letter.segments[self.selected_segment].nodes:
                 if node.selected:
                     node.x += x
                     node.y += y
@@ -202,20 +195,20 @@ class EditorCanvas(ScriptorCanvas):
     def delete_selection(self) -> None:
         if self.mode == "normal" or self.selection_type == "connector":
             return
-        nodes_copy = self.letter.segments[0].nodes[:]
-        for node in self.letter.segments[0].nodes:
+        nodes_copy = self.letter.segments[self.selected_segment].nodes[:]
+        for node in self.letter.segments[self.selected_segment].nodes:
             if node.selected:
                 nodes_copy.remove(node)
-        self.letter.segments[0].nodes = nodes_copy
+        self.letter.segments[self.selected_segment].nodes = nodes_copy
         self.mode = "normal"
         self.selection_type = None
         self.num_selected = 0
         self.update()
     def deselect_all_connectors(self):
-        for connector in self.letter.segments[0].connectors:
+        for connector in self.letter.segments[self.selected_segment].connectors:
             if connector.selected: connector.deselect()
     def deselect_all_nodes(self):
-        for node in self.letter.segments[0].nodes:
+        for node in self.letter.segments[self.selected_segment].nodes:
             if node.selected: node.deselect()
     def calculate_snapped_position(self,x,y) -> tuple:
         x = (x//self.cursor_step_size)*self.cursor_step_size
@@ -233,14 +226,14 @@ class EditorCanvas(ScriptorCanvas):
     def get_all_selected_anchor_points(self) -> list:
         #Structure: x, y, index in connectors, first or second point
         anchor_points = []
-        for i in range(0,len(self.letter.segments[0].connectors)):
-            connector = self.letter.segments[0].connectors[i]
+        for i in range(0,len(self.letter.segments[self.selected_segment].connectors)):
+            connector = self.letter.segments[self.selected_segment].connectors[i]
             if connector.selected and connector.type == "BEZIER":
-                x = connector.anchors[0].x + self.letter.segments[0].nodes[i].x
-                y = connector.anchors[0].y + self.letter.segments[0].nodes[i].y
+                x = connector.anchors[0].x + self.letter.segments[self.selected_segment].nodes[i].x
+                y = connector.anchors[0].y + self.letter.segments[self.selected_segment].nodes[i].y
                 anchor_points.append((x,y,i,0))
-                x = connector.anchors[1].x + self.letter.segments[0].nodes[(i+1)%len(self.letter.segments[0].nodes)].x
-                y = connector.anchors[1].y + self.letter.segments[0].nodes[(i+1)%len(self.letter.segments[0].nodes)].y
+                x = connector.anchors[1].x + self.letter.segments[self.selected_segment].nodes[(i+1)%len(self.letter.segments[self.selected_segment].nodes)].x
+                y = connector.anchors[1].y + self.letter.segments[self.selected_segment].nodes[(i+1)%len(self.letter.segments[self.selected_segment].nodes)].y
                 anchor_points.append((x,y,i,1))
         return anchor_points
 
@@ -304,46 +297,46 @@ class EditorConnector(Connector):
 class Letter():
     def __init__(self):
         self.segments = []
-def draw_letter(letter,canvas,size,pos,draw_nodes=True):
+def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=None):
         x,y = pos
-        for segment in letter.segments:
+        for segment_index, segment in enumerate(letter.segments):
             last_node = None
-            for i in range(0,len(segment.nodes)):
+            sel = (segment_index == selected_segment_index) if selected_segment_index != None else True #Is not selected?
+            for i,node in enumerate(segment.nodes):
                 if len(segment.nodes) == 1:
                     break
-                node = segment.nodes[i]
                 if last_node != None:
                     connector = segment.connectors[i-1]
                     if connector.type == "LINE":
-                        canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=connector.color, width=connector.width, tags="l_line")
+                        canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=connector.color if sel else "gray", width=connector.width, tags="l_line")
                     else:
                         if isinstance(connector,EditorConnector) and connector.selected:
                             anchor1 = Node(connector.anchors[0].x*size,connector.anchors[0].y*size)
                             anchor2 = Node(connector.anchors[1].x*size,connector.anchors[1].y*size)
                             canvas.create_oval(x + node.x + 5*size + anchor2.x, y + node.y + 5*size + anchor2.y, x + node.x - 5*size + anchor2.x, y + node.y - 5*size + anchor2.y, fill="red", tags="l_node")
                             canvas.create_oval(x + last_node.x + 5*size + anchor1.x, y + last_node.y + 5*size + anchor1.y, x + last_node.x - 5*size + anchor1.x, y + last_node.y - 5*size + anchor1.y, fill="red", tags="l_node")
-                        draw_bezier(last_node,node,connector.anchors[0],connector.anchors[1],canvas,connector.width,connector.color)
+                        draw_bezier(last_node,node,connector.anchors[0],connector.anchors[1],canvas,connector.width,connector.color if sel else "gray")
                 last_node = node
             if len(segment.nodes) > 1:
                     node = segment.nodes[0]
                     connector = segment.connectors[-1]
                     if connector.type == "LINE":
-                        canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=connector.color, width=connector.width, tags="l_line")
+                        canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=connector.color if sel else "gray", width=connector.width, tags="l_line")
                     else:
                         if isinstance(connector,EditorConnector) and connector.selected:
                             anchor1 = Node(connector.anchors[0].x*size,connector.anchors[0].y*size)
                             anchor2 = Node(connector.anchors[1].x*size,connector.anchors[1].y*size)
                             canvas.create_oval(x + node.x + 5*size + anchor2.x, y + node.y + 5*size + anchor2.y, x + node.x - 5*size + anchor2.x, y + node.y - 5*size + anchor2.y, fill="red", tags="l_node")
                             canvas.create_oval(x + last_node.x + 5*size + anchor1.x, y + last_node.y + 5*size + anchor1.y, x + last_node.x - 5*size + anchor1.x, y + last_node.y - 5*size + anchor1.y, fill="red", tags="l_node")
-                        draw_bezier(last_node,node,connector.anchors[0],connector.anchors[1],canvas,connector.width,connector.color)
+                        draw_bezier(last_node,node,connector.anchors[0],connector.anchors[1],canvas,connector.width,connector.color if sel else "gray")
             if draw_nodes:
                 for node in segment.nodes:
-                    draw_node(canvas,x,y,node,size)
-def editor_draw(letter,canvas):
-    draw_letter(letter,canvas,1,[350,300])
+                    draw_node(canvas,x,y,node,size,sel=sel)
+def editor_draw(letter,canvas,selected_segment_index):
+    draw_letter(letter,canvas,1,[350,300],True,selected_segment_index)
 
-def draw_node(canvas,x,y,node,size,tag="l_node"):
-    canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=node.color, tags=tag)
+def draw_node(canvas,x,y,node,size,tag="l_node",sel=True):
+    canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=node.color if sel else "gray", tags=tag)
 def draw_bezier(node1,node2,rel_anchor1,rel_anchor2,canvas,width=3,color="black"):
     #Modified code from: https://stackoverflow.com/a/50302363
     x_start = node1.x
