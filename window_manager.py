@@ -9,8 +9,11 @@ from PIL import Image, ImageTk
 
 import debug_console as debug
 import letter_core as letter
+import saving_agent as saving
 #________GENERAL FUNCTIONS______________
 registered = {}
+language_selector_open = False
+letter_selector_open = False
 focused = 0
 def get(name) -> Tk:
     if name in registered.keys():
@@ -61,6 +64,130 @@ def delete_segment_button():
         editor_canvas.light_reset(False)
         editor_canvas.update()
 
+def open_language_selector():
+    #Written by Copilot
+    global language_selector_open
+
+    if language_selector_open:
+        return
+
+    def on_ok():
+        selected_index = listbox.curselection()
+        if selected_index:
+            selected_language = listbox.get(selected_index)
+            window.language_name = selected_language
+            close_language_selector()
+        else:
+            messagebox.showwarning("No selection", "Please select a language.")
+    
+    def on_cancel():
+        close_language_selector()
+    
+    def on_new():
+        new_language_name = simpledialog.askstring("New Language", "Enter the name of the new language:")
+        if new_language_name:
+            new_language_path = os.path.join(path, new_language_name)
+            letters_path = os.path.join(new_language_path, "letters")
+            os.makedirs(letters_path)
+            listbox.insert(END, new_language_name)
+            window.language_name = new_language_name
+            close_language_selector()
+
+    def close_language_selector():
+        global language_selector_open
+        close("language_selector")
+        language_selector_open = False
+
+    language_selector_open = True
+    language_selector = Toplevel(window)
+    register("language_selector",language_selector)
+    language_selector.title("Select Language")
+    language_selector.geometry("300x400")
+    language_selector.protocol("WM_DELETE_WINDOW", close_language_selector)
+
+    listbox = Listbox(language_selector)
+    listbox.pack(fill=BOTH, expand=True, padx=10, pady=10)
+
+    path = "languages"
+    directories = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
+    for directory in directories:
+        listbox.insert(END, directory)
+
+    button_frame = Frame(language_selector)
+    button_frame.pack(fill=X, padx=10, pady=10)
+
+    ok_button = Button(button_frame, text="OK", command=on_ok)
+    ok_button.pack(side=LEFT, padx=5)
+
+    cancel_button = Button(button_frame, text="Cancel", command=on_cancel)
+    cancel_button.pack(side=LEFT, padx=5)
+
+    new_button = Button(button_frame, text="New", command=on_new)
+    new_button.pack(side=LEFT, padx=5)
+
+def open_letter_selector():
+    global letter_selector_open
+
+    language = window.language_name
+
+    if letter_selector_open:
+        return
+
+    def on_open():
+        selected_index = listbox.curselection()
+        if selected_index:
+            selected_letter = listbox.get(selected_index)
+            editor_canvas.load_letter(saving.load_letter(window.language_name,selected_letter,True),selected_letter)
+            close_letter_selector()
+        else:
+            messagebox.showwarning("No selection", "Please select a letter.")
+    
+    def on_close():
+        close_letter_selector()
+
+    def close_letter_selector():
+        global letter_selector_open
+        close("letter_selector")
+        letter_selector_open = False
+    
+    def on_letter_select(event):
+        selected_index = listbox.curselection()
+        if selected_index:
+            selected_letter = listbox.get(selected_index)
+            for item in canvas.find_all():
+                canvas.delete(item)
+            letter.draw_letter(saving.load_letter(window.language_name,selected_letter,False),canvas,0.2,(75,75),False,None)
+            
+            
+
+    letter_selector_open = True
+    letter_selector = Toplevel(window)
+    register("letter_selector",letter_selector)
+    letter_selector.title("Select Letter")
+    letter_selector.geometry("300x450")
+    letter_selector.protocol("WM_DELETE_WINDOW", close_letter_selector)
+
+    canvas = Canvas(letter_selector, width=150, height=150, bg="white")
+    canvas.pack(pady=10)
+
+    listbox = Listbox(letter_selector)
+    listbox.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    listbox.bind('<<ListboxSelect>>', on_letter_select)
+
+    letters_path = os.path.join("languages", language, "letters")
+    letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+    for let in letters:
+        listbox.insert(END, let.rstrip(".json"))
+
+    button_frame = Frame(letter_selector)
+    button_frame.pack(fill=X, padx=10, pady=10)
+
+    open_button = Button(button_frame, text="Open", command=on_open)
+    open_button.pack(side=LEFT, padx=5)
+
+    close_button = Button(button_frame, text="Close", command=on_close)
+    close_button.pack(side=LEFT, padx=5)
+
 window = Tk()
 window.language_name = ""
 #Tk Variables
@@ -84,12 +211,14 @@ window.title("Scriptor - Letter Editor")
 toolbar_frame = Frame(window,height=40,width=500,style="toolbar.TFrame")
 new_button = Button(toolbar_frame, text="New",width=10,command=lambda: print("NEW"))
 save_button = Button(toolbar_frame, text="Save",width=10,command=lambda: print("SAVE"))
-open_button = Button(toolbar_frame, text="Open",width=10,command=lambda: print("OPEN"))
+open_button = Button(toolbar_frame, text="Open",width=10,command=open_letter_selector)
 settings_button = Button(toolbar_frame, text="Settings",width=10,command=lambda: print("SETTINGS"))
+language_button = Button(toolbar_frame, text="Language",width=10,command=open_language_selector)
 new_button.place(x=20,y=7)
 save_button.place(x=100,y=7)
 open_button.place(x=180,y=7)
 settings_button.place(x=260,y=7)
+language_button.place(x=340,y=7)
 toolbar_frame.place(x=20,y=0)
 
 navigation_frame = Frame(window,height=50,width=300,style="toolbar.TFrame")
@@ -114,24 +243,27 @@ editor_header_frame.place(x=0,y=0)
 editor_canvas = letter.EditorCanvas(Canvas(editor_frame,width=700,height=600,background="#525252"))
 editor_canvas.canvas.place(x=0,y=40)
 
-editor_segment_listbox = Listbox(editor_frame,width=43,height=15,bg=style.lookup("header.TFrame","background"),highlightcolor=style.lookup("hightlight.TListbox","background"))
+editor_segment_listbox_frame = Frame(editor_frame,width=282,height=300,style="header.TFrame")
+editor_segment_listbox_frame.place(x=710,y=344)
+
+editor_segment_listbox = Listbox(editor_segment_listbox_frame,width=43,height=15,bg=style.lookup("header.TFrame","background"),highlightcolor=style.lookup("hightlight.TListbox","background"))
 editor_segment_listbox.bind('<<ListboxSelect>>', on_segment_select)
 editor_segment_listbox.bind('<Double-1>', on_segment_double_click)
-editor_segment_listbox.place(x=720,y=400)
+editor_segment_listbox.place(x=10,y=45)
 
 plus_img = Image.open("images/plus.png")
 plus_img = plus_img.resize((20,20))
-plus_photo = ImageTk.PhotoImage(plus_img,master=editor_frame)
-editor_new_segment_button = Button(editor_frame,image=plus_photo,command=new_segment_button)
+plus_photo = ImageTk.PhotoImage(plus_img,master=editor_segment_listbox_frame)
+editor_new_segment_button = Button(editor_segment_listbox_frame,image=plus_photo,command=new_segment_button)
 editor_new_segment_button.plus_photo = plus_photo
-editor_new_segment_button.place(x=720,y=365)
+editor_new_segment_button.place(x=10,y=10)
 
 trash_img = Image.open("images/trash.png")
 trash_img = trash_img.resize((20,20))
-trash_photo = ImageTk.PhotoImage(trash_img,master=editor_frame)
-editor_delete_segment_button = Button(editor_frame,image=trash_photo,command=delete_segment_button) 
+trash_photo = ImageTk.PhotoImage(trash_img,master=editor_segment_listbox_frame)
+editor_delete_segment_button = Button(editor_segment_listbox_frame,image=trash_photo,command=delete_segment_button) 
 editor_delete_segment_button.trash_photo = trash_photo
-editor_delete_segment_button.place(x=770,y=365)
+editor_delete_segment_button.place(x=60,y=10)
 
 grid_img = Image.open("images/grid.png")
 grid_photo = ImageTk.PhotoImage(grid_img,master=window)

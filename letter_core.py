@@ -153,7 +153,7 @@ class EditorCanvas(ScriptorCanvas):
         if self.selection_type == None:
             self.cursor.x, self.cursor.y = self.calculate_snapped_position(event.x-350,event.y-300)
             self.update()
-            draw_node(self.canvas,350,300,self.cursor,1,"cursor")
+            draw_node(self.canvas,350,300,self.cursor,1,"cursor",color=self.cursor.color)
             self.cursor.x = -10
             self.cursor.y = -10
     def on_drag(self,event):
@@ -179,30 +179,24 @@ class EditorCanvas(ScriptorCanvas):
             self.update()
     def draw(self):
         editor_draw(self.letter,self.canvas,self.selected_segment)
-    def move_selection(self,x,y,is_relative=True) -> None:
-        if self.mode == "normal" or self.selection_type == "connector":
-            return
-        if is_relative:
-            for node in self.letter.segments[self.selected_segment].nodes:
-                if node.selected:
-                    node.x += x
-                    node.y += y
-                    node.deselect()
-        self.mode = "normal"
-        self.selection_type = None
-        self.num_selected = 0
-        self.update()
     def delete_selection(self) -> None:
-        if self.mode == "normal" or self.selection_type == "connector":
+        if self.mode == "normal":
             return
         nodes_copy = self.letter.segments[self.selected_segment].nodes[:]
-        for node in self.letter.segments[self.selected_segment].nodes:
-            if node.selected:
-                nodes_copy.remove(node)
+        connectors_copy = self.letter.segments[self.selected_segment].connectors[:]
+        if self.selection_type == "node":
+            for index,node in enumerate(self.letter.segments[self.selected_segment].nodes):
+                if node.selected:
+                    nodes_copy.remove(node)
+                    connectors_copy.remove(self.letter.segments[self.selected_segment].connectors[index])
+        else:
+            for index,connector in enumerate(self.letter.segments[self.selected_segment].connectors):
+                if connector.selected:
+                    connectors_copy.remove(connector)
+                    nodes_copy.remove(self.letter.segments[self.selected_segment].nodes[index])
         self.letter.segments[self.selected_segment].nodes = nodes_copy
-        self.mode = "normal"
-        self.selection_type = None
-        self.num_selected = 0
+        self.letter.segments[self.selected_segment].connectors = connectors_copy
+        self.light_reset(False)
         self.update()
     def deselect_all_connectors(self):
         for connector in self.letter.segments[self.selected_segment].connectors:
@@ -297,7 +291,7 @@ class EditorConnector(Connector):
 class Letter():
     def __init__(self):
         self.segments = []
-def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=None):
+def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=None,color_letter=None,width_letter=None):
         x,y = pos
         for segment_index, segment in enumerate(letter.segments):
             last_node = None
@@ -307,45 +301,62 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=No
                     break
                 if last_node != None:
                     connector = segment.connectors[i-1]
+                    if isinstance(connector,EditorConnector):
+                        color = connector.color if sel else "gray"
+                        width = connector.width
+                    else:
+                        color = color_letter if color_letter != None else "gray"
+                        width = width_letter
                     if connector.type == "LINE":
-                        canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=connector.color if sel else "gray", width=connector.width, tags="l_line")
+                        canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=color, width=width, tags="l_line")
                     else:
                         if isinstance(connector,EditorConnector) and connector.selected:
                             anchor1 = Node(connector.anchors[0].x*size,connector.anchors[0].y*size)
                             anchor2 = Node(connector.anchors[1].x*size,connector.anchors[1].y*size)
                             canvas.create_oval(x + node.x + 5*size + anchor2.x, y + node.y + 5*size + anchor2.y, x + node.x - 5*size + anchor2.x, y + node.y - 5*size + anchor2.y, fill="red", tags="l_node")
                             canvas.create_oval(x + last_node.x + 5*size + anchor1.x, y + last_node.y + 5*size + anchor1.y, x + last_node.x - 5*size + anchor1.x, y + last_node.y - 5*size + anchor1.y, fill="red", tags="l_node")
-                        draw_bezier(last_node,node,connector.anchors[0],connector.anchors[1],canvas,connector.width,connector.color if sel else "gray")
+                        draw_bezier(last_node,node,connector.anchors[0],connector.anchors[1],canvas,width,color if sel else "gray",size)
                 last_node = node
             if len(segment.nodes) > 1:
                     node = segment.nodes[0]
                     connector = segment.connectors[-1]
+                    if isinstance(connector,EditorConnector):
+                        color = connector.color if sel else "gray"
+                        width = connector.width
+                    else:
+                        color = color_letter if color_letter != None else "gray"
+                        width = width_letter
                     if connector.type == "LINE":
-                        canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=connector.color if sel else "gray", width=connector.width, tags="l_line")
+                        canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=color, width=width, tags="l_line")
                     else:
                         if isinstance(connector,EditorConnector) and connector.selected:
                             anchor1 = Node(connector.anchors[0].x*size,connector.anchors[0].y*size)
                             anchor2 = Node(connector.anchors[1].x*size,connector.anchors[1].y*size)
                             canvas.create_oval(x + node.x + 5*size + anchor2.x, y + node.y + 5*size + anchor2.y, x + node.x - 5*size + anchor2.x, y + node.y - 5*size + anchor2.y, fill="red", tags="l_node")
                             canvas.create_oval(x + last_node.x + 5*size + anchor1.x, y + last_node.y + 5*size + anchor1.y, x + last_node.x - 5*size + anchor1.x, y + last_node.y - 5*size + anchor1.y, fill="red", tags="l_node")
-                        draw_bezier(last_node,node,connector.anchors[0],connector.anchors[1],canvas,connector.width,connector.color if sel else "gray")
+                        draw_bezier(last_node,node,connector.anchors[0],connector.anchors[1],canvas,width,color)
             if draw_nodes:
                 for node in segment.nodes:
-                    draw_node(canvas,x,y,node,size,sel=sel)
+                    if isinstance(node,EditorNode):
+                        color = node.color if sel else "gray"
+                    else:
+                        color = color_letter if color_letter != None else "gray"
+                    draw_node(canvas,x,y,node,size,sel=sel,color=color)
 def editor_draw(letter,canvas,selected_segment_index):
     draw_letter(letter,canvas,1,[350,300],True,selected_segment_index)
 
-def draw_node(canvas,x,y,node,size,tag="l_node",sel=True):
-    canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=node.color if sel else "gray", tags=tag)
-def draw_bezier(node1,node2,rel_anchor1,rel_anchor2,canvas,width=3,color="black"):
+def draw_node(canvas,x,y,node,size,tag="l_node",sel=True,color="gray"):
+    canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=color if sel else "gray", tags=tag)
+def draw_bezier(node1,node2,rel_anchor1,rel_anchor2,canvas,width=3,color="black",resolution=1):
     #Modified code from: https://stackoverflow.com/a/50302363
     x_start = node1.x
     y_start = node1.y
     anchor1 = Node(rel_anchor1.x+node1.x,rel_anchor1.y+node1.y)
     anchor2 = Node(rel_anchor2.x+node2.x,rel_anchor2.y+node2.y)
 
+    #n = max(1,int(50//resolution))
     n = 50
-    for i in range(50):
+    for i in range(n):
         t = i / n
         x = (node1.x * (1-t)**3 + anchor1.x * 3 * t * (1-t)**2 + anchor2.x * 3 * t**2 * (1-t) + node2.x * t**3)
         y = (node1.y * (1-t)**3 + anchor1.y * 3 * t * (1-t)**2 + anchor2.y * 3 * t**2 * (1-t) + node2.y * t**3)

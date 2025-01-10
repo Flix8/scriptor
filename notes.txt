@@ -4,7 +4,6 @@ Different modes:
 - Writing
 
 To-Do:
-- Implement Deleting
 - Configure Field (position, alignment)
 - Functionality with multiple frames and switching between them.
 - Make the new, save and load button work (and a create new language button)

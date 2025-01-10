@@ -1,3 +1,1 @@
 THIS LOG IS FOR DEBUGGING PURPOSES. THANK YOU.
-[Wed Jan  8 20:30:03 2025]: Trying to execute command: manager.editor_canvas.load_letter(saving.load_letter("test","test_letter",True),"test_letter")
-[Wed Jan  8 20:30:03 2025]: yes
