@@ -42,6 +42,7 @@ class EditorCanvas(ScriptorCanvas):
         self.step_size_options = [20,10,5,1] #Needs to be imported from settings
         self.letter = Letter()
         self.letter.segments.append(Segment())
+        self.saved = True
         self.light_reset()
     def load_letter(self,letter,name):
         self.letter_name = name
@@ -131,6 +132,7 @@ class EditorCanvas(ScriptorCanvas):
                 self.selection_type = None
                 self.num_selected = 0
             elif mode == "normal":
+                self.saved = False
                 new_node = EditorNode(x,y)
                 self.last_node_created = new_node
                 self.letter.segments[self.selected_segment].nodes.append(new_node)
@@ -163,6 +165,7 @@ class EditorCanvas(ScriptorCanvas):
             self.last_node_created.y = y
             self.update()
         if isinstance(self.last_pos,tuple):
+            self.saved = False
             dx = x-self.last_pos[0]
             dy = y-self.last_pos[1]
             self.last_pos = (x,y)
@@ -182,6 +185,7 @@ class EditorCanvas(ScriptorCanvas):
     def delete_selection(self) -> None:
         if self.mode == "normal":
             return
+        self.saved = False
         nodes_copy = self.letter.segments[self.selected_segment].nodes[:]
         connectors_copy = self.letter.segments[self.selected_segment].connectors[:]
         if self.selection_type == "node":
@@ -315,7 +319,7 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=No
                             anchor2 = Node(connector.anchors[1].x*size,connector.anchors[1].y*size)
                             canvas.create_oval(x + node.x + 5*size + anchor2.x, y + node.y + 5*size + anchor2.y, x + node.x - 5*size + anchor2.x, y + node.y - 5*size + anchor2.y, fill="red", tags="l_node")
                             canvas.create_oval(x + last_node.x + 5*size + anchor1.x, y + last_node.y + 5*size + anchor1.y, x + last_node.x - 5*size + anchor1.x, y + last_node.y - 5*size + anchor1.y, fill="red", tags="l_node")
-                        draw_bezier(last_node,node,connector.anchors[0],connector.anchors[1],canvas,width,color if sel else "gray",size)
+                        draw_bezier(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1],canvas,width,color)
                 last_node = node
             if len(segment.nodes) > 1:
                     node = segment.nodes[0]
@@ -334,7 +338,7 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=No
                             anchor2 = Node(connector.anchors[1].x*size,connector.anchors[1].y*size)
                             canvas.create_oval(x + node.x + 5*size + anchor2.x, y + node.y + 5*size + anchor2.y, x + node.x - 5*size + anchor2.x, y + node.y - 5*size + anchor2.y, fill="red", tags="l_node")
                             canvas.create_oval(x + last_node.x + 5*size + anchor1.x, y + last_node.y + 5*size + anchor1.y, x + last_node.x - 5*size + anchor1.x, y + last_node.y - 5*size + anchor1.y, fill="red", tags="l_node")
-                        draw_bezier(last_node,node,connector.anchors[0],connector.anchors[1],canvas,width,color)
+                        draw_bezier(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1],canvas,width,color)
             if draw_nodes:
                 for node in segment.nodes:
                     if isinstance(node,EditorNode):
@@ -347,21 +351,21 @@ def editor_draw(letter,canvas,selected_segment_index):
 
 def draw_node(canvas,x,y,node,size,tag="l_node",sel=True,color="gray"):
     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=color if sel else "gray", tags=tag)
-def draw_bezier(node1,node2,rel_anchor1,rel_anchor2,canvas,width=3,color="black",resolution=1):
+def draw_bezier(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2,canvas,width=3,color="black"):
     #Modified code from: https://stackoverflow.com/a/50302363
+    node1 = Node(posx + abs_node1.x * size,posy + abs_node1.y * size)
+    node2 = Node(posx + abs_node2.x * size,posy + abs_node2.y * size)
     x_start = node1.x
     y_start = node1.y
-    anchor1 = Node(rel_anchor1.x+node1.x,rel_anchor1.y+node1.y)
-    anchor2 = Node(rel_anchor2.x+node2.x,rel_anchor2.y+node2.y)
-
-    #n = max(1,int(50//resolution))
+    anchor1 = Node(rel_anchor1.x * size + node1.x,rel_anchor1.y * size + node1.y)
+    anchor2 = Node(rel_anchor2.x * size + node2.x,rel_anchor2.y * size + node2.y)
     n = 50
     for i in range(n):
         t = i / n
         x = (node1.x * (1-t)**3 + anchor1.x * 3 * t * (1-t)**2 + anchor2.x * 3 * t**2 * (1-t) + node2.x * t**3)
         y = (node1.y * (1-t)**3 + anchor1.y * 3 * t * (1-t)**2 + anchor2.y * 3 * t**2 * (1-t) + node2.y * t**3)
 
-        canvas.create_line(x+350, y+300, x_start+350, y_start+300,fill=color, width=width,tags="l_line")
+        canvas.create_line(x, y, x_start, y_start,fill=color, width=width,tags="l_line")
         x_start = x
         y_start = y
 

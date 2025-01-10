@@ -1,0 +1,160 @@
+{
+      "segments": [
+            {
+                  "name": "Outer",
+                  "nodes": [
+                        {
+                              "x": 0,
+                              "y": -280
+                        },
+                        {
+                              "x": 180,
+                              "y": 0
+                        },
+                        {
+                              "x": 0,
+                              "y": 80
+                        },
+                        {
+                              "x": -180,
+                              "y": 0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Inner",
+                  "nodes": [
+                        {
+                              "x": 0,
+                              "y": 40
+                        },
+                        {
+                              "x": -130,
+                              "y": -15
+                        },
+                        {
+                              "x": 0,
+                              "y": -220
+                        },
+                        {
+                              "x": 120,
+                              "y": -10
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Bar1",
+                  "nodes": [
+                        {
+                              "x": -70,
+                              "y": 10
+                        },
+                        {
+                              "x": -70,
+                              "y": -110
+                        },
+                        {
+                              "x": -30,
+                              "y": -173
+                        },
+                        {
+                              "x": -30,
+                              "y": 27
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Bar2",
+                  "nodes": [
+                        {
+                              "x": 30,
+                              "y": -168
+                        },
+                        {
+                              "x": 30,
+                              "y": 27
+                        },
+                        {
+                              "x": 70,
+                              "y": 10
+                        },
+                        {
+                              "x": 70,
+                              "y": -100
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        }
+                  ]
+            }
+      ]
+}

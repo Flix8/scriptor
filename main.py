@@ -60,8 +60,11 @@ def on_update():
                 manager.window.language_name = saving.new_language
                 saving.new_language = None
             if True:#This should look if the editor is in focus
-                if manager.editor_selected_label.letter != manager.editor_canvas.letter_name or manager.editor_selected_label.language != manager.window.language_name:
-                    manager.txt_selected_label.set(f"Selected: {manager.editor_canvas.letter_name} [{manager.window.language_name}]")
+                if manager.editor_selected_label.letter != manager.editor_canvas.letter_name or manager.editor_selected_label.language != manager.window.language_name or manager.editor_selected_label.saved != manager.editor_canvas.saved:
+                    manager.txt_selected_label.set(f"Selected: {manager.editor_canvas.letter_name} [{manager.window.language_name}] {"*" if not manager.editor_canvas.saved else ""}")
+                    manager.editor_selected_label.letter = manager.editor_canvas.letter_name
+                    manager.editor_selected_label.language = manager.window.language_name
+                    manager.editor_selected_label.saved = manager.editor_canvas.saved
                 if manager.editor_canvas.reload_segments:
                     manager.editor_segment_listbox.delete(0,END)
                     for segment in manager.editor_canvas.letter.segments:

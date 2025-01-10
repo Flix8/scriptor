@@ -21,7 +21,7 @@ def to_plain_letter(letter: l.Letter) -> l.Letter:
         plain_letter.segments.append(plain_segment)
     return plain_letter
 
-def save_letter(language: str, name_letter: str, letter: l.Letter) -> bool:
+def save_letter(language: str, name_letter: str, letter: l.Letter) -> None:
     letter = to_plain_letter(letter)
     directory = f"languages/{language}/letters"
     if not os.path.exists(directory):
@@ -29,7 +29,6 @@ def save_letter(language: str, name_letter: str, letter: l.Letter) -> bool:
     file_path = f"{directory}/{name_letter}.json"
     with open(file_path, 'w') as file:
         json.dump(letter, file, default=lambda o: o.__dict__, indent=6)
-    return True
 
 def load_letter(language: str, name_letter: str, use_editor_versions: bool = False) -> l.Letter:
     global new_language

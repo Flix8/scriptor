@@ -14,6 +14,7 @@ import saving_agent as saving
 registered = {}
 language_selector_open = False
 letter_selector_open = False
+save_window_open = False
 focused = 0
 def get(name) -> Tk:
     if name in registered.keys():
@@ -66,6 +67,9 @@ def delete_segment_button():
 
 def open_language_selector():
     #Written by Copilot
+    if not editor_canvas.saved:
+        ask_save("language")
+        return
     global language_selector_open
 
     if language_selector_open:
@@ -97,6 +101,16 @@ def open_language_selector():
         global language_selector_open
         close("language_selector")
         language_selector_open = False
+    
+    def on_language_double_click(event):
+        selected_index = listbox.curselection()
+        if selected_index:
+            language = listbox.get(selected_index)
+            new_name = simpledialog.askstring("Rename Language", "Enter new name:", initialvalue=language)
+            if new_name and new_name != language:
+                os.rename(os.path.join(path, language),os.path.join(path, new_name))
+                listbox.delete(selected_index)
+                listbox.insert(selected_index, new_name)
 
     language_selector_open = True
     language_selector = Toplevel(window)
@@ -107,6 +121,7 @@ def open_language_selector():
 
     listbox = Listbox(language_selector)
     listbox.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    listbox.bind('<Double-1>', on_language_double_click)
 
     path = "languages"
     directories = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
@@ -126,6 +141,12 @@ def open_language_selector():
     new_button.pack(side=LEFT, padx=5)
 
 def open_letter_selector():
+    if not editor_canvas.saved:
+        ask_save("open")
+        return
+    if window.language_name == "":
+        messagebox.showwarning("No selection", "Please select a language.")
+        return
     global letter_selector_open
 
     language = window.language_name
@@ -138,6 +159,7 @@ def open_letter_selector():
         if selected_index:
             selected_letter = listbox.get(selected_index)
             editor_canvas.load_letter(saving.load_letter(window.language_name,selected_letter,True),selected_letter)
+            editor_canvas.saved = True
             close_letter_selector()
         else:
             messagebox.showwarning("No selection", "Please select a letter.")
@@ -157,9 +179,18 @@ def open_letter_selector():
             for item in canvas.find_all():
                 canvas.delete(item)
             letter.draw_letter(saving.load_letter(window.language_name,selected_letter,False),canvas,0.2,(75,75),False,None)
-            
-            
 
+    def on_letter_double_click(event):
+        selected_index = listbox.curselection()
+        if selected_index:
+            letter_name = listbox.get(selected_index)
+            new_name = simpledialog.askstring("Rename Letter", "Enter new name:", initialvalue=letter_name)
+            if new_name and new_name != letter_name:
+                os.rename(os.path.join(letters_path, letter_name + ".json"),os.path.join(letters_path, new_name + ".json"))
+                listbox.delete(selected_index)
+                listbox.insert(selected_index, new_name)
+
+            
     letter_selector_open = True
     letter_selector = Toplevel(window)
     register("letter_selector",letter_selector)
@@ -173,11 +204,12 @@ def open_letter_selector():
     listbox = Listbox(letter_selector)
     listbox.pack(fill=BOTH, expand=True, padx=10, pady=10)
     listbox.bind('<<ListboxSelect>>', on_letter_select)
+    listbox.bind('<Double-1>', on_letter_double_click)
 
     letters_path = os.path.join("languages", language, "letters")
     letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
     for let in letters:
-        listbox.insert(END, let.rstrip(".json"))
+        listbox.insert(END, os.path.splitext(let)[0])
 
     button_frame = Frame(letter_selector)
     button_frame.pack(fill=X, padx=10, pady=10)
@@ -188,6 +220,141 @@ def open_letter_selector():
     close_button = Button(button_frame, text="Close", command=on_close)
     close_button.pack(side=LEFT, padx=5)
 
+def save_letter_selector():
+    global letter_selector_open
+
+    language = window.language_name
+
+    if letter_selector_open:
+        return
+
+    def on_save():
+        selected_index = listbox.curselection()
+        if selected_index:
+            selected_letter = listbox.get(selected_index)
+            debug.send(f"Saving {selected_letter}[{window.language_name}]")
+            saving.save_letter(window.language_name,selected_letter,editor_canvas.letter)
+            editor_canvas.letter_name = selected_letter
+            editor_canvas.saved = True
+            close_letter_selector()
+        else:
+            entered_name = entry.get()
+            if entered_name:
+                debug.send(f"Saving {entered_name}[{window.language_name}]")
+                saving.save_letter(window.language_name,entered_name,editor_canvas.letter)
+                editor_canvas.letter_name = entered_name
+                editor_canvas.saved = True
+                close_letter_selector()
+            else:
+                messagebox.showwarning("No name", "Please enter a name or select a letter.")
+    
+    def on_cancel():
+        close_letter_selector()
+
+    def close_letter_selector():
+        global letter_selector_open
+        close("save_letter_selector")
+        letter_selector_open = False
+
+    def on_letter_select(event):
+        selected_index = listbox.curselection()
+        if selected_index:
+            selected_letter = listbox.get(selected_index)
+            entry.delete(0, END)
+            entry.insert(0, selected_letter)
+
+    letter_selector_open = True
+    letter_selector = Toplevel(window)
+    register("save_letter_selector",letter_selector)
+    letter_selector.title("Save Letter")
+    letter_selector.geometry("300x400")
+    letter_selector.protocol("WM_DELETE_WINDOW", close_letter_selector)
+
+    listbox = Listbox(letter_selector)
+    listbox.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    listbox.bind('<<ListboxSelect>>', on_letter_select)
+
+    letters_path = os.path.join("languages", language, "letters")
+    letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+    for let in letters:
+        listbox.insert(END, os.path.splitext(let)[0])
+
+    entry_frame = Frame(letter_selector)
+    entry_frame.pack(fill=X, padx=10, pady=10)
+
+    entry_label = Label(entry_frame, text="Enter name:")
+    entry_label.pack(side=LEFT, padx=5)
+
+    entry = Entry(entry_frame)
+    entry.pack(fill=X, expand=True, padx=5)
+
+    button_frame = Frame(letter_selector)
+    button_frame.pack(fill=X, padx=10, pady=10)
+
+    save_button = Button(button_frame, text="Save", command=on_save)
+    save_button.pack(side=LEFT, padx=5)
+
+    cancel_button = Button(button_frame, text="Cancel", command=on_cancel)
+    cancel_button.pack(side=LEFT, padx=5)
+
+def ask_save(action="new"):
+    global save_window_open
+
+    if save_window_open:
+        return
+    def on_save():
+        save_letter_selector()
+        close_save_window()
+
+    def on_ignore():
+        #actions: new, language, open
+        editor_canvas.saved = True
+        if action == "new":
+            create_new_letter()
+        if action == "language":
+            open_language_selector()
+        if action == "open":
+            open_letter_selector()
+        close_save_window()
+
+    def on_cancel():
+        close_save_window()
+    
+    def close_save_window():
+        global save_window_open
+        close("save_window")
+        save_window_open = False
+
+    save_window_open = True
+    save_window = Toplevel(window)
+    register("save_window",save_window)
+    save_window.title("Save Changes")
+    save_window.geometry("300x150")
+    save_window.protocol("WM_DELETE_WINDOW", close_save_window)
+
+    label = Label(save_window, text="Are you sure you don't want to save?")
+    label.pack(pady=20)
+
+    button_frame = Frame(save_window)
+    button_frame.pack(pady=10)
+
+    save_button = Button(button_frame, text="Save", command=on_save)
+    save_button.pack(side=LEFT, padx=5)
+
+    ignore_button = Button(button_frame, text="Ignore", command=on_ignore)
+    ignore_button.pack(side=LEFT, padx=5)
+
+    cancel_button = Button(button_frame, text="Cancel", command=on_cancel)
+    cancel_button.pack(side=LEFT, padx=5)
+
+def create_new_letter():
+    if not editor_canvas.saved:
+        ask_save("new")
+        return
+    editor_canvas.saved = True
+    new_letter = letter.Letter()
+    new_letter.segments.append(letter.Segment())
+    editor_canvas.load_letter(new_letter,"Unnamed")
 window = Tk()
 window.language_name = ""
 #Tk Variables
@@ -210,7 +377,7 @@ window.title("Scriptor - Letter Editor")
 
 toolbar_frame = Frame(window,height=40,width=500,style="toolbar.TFrame")
 new_button = Button(toolbar_frame, text="New",width=10,command=lambda: print("NEW"))
-save_button = Button(toolbar_frame, text="Save",width=10,command=lambda: print("SAVE"))
+save_button = Button(toolbar_frame, text="Save",width=10,command=save_letter_selector)
 open_button = Button(toolbar_frame, text="Open",width=10,command=open_letter_selector)
 settings_button = Button(toolbar_frame, text="Settings",width=10,command=lambda: print("SETTINGS"))
 language_button = Button(toolbar_frame, text="Language",width=10,command=open_language_selector)
@@ -236,6 +403,7 @@ editor_header_frame = Frame(editor_frame,height=40,width=700,style="header.TFram
 editor_selected_label = Label(editor_header_frame,font=('Helvetica',15),background="#9e9d9d",textvariable=txt_selected_label)
 editor_selected_label.letter = ""
 editor_selected_label.language = ""
+editor_selected_label.saved = None
 editor_selected_label.place(x=5,y=7)
 editor_frame.place(x=0,y=60)
 editor_header_frame.place(x=0,y=0)
