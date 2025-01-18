@@ -1,4 +1,7 @@
 [
+      "manager.update_configuration_entries(0)",
+      "manager.update_configuration_entries(1)",
+      "manager.update_configuration_entries(3)",
       "get debug_mode",
       "get debug_mode",
       "manager.editor_canvas.delete_selection()",
@@ -31,8 +34,5 @@
       "manager.editor_canvas.delete_selection()",
       "manager.editor_segment_listbox_frame.place(x=710,y=344)",
       "manager.editor_segment_listbox_frame.place(x=710,y=334)",
-      "manager.editor_segment_listbox_frame.place(x=710,y=324)",
-      "manager.editor_segment_listbox_frame.place(x=710,y=284)",
-      "manager.editor_segment_listbox_frame.configure(width=282,height=300)",
-      "manager.editor_segment_listbox_frame.configure(width=283,height=300)"
+      "manager.editor_segment_listbox_frame.place(x=710,y=324)"
 ]

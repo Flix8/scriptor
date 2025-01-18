@@ -3,6 +3,12 @@ import letter_core as l
 
 new_language = None
 
+class SessionData():
+    def __init__(self,language,letter=None,open_frame="Editor"):
+        self.language = language if language != "" else None
+        self.letter = letter if letter != "Unnamed" else None
+        self.open_frame = open_frame
+
 def to_plain_letter(letter: l.Letter) -> l.Letter:
     #Written by Copilot
     plain_letter = l.Letter()

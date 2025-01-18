@@ -43,6 +43,7 @@ class EditorCanvas(ScriptorCanvas):
         self.letter = Letter()
         self.letter.segments.append(Segment())
         self.saved = True
+        self.configuration_data = None
         self.light_reset()
     def load_letter(self,letter,name):
         self.letter_name = name
@@ -95,9 +96,21 @@ class EditorCanvas(ScriptorCanvas):
                     self.mode = "selection_simple" if self.mode == "normal" else "selection_multiple"
                     if self.mode == "selection_simple":
                         self.selection_type = "node"
+                        #Sending to Configuration
+                        self.configuration_data = [1,node.x,node.y]
+                    elif self.mode == "selection_multiple":
+                        #Sending to Configuration
+                        sendx,sendy = 0,0
+                        num = 0
+                        for node in self.letter.segments[self.selected_segment].nodes:
+                            if node.selected:
+                                sendx += node.x
+                                sendy += node.y
+                                num += 1
+                        self.configuration_data = [1,sendx/num,sendy/num]
                     self.num_selected += 1
                 selected = True
-                
+                break                
         if not selected:
             mode = self.mode
             if mode != "normal" and self.selection_type == "node":
@@ -149,6 +162,19 @@ class EditorCanvas(ScriptorCanvas):
             self.mode = "selection_simple" if self.num_selected == 1 else "normal" if self.num_selected == 0 else self.mode
             if self.mode == "normal":
                 self.selection_type = None
+            elif self.mode == "selection_simple":
+                #Sending to Configuration
+                self.configuration_data = [1,node.x,node.y]
+            elif self.mode == "selection_multiple":
+                #Sending to Configuration
+                sendx,sendy = 0,0
+                num = 0
+                for node in self.letter.segments[self.selected_segment].nodes:
+                    if node.selected:
+                        sendx += node.x
+                        sendy += node.y
+                        num += 1
+                self.configuration_data = [1,sendx/num,sendy/num]
             self.to_deselect = None
             self.update()
     def on_move(self,event):

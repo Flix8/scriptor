@@ -42,6 +42,7 @@ def on_update():
         try:
             clipboard = manager.get('main').clipboard_get()
             if clipboard:
+                debug.send(f"Executing from clipboard:\n{clipboard}")
                 for command in clipboard.split("\n"):
                     debug.debug_window.to_execute.append(command)
             manager.get('main').clipboard_clear()
@@ -79,12 +80,18 @@ def on_update():
                     for segment in manager.editor_canvas.letter.segments:
                         manager.editor_segment_listbox.insert(END,segment.name)
                     manager.editor_canvas.reload_segments = False
+                if isinstance(manager.editor_canvas.configuration_data,list):
+                    debug.send(f"Processing {manager.editor_canvas.configuration_data}")
+                    manager.editor_canvas.configuration_data = None
 
     manager.get("main").after(100,on_update)
 def on_exit():
     cmd_log_file = open("debug_cmd_log.json","w")
     json.dump(debug.debug_window.command_log,cmd_log_file,indent=6)
     cmd_log_file.close()
+    session_save = open("last_session_info.json","w")
+    json.dump(saving.SessionData(manager.get("main").language_name,manager.editor_canvas.letter_name),session_save,default=lambda o: o.__dict__,indent=6)
+    session_save.close()
     for window_name in manager.registered:
         if window_name == "main": continue
         try:
@@ -101,4 +108,21 @@ sys.excepthook = custom_handler
 cmd_log_file = open("debug_cmd_log.json","r")
 debug.debug_window.command_log=json.load(cmd_log_file)
 cmd_log_file.close()
+session_save = open("last_session_info.json","r")
+last_session_data = json.load(session_save)
+if last_session_data["language"] != None:
+    directories = [d for d in manager.os.listdir("languages") if manager.os.path.isdir(manager.os.path.join("languages", d))]
+    if last_session_data["language"] not in directories:
+        messagebox.showwarning("Error Loading","Could not load language from last session - Missing")
+    else:
+        manager.get("main").language_name = last_session_data["language"]
+    if last_session_data["letter"] != None:
+        letters_path = manager.os.path.join("languages", manager.get("main").language_name, "letters")
+        letters = [f for f in manager.os.listdir(letters_path) if manager.os.path.isfile(manager.os.path.join(letters_path, f))]
+        if last_session_data["letter"] + ".json" not in letters:
+            messagebox.showwarning("Error Loading","Could not load letter from last session - Missing")
+        else:
+            manager.editor_canvas.load_letter(saving.load_letter(manager.get("main").language_name,last_session_data["letter"],True),last_session_data["letter"])
+            manager.editor_canvas.saved = True
+session_save.close()
 manager.get("main").mainloop()

@@ -80,6 +80,7 @@ def open_language_selector():
         if selected_index:
             selected_language = listbox.get(selected_index)
             window.language_name = selected_language
+            create_new_letter()
             close_language_selector()
         else:
             messagebox.showwarning("No selection", "Please select a language.")
@@ -301,6 +302,7 @@ def ask_save(action="new"):
     global save_window_open
 
     if save_window_open:
+        print("RET HERE")
         return
     def on_save():
         save_letter_selector()
@@ -441,38 +443,49 @@ editor_canvas.grid_photo = grid_photo
 configuration_frame = Frame(editor_frame, width=282, height=300, style="header.TFrame")
 configuration_frame.place(x=710, y=40)
 
-config_lbl_1_x = Label(configuration_frame, text=f"X1:", background=style.lookup("header.TFrame", "background"))
-config_lbl_2_x = Label(configuration_frame, text=f"X2:", background=style.lookup("header.TFrame", "background"))
-config_lbl_3_x = Label(configuration_frame, text=f"X3:", background=style.lookup("header.TFrame", "background"))
-config_lbl_4_x = Label(configuration_frame, text=f"X4:", background=style.lookup("header.TFrame", "background"))
-config_lbl_1_y = Label(configuration_frame, text=f"Y1:", background=style.lookup("header.TFrame", "background"))
-config_lbl_2_y = Label(configuration_frame, text=f"Y2:", background=style.lookup("header.TFrame", "background"))
-config_lbl_3_y = Label(configuration_frame, text=f"Y3:", background=style.lookup("header.TFrame", "background"))
-config_lbl_4_y = Label(configuration_frame, text=f"Y4:", background=style.lookup("header.TFrame", "background"))
-config_ent_1_x = Entry(configuration_frame, width=10)
-config_ent_2_x = Entry(configuration_frame, width=10)
-config_ent_3_x = Entry(configuration_frame, width=10)
-config_ent_4_x = Entry(configuration_frame, width=10)
-config_ent_1_y = Entry(configuration_frame, width=10)
-config_ent_2_y = Entry(configuration_frame, width=10)
-config_ent_3_y = Entry(configuration_frame, width=10)
-config_ent_4_y = Entry(configuration_frame, width=10)
-config_lbl_1_x.place(x=30,y=10)
-config_lbl_2_x.place(x=30,y=40)
-config_lbl_3_x.place(x=30,y=70)
-config_lbl_4_x.place(x=30,y=100)
-config_lbl_1_y.place(x=150,y=10)
-config_lbl_2_y.place(x=150,y=40)
-config_lbl_3_y.place(x=150,y=70)
-config_lbl_4_y.place(x=150,y=100)
-config_ent_1_x.place(x=60,y=10)
-config_ent_2_x.place(x=60,y=40)
-config_ent_3_x.place(x=60,y=70)
-config_ent_4_x.place(x=60,y=100)
-config_ent_1_y.place(x=180,y=10)
-config_ent_2_y.place(x=180,y=40)
-config_ent_3_y.place(x=180,y=70)
-config_ent_4_y.place(x=180,y=100)
+config_labels_x = [
+    Label(configuration_frame, text=f"X1:", background=style.lookup("header.TFrame", "background")),
+    Label(configuration_frame, text=f"X2:", background=style.lookup("header.TFrame", "background")),
+    Label(configuration_frame, text=f"X3:", background=style.lookup("header.TFrame", "background")),
+    Label(configuration_frame, text=f"X4:", background=style.lookup("header.TFrame", "background"))
+]
+
+config_labels_y = [
+    Label(configuration_frame, text=f"Y1:", background=style.lookup("header.TFrame", "background")),
+    Label(configuration_frame, text=f"Y2:", background=style.lookup("header.TFrame", "background")),
+    Label(configuration_frame, text=f"Y3:", background=style.lookup("header.TFrame", "background")),
+    Label(configuration_frame, text=f"Y4:", background=style.lookup("header.TFrame", "background"))
+]
+
+config_entries_x = [
+    Entry(configuration_frame, width=10),
+    Entry(configuration_frame, width=10),
+    Entry(configuration_frame, width=10),
+    Entry(configuration_frame, width=10)
+]
+
+config_entries_y = [
+    Entry(configuration_frame, width=10),
+    Entry(configuration_frame, width=10),
+    Entry(configuration_frame, width=10),
+    Entry(configuration_frame, width=10)
+]
+
+def update_configuration_entries(num_pairs):
+    for i in range(4):
+        if i < num_pairs:
+            config_labels_x[i].place(x=30, y=10 + i * 30)
+            config_entries_x[i].place(x=60, y=10 + i * 30)
+            config_labels_y[i].place(x=150, y=10 + i * 30)
+            config_entries_y[i].place(x=180, y=10 + i * 30)
+        else:
+            config_labels_x[i].place_forget()
+            config_entries_x[i].place_forget()
+            config_labels_y[i].place_forget()
+            config_entries_y[i].place_forget()
+
+window.shown_config_entries = 0
+update_configuration_entries(window.shown_config_entries)
 
 debug.init(window)
 
