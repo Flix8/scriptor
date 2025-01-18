@@ -4,7 +4,7 @@ Different modes:
 - Writing
 
 To-Do:
-- Configure Field (position, alignment)
+- Configure Field (position, alignment, deleting, turn into bezier)
 - Functionality with multiple frames and switching between them.
 - Make the new, save and load button work (and a create new language button)
 - Track whether letter was saved and if not and trying to switch window or close window, prompt to safe.

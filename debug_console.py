@@ -24,7 +24,7 @@ class DebugWindow:
 
         self.root.withdraw()
 
-        self.to_execute = ""
+        self.to_execute = []
 
     def send(self, message):
         """Add a message to the text area."""
@@ -69,7 +69,7 @@ class DebugWindow:
             if len(self.command_log) > 36:
                 self.command_log.pop()
             self.send(f"Trying to execute command: {command}")
-            self.to_execute = command
+            self.to_execute.append(command)
             self.command_entry.delete(0, tk.END)  # Clear the entry field
 
 def init(master):

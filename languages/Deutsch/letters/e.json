@@ -1,0 +1,107 @@
+{
+      "segments": [
+            {
+                  "name": "Segment",
+                  "nodes": [
+                        {
+                              "x": 120,
+                              "y": 120
+                        },
+                        {
+                              "x": -120,
+                              "y": 120
+                        },
+                        {
+                              "x": -120,
+                              "y": -180
+                        },
+                        {
+                              "x": 120,
+                              "y": -180
+                        },
+                        {
+                              "x": 120,
+                              "y": -120
+                        },
+                        {
+                              "x": -40,
+                              "y": -120
+                        },
+                        {
+                              "x": -40,
+                              "y": -60
+                        },
+                        {
+                              "x": 120,
+                              "y": -60
+                        },
+                        {
+                              "x": 120,
+                              "y": 0
+                        },
+                        {
+                              "x": -40,
+                              "y": 0
+                        },
+                        {
+                              "x": -40,
+                              "y": 60
+                        },
+                        {
+                              "x": 120,
+                              "y": 60
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        }
+                  ]
+            }
+      ]
+}

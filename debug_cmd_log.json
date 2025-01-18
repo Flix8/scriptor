@@ -1,4 +1,12 @@
 [
+      "get debug_mode",
+      "get debug_mode",
+      "manager.editor_canvas.delete_selection()",
+      "manager.editor_canvas.delete_selection()",
+      "manager.create_new_letter()",
+      "manager.editor_canvas.delete_selection()",
+      "manager.editor_canvas.delete_selection()",
+      "manager.create_new_letter()",
       "manager.editor_canvas.delete_selection()",
       "get manager.editor_selected_label.saved",
       "manager.save_letter_selector()",
@@ -26,13 +34,5 @@
       "manager.editor_segment_listbox_frame.place(x=710,y=324)",
       "manager.editor_segment_listbox_frame.place(x=710,y=284)",
       "manager.editor_segment_listbox_frame.configure(width=282,height=300)",
-      "manager.editor_segment_listbox_frame.configure(width=283,height=300)",
-      "manager.editor_segment_listbox_frame.configure(width=285,height=300)",
-      "manager.editor_segment_listbox_frame.configure(width=280,height=300)",
-      "manager.editor_segment_listbox_frame.configure(width=270,height=300)",
-      "manager.editor_segment_listbox_frame.configure(width=250,height=300)",
-      "manager.editor_segment_listbox_frame.configure(width=290,height=300)",
-      "manager.editor_segment_listbox_frame.configure(width=300,height=300)",
-      "manager.editor_segment_listbox_frame.configure(width=250,height=300)",
-      "manager.editor_segment_listbox_frame.place(x=710,y=244)"
+      "manager.editor_segment_listbox_frame.configure(width=283,height=300)"
 ]

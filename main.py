@@ -28,7 +28,6 @@ def flick_debug():
         debug.debug_window.command_entry.focus()
     else:
         debug.root.withdraw()
-
 def manual_exit():
     if debug_mode:
         on_exit()
@@ -39,20 +38,30 @@ def on_update():
         flick_debug()
     if ('down','esc') in tracker.keypress_history:
         manual_exit()
+    if ('down','alt') in tracker.keypress_history and ('down','v') in tracker.keypress_history:
+        try:
+            clipboard = manager.get('main').clipboard_get()
+            if clipboard:
+                for command in clipboard.split("\n"):
+                    debug.debug_window.to_execute.append(command)
+            manager.get('main').clipboard_clear()
+        except TclError:
+            debug.send("Clipboard empty!")
     if len(tracker.keypress_history) != 0:
         #Need to send to focused canvas
         manager.editor_canvas.on_key(tracker.keypress_history)
     tracker.keypress_history.clear()
     #Executing command in console
-    if debug.debug_window.to_execute != "":
+    if len(debug.debug_window.to_execute) != 0:
         try:
-            if debug.debug_window.to_execute.split(" ")[0] == "get":
-                debug.debug_window.to_execute = f"debug.send({debug.debug_window.to_execute.split(" ")[1]})"
-            exec(debug.debug_window.to_execute,globals())
+            for command in debug.debug_window.to_execute:
+                if command.split(" ")[0] == "get":
+                    command = f"debug.send({command.split(" ")[1]})"
+                exec(command,globals())
         except Exception as e:
             error_message = traceback.format_exc()
             debug.send(f"Error executing command: {error_message}")
-        debug.debug_window.to_execute = ""
+        debug.debug_window.to_execute.clear()
     #Updating all windows
     for window_name in manager.registered:
         if window_name == "main":
