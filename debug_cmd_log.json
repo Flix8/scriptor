@@ -1,4 +1,10 @@
 [
+      "get (manager.config_entries_x[0].original_value  == manager.config_vars_x[0].get())",
+      "get manager.config_entries_x[0].original_value  == manager.config_vars_x[0].get()",
+      "get manager.config_vars_x[0].get()",
+      "get manager.config_entries_x[0].original_value",
+      "manager.update_configuration_entries(3)",
+      "manager.update_configuration_entries(1)",
       "manager.update_configuration_entries(0)",
       "manager.update_configuration_entries(1)",
       "manager.update_configuration_entries(3)",
@@ -28,11 +34,5 @@
       "manager.open_language_selector()",
       "manager.open_language_selector()",
       "manager.open_language_selector()",
-      "manager.open_language_selector()",
-      "manager.open_language_selector()",
-      "manager.open_language_selector()",
-      "manager.editor_canvas.delete_selection()",
-      "manager.editor_segment_listbox_frame.place(x=710,y=344)",
-      "manager.editor_segment_listbox_frame.place(x=710,y=334)",
-      "manager.editor_segment_listbox_frame.place(x=710,y=324)"
+      "manager.open_language_selector()"
 ]

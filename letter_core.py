@@ -115,6 +115,7 @@ class EditorCanvas(ScriptorCanvas):
             mode = self.mode
             if mode != "normal" and self.selection_type == "node":
                 self.deselect_all_nodes()
+                self.configuration_data = [0]
                 self.mode = "normal"
                 self.selection_type = None
                 self.num_selected = 0
@@ -139,9 +140,26 @@ class EditorCanvas(ScriptorCanvas):
                         self.num_selected += 1
                         connector.select()
                         mode = None
+                    if self.mode == "selection_simple":
+                        for i,connector in enumerate(self.letter.segments[self.selected_segment].connectors):
+                            if connector.selected:
+                                p1 = self.letter.segments[self.selected_segment].nodes[i]
+                                if len(self.letter.segments[self.selected_segment].connectors)-1 == i:
+                                    p2 = self.letter.segments[self.selected_segment].nodes[0]
+                                else:
+                                    p2 = self.letter.segments[self.selected_segment].nodes[i+1]
+                                #Sending to Configuration
+                                if connector.type == "LINE":
+                                    self.configuration_data = [2,p1.x,p1.y,p2.x,p2.y]
+                                else:
+                                    self.configuration_data = [4,p1.x,p1.y,p2.x,p2.y,connector.anchors[0].x,connector.anchors[0].y,connector.anchors[1].x,connector.anchors[1].y]
+                                break
+                    else:
+                        self.configuration_data = [0]
             if mode != None and self.selection_type == "connector":
                 self.deselect_all_connectors()
                 self.mode = "normal"
+                self.configuration_data = [0]
                 self.selection_type = None
                 self.num_selected = 0
             elif mode == "normal":
@@ -161,10 +179,14 @@ class EditorCanvas(ScriptorCanvas):
             self.num_selected -= 1
             self.mode = "selection_simple" if self.num_selected == 1 else "normal" if self.num_selected == 0 else self.mode
             if self.mode == "normal":
+                self.configuration_data = [0]
                 self.selection_type = None
             elif self.mode == "selection_simple":
                 #Sending to Configuration
-                self.configuration_data = [1,node.x,node.y]
+                for node in self.letter.segments[self.selected_segment].nodes:
+                    if node.selected:
+                        self.configuration_data = [1,node.x,node.y]
+                        break
             elif self.mode == "selection_multiple":
                 #Sending to Configuration
                 sendx,sendy = 0,0
@@ -199,12 +221,24 @@ class EditorCanvas(ScriptorCanvas):
                 index,point = self.info_selected_anchor_point
                 self.letter.segments[self.selected_segment].connectors[index].anchors[point].x += dx
                 self.letter.segments[self.selected_segment].connectors[index].anchors[point].y += dy
+                if point == 0:
+                    self.configuration_data = [4,None,None,None,None,self.letter.segments[self.selected_segment].connectors[index].anchors[0].x,self.letter.segments[self.selected_segment].connectors[index].anchors[0].y,None,None]
+                else:
+                    self.configuration_data = [4,None,None,None,None,None,None,self.letter.segments[self.selected_segment].connectors[index].anchors[1].x,self.letter.segments[self.selected_segment].connectors[index].anchors[1].y]
             else:
                 self.to_deselect = None
                 for node in self.letter.segments[self.selected_segment].nodes:
                     if node.selected:
                         node.x += dx
                         node.y += dy
+                sendx,sendy = 0,0
+                num = 0
+                for node in self.letter.segments[self.selected_segment].nodes:
+                    if node.selected:
+                        sendx += node.x
+                        sendy += node.y
+                        num += 1
+                self.configuration_data = [1,sendx/num,sendy/num]
             self.update()
     def draw(self):
         editor_draw(self.letter,self.canvas,self.selected_segment)

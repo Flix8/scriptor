@@ -357,6 +357,22 @@ def create_new_letter():
     new_letter = letter.Letter()
     new_letter.segments.append(letter.Segment())
     editor_canvas.load_letter(new_letter,"Unnamed")
+
+def process_config_menu(event):
+    #Check if anything was changed
+    change = False
+    for i,entry_x,var_x,entry_y,var_y in zip(range(4),config_entries_x,config_vars_x,config_entries_y,config_vars_y):
+        if i >= window.shown_config_entries:
+            break
+        if entry_x.original_value != var_x.get():
+            change = True
+            break
+        if entry_y.original_value != var_y.get():
+            change = True
+            break
+    if not change:
+        debug.send("Nothing changed!")
+        return
 window = Tk()
 window.language_name = ""
 #Tk Variables
@@ -457,21 +473,28 @@ config_labels_y = [
     Label(configuration_frame, text=f"Y4:", background=style.lookup("header.TFrame", "background"))
 ]
 
+config_vars_x = [StringVar() for _ in range(4)]
+config_vars_y = [StringVar() for _ in range(4)]
+
 config_entries_x = [
-    Entry(configuration_frame, width=10),
-    Entry(configuration_frame, width=10),
-    Entry(configuration_frame, width=10),
-    Entry(configuration_frame, width=10)
+    Entry(configuration_frame, width=10, textvariable=config_vars_x[0]),
+    Entry(configuration_frame, width=10, textvariable=config_vars_x[1]),
+    Entry(configuration_frame, width=10, textvariable=config_vars_x[2]),
+    Entry(configuration_frame, width=10, textvariable=config_vars_x[3])
 ]
 
 config_entries_y = [
-    Entry(configuration_frame, width=10),
-    Entry(configuration_frame, width=10),
-    Entry(configuration_frame, width=10),
-    Entry(configuration_frame, width=10)
+    Entry(configuration_frame, width=10, textvariable=config_vars_y[0]),
+    Entry(configuration_frame, width=10, textvariable=config_vars_y[1]),
+    Entry(configuration_frame, width=10, textvariable=config_vars_y[2]),
+    Entry(configuration_frame, width=10, textvariable=config_vars_y[3])
 ]
 
+for entry in config_entries_x + config_entries_y:
+    entry.bind("<Return>", process_config_menu)
+
 def update_configuration_entries(num_pairs):
+    window.shown_config_entries = num_pairs
     for i in range(4):
         if i < num_pairs:
             config_labels_x[i].place(x=30, y=10 + i * 30)

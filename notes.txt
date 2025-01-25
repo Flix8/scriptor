@@ -6,8 +6,7 @@ Different modes:
 To-Do:
 - Configure Field (position, alignment, deleting, turn into bezier)
 - Functionality with multiple frames and switching between them.
-- Make the new, save and load button work (and a create new language button)
-- Track whether letter was saved and if not and trying to switch window or close window, prompt to safe.
+- Being able to put letters into a category for easy search in Write mode/Any open window
 - Configure menu
     - Positioning of letters
     - An overview of all letters in text form (when clicked on one shows preview)

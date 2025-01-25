@@ -81,7 +81,14 @@ def on_update():
                         manager.editor_segment_listbox.insert(END,segment.name)
                     manager.editor_canvas.reload_segments = False
                 if isinstance(manager.editor_canvas.configuration_data,list):
-                    debug.send(f"Processing {manager.editor_canvas.configuration_data}")
+                    manager.update_configuration_entries(manager.editor_canvas.configuration_data[0])
+                    for i in range(0,(len(manager.editor_canvas.configuration_data)-1)//2):
+                        if manager.editor_canvas.configuration_data[(i+1)*2-1]:
+                            manager.config_vars_x[i].set(manager.editor_canvas.configuration_data[(i+1)*2-1])
+                            manager.config_entries_x[i].original_value = str(manager.editor_canvas.configuration_data[(i+1)*2-1])
+                        if manager.editor_canvas.configuration_data[(i+1)*2]:
+                            manager.config_vars_y[i].set(manager.editor_canvas.configuration_data[(i+1)*2])
+                            manager.config_entries_y[i].original_value = str(manager.editor_canvas.configuration_data[(i+1)*2])
                     manager.editor_canvas.configuration_data = None
 
     manager.get("main").after(100,on_update)
