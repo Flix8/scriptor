@@ -57,7 +57,7 @@ def on_update():
         try:
             for command in debug.debug_window.to_execute:
                 if command.split(" ")[0] == "get":
-                    command = f"debug.send({command.split(" ")[1]})"
+                    command = f"debug.send({command.split(' ')[1]})"
                 exec(command,globals())
         except Exception as e:
             error_message = traceback.format_exc()
@@ -71,7 +71,7 @@ def on_update():
                 saving.new_language = None
             if True:#This should look if the editor is in focus
                 if manager.editor_selected_label.letter != manager.editor_canvas.letter_name or manager.editor_selected_label.language != manager.window.language_name or manager.editor_selected_label.saved != manager.editor_canvas.saved:
-                    manager.txt_selected_label.set(f"Selected: {manager.editor_canvas.letter_name} [{manager.window.language_name}] {"*" if not manager.editor_canvas.saved else ""}")
+                    manager.txt_selected_label.set(f"Selected: {manager.editor_canvas.letter_name} [{manager.window.language_name}] {'*' if not manager.editor_canvas.saved else ''}")
                     manager.editor_selected_label.letter = manager.editor_canvas.letter_name
                     manager.editor_selected_label.language = manager.window.language_name
                     manager.editor_selected_label.saved = manager.editor_canvas.saved

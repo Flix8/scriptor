@@ -273,11 +273,11 @@ class EditorCanvas(ScriptorCanvas):
         y = (y//self.cursor_step_size)*self.cursor_step_size
         return x,y
     def update_step_size(self):
-        if "umschalt" in self.keys_pressed and "strg" in self.keys_pressed:
+        if "shift" in self.keys_pressed and "ctrl" in self.keys_pressed:
             self.cursor_step_size = self.step_size_options[3]
-        elif "strg" in self.keys_pressed:
+        elif "ctrl" in self.keys_pressed:
             self.cursor_step_size = self.step_size_options[2]
-        elif "umschalt" in self.keys_pressed:
+        elif "shift" in self.keys_pressed:
             self.cursor_step_size = self.step_size_options[1]
         else:
             self.cursor_step_size = self.step_size_options[0]

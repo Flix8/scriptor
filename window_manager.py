@@ -394,7 +394,7 @@ window.lift()
 window.title("Scriptor - Letter Editor")
 
 toolbar_frame = Frame(window,height=40,width=500,style="toolbar.TFrame")
-new_button = Button(toolbar_frame, text="New",width=10,command=lambda: print("NEW"))
+new_button = Button(toolbar_frame, text="New",width=10,command=lambda: create_new_letter())
 save_button = Button(toolbar_frame, text="Save",width=10,command=save_letter_selector)
 open_button = Button(toolbar_frame, text="Open",width=10,command=open_letter_selector)
 settings_button = Button(toolbar_frame, text="Settings",width=10,command=lambda: print("SETTINGS"))
