@@ -1,4 +1,6 @@
 [
+      "manager.editor_canvas.delete_selection()",
+      "manager.editor_canvas.delete_selection()",
       "get (manager.config_entries_x[0].original_value  == manager.config_vars_x[0].get())",
       "get manager.config_entries_x[0].original_value  == manager.config_vars_x[0].get()",
       "get manager.config_vars_x[0].get()",
@@ -29,8 +31,6 @@
       "manager.save_letter_selector()",
       "editor_canvas.save_letter_selector()",
       "manager.editor_canvas.delete_selection()",
-      "manager.open_language_selector()",
-      "manager.open_language_selector()",
       "manager.open_language_selector()",
       "manager.open_language_selector()",
       "manager.open_language_selector()",
