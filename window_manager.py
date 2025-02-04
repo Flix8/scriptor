@@ -373,6 +373,32 @@ def process_config_menu(event):
     if not change:
         debug.send("Nothing changed!")
         return
+    else:
+        if editor_canvas.selection_type == "node":
+            #This should work for simple selections and multiple ones
+            dx = float(config_entries_x[0].get()) - float(config_entries_x[0].original_value)
+            dy = float(config_entries_y[0].get()) - float(config_entries_y[0].original_value)
+            for node in editor_canvas.letter.segments[editor_canvas.selected_segment].nodes:
+                if node.selected:
+                    node.x += dx
+                    node.y += dy
+        elif editor_canvas.selection_type == "connector":
+            for i,connector in enumerate(editor_canvas.letter.segments[editor_canvas.selected_segment].connectors):
+                if connector.selected:
+                    node1 = editor_canvas.letter.segments[editor_canvas.selected_segment].nodes[i]
+                    node2 = editor_canvas.letter.segments[editor_canvas.selected_segment].nodes[(i+1)%len(editor_canvas.letter.segments[editor_canvas.selected_segment].connectors)]
+                    node1.x = float(config_entries_x[0].get())
+                    node1.y = float(config_entries_y[0].get())
+                    node2.x = float(config_entries_x[1].get())
+                    node2.y = float(config_entries_y[1].get())
+                    if connector.type == "BEZIER":
+                        connector.anchors[0].x = float(config_entries_x[2].get())
+                        connector.anchors[0].y = float(config_entries_y[2].get())
+                        connector.anchors[1].x = float(config_entries_x[3].get())
+                        connector.anchors[1].y = float(config_entries_y[3].get())
+                    break
+
+        editor_canvas.update()
 window = Tk()
 window.language_name = ""
 #Tk Variables

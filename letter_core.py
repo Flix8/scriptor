@@ -121,10 +121,7 @@ class EditorCanvas(ScriptorCanvas):
                 self.num_selected = 0
             for i,connector in enumerate(self.letter.segments[self.selected_segment].connectors):
                 p1 = self.letter.segments[self.selected_segment].nodes[i]
-                if len(self.letter.segments[self.selected_segment].connectors)-1 == i:
-                    p2 = self.letter.segments[self.selected_segment].nodes[0]
-                else:
-                    p2 = self.letter.segments[self.selected_segment].nodes[i+1]
+                p2 = self.letter.segments[self.selected_segment].nodes[(i+1)%len(self.letter.segments[self.selected_segment].connectors)]
                 dist = distance_to_line_segment(p1,p2,Node(real_x,real_y))
                 if dist <= 6:
                     if connector.selected:
@@ -144,10 +141,7 @@ class EditorCanvas(ScriptorCanvas):
                         for i,connector in enumerate(self.letter.segments[self.selected_segment].connectors):
                             if connector.selected:
                                 p1 = self.letter.segments[self.selected_segment].nodes[i]
-                                if len(self.letter.segments[self.selected_segment].connectors)-1 == i:
-                                    p2 = self.letter.segments[self.selected_segment].nodes[0]
-                                else:
-                                    p2 = self.letter.segments[self.selected_segment].nodes[i+1]
+                                p2 = self.letter.segments[self.selected_segment].nodes[(i+1)%len(self.letter.segments[self.selected_segment].connectors)]
                                 #Sending to Configuration
                                 if connector.type == "LINE":
                                     self.configuration_data = [2,p1.x,p1.y,p2.x,p2.y]
