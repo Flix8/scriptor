@@ -378,6 +378,8 @@ def process_config_menu(event):
             #This should work for simple selections and multiple ones
             dx = float(config_entries_x[0].get()) - float(config_entries_x[0].original_value)
             dy = float(config_entries_y[0].get()) - float(config_entries_y[0].original_value)
+            config_entries_x[0].original_value = config_entries_x[0].get()
+            config_entries_y[0].original_value = config_entries_y[0].get()
             for node in editor_canvas.letter.segments[editor_canvas.selected_segment].nodes:
                 if node.selected:
                     node.x += dx
@@ -391,13 +393,21 @@ def process_config_menu(event):
                     node1.y = float(config_entries_y[0].get())
                     node2.x = float(config_entries_x[1].get())
                     node2.y = float(config_entries_y[1].get())
+                    config_entries_x[0].original_value = config_entries_x[0].get()
+                    config_entries_y[0].original_value = config_entries_y[0].get()
+                    config_entries_x[1].original_value = config_entries_x[1].get()
+                    config_entries_y[1].original_value = config_entries_y[1].get()
                     if connector.type == "BEZIER":
                         connector.anchors[0].x = float(config_entries_x[2].get())
                         connector.anchors[0].y = float(config_entries_y[2].get())
                         connector.anchors[1].x = float(config_entries_x[3].get())
                         connector.anchors[1].y = float(config_entries_y[3].get())
+                        config_entries_x[2].original_value = config_entries_x[2].get()
+                        config_entries_y[2].original_value = config_entries_y[2].get()
+                        config_entries_x[3].original_value = config_entries_x[3].get()
+                        config_entries_y[3].original_value = config_entries_y[3].get()
                     break
-
+        editor_canvas.saved = False
         editor_canvas.update()
 window = Tk()
 window.language_name = ""
