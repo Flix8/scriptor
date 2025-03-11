@@ -1,4 +1,3 @@
-import subprocess
 import os
 from tkinter import *
 from tkinter import messagebox
@@ -16,27 +15,34 @@ language_selector_open = False
 letter_selector_open = False
 save_window_open = False
 focused = 0
+
 def get(name) -> Tk:
     if name in registered.keys():
         return registered[name]
     else:
         debug.send("ERROR: Could not find window, defaulting to main")
         return registered["main"]
+
 def register(name,root:Tk):
     global registered
     registered[name] = root
+
 def close(name):
     registered[name].destroy()
     del registered[name]
+
 def visibility(master:Tk,visible:bool):
     if visible:
         master.deiconify()
         master.lift()
     else:
         master.withdraw()
+
 def show_frame(frame:Frame):
+    global focused
     focused = frame.id
     frame.tkraise()
+
 #_______BUTTON FUNCTIONS________________
 def on_segment_select(event):
     selected_index = editor_segment_listbox.curselection()
@@ -44,6 +50,7 @@ def on_segment_select(event):
          editor_canvas.light_reset(False)
          editor_canvas.selected_segment = selected_index[0]
          editor_canvas.update()
+
 def on_segment_double_click(event):
     selected_index = editor_segment_listbox.curselection()
     if selected_index:
@@ -53,9 +60,11 @@ def on_segment_double_click(event):
             segment.name = new_name
             editor_segment_listbox.delete(selected_index)
             editor_segment_listbox.insert(selected_index, new_name)
+
 def new_segment_button():
     editor_canvas.letter.segments.append(letter.Segment())
     editor_canvas.reload_segments = True
+
 def delete_segment_button():
     selected_index = editor_segment_listbox.curselection()
     if selected_index and len(editor_canvas.letter.segments) > 1:
@@ -65,16 +74,26 @@ def delete_segment_button():
         editor_canvas.light_reset(False)
         editor_canvas.update()
 
+def delete_connector_or_node():
+    editor_canvas.keys_pressed.append("backspace")
+    editor_canvas.process_key_presses()
+
+def turn_selected_connectors_into_lines():
+    editor_canvas.keys_pressed.append("l")
+    editor_canvas.process_key_presses()
+
+def turn_selected_connectors_into_beziers():
+    editor_canvas.keys_pressed.append("b")
+    editor_canvas.process_key_presses()
+
 def open_language_selector():
     #Written by Copilot
     if not editor_canvas.saved:
         ask_save("language")
         return
     global language_selector_open
-
     if language_selector_open:
         return
-
     def on_ok():
         selected_index = listbox.curselection()
         if selected_index:
@@ -84,10 +103,8 @@ def open_language_selector():
             close_language_selector()
         else:
             messagebox.showwarning("No selection", "Please select a language.")
-    
     def on_cancel():
         close_language_selector()
-    
     def on_new():
         new_language_name = simpledialog.askstring("New Language", "Enter the name of the new language:")
         if new_language_name:
@@ -97,12 +114,10 @@ def open_language_selector():
             listbox.insert(END, new_language_name)
             window.language_name = new_language_name
             close_language_selector()
-
     def close_language_selector():
         global language_selector_open
         close("language_selector")
         language_selector_open = False
-    
     def on_language_double_click(event):
         selected_index = listbox.curselection()
         if selected_index:
@@ -112,7 +127,6 @@ def open_language_selector():
                 os.rename(os.path.join(path, language),os.path.join(path, new_name))
                 listbox.delete(selected_index)
                 listbox.insert(selected_index, new_name)
-
     language_selector_open = True
     language_selector = Toplevel(window)
     register("language_selector",language_selector)
@@ -545,6 +559,27 @@ def update_configuration_entries(num_pairs):
 
 window.shown_config_entries = 0
 update_configuration_entries(window.shown_config_entries)
+
+line_img = Image.open("images/line.png")
+line_img = line_img.resize((20,20))
+line_photo = ImageTk.PhotoImage(line_img,master=configuration_frame)
+config_line_button = Button(configuration_frame,image=line_photo,command=turn_selected_connectors_into_lines)
+config_line_button.line_photo = line_photo
+config_line_button.place(x=60,y=260)
+
+trash_img = Image.open("images/trash.png")
+trash_img = trash_img.resize((20,20))
+trash_photo = ImageTk.PhotoImage(trash_img,master=configuration_frame)
+config_delete_button = Button(configuration_frame,image=trash_photo,command=delete_connector_or_node) 
+config_delete_button.trash_photo = trash_photo
+config_delete_button.place(x=10,y=260)
+
+bezier_img = Image.open("images/bezier.png")
+bezier_img = bezier_img.resize((20,20))
+bezier_photo = ImageTk.PhotoImage(bezier_img,master=configuration_frame)
+config_bezier_button = Button(configuration_frame,image=bezier_photo,command=turn_selected_connectors_into_beziers)
+config_bezier_button.bezier_photo = bezier_photo
+config_bezier_button.place(x=110,y=260)
 
 debug.init(window)
 

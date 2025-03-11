@@ -1,8 +1,6 @@
 from tkinter import *
 from tkinter import messagebox
-from pygame import mixer
 from tkinter.ttk import *
-from PIL import Image, ImageTk
 import sys
 import json
 import traceback
@@ -18,6 +16,7 @@ def custom_handler(exc_type, exc_value, exc_traceback):
     if exc_type != KeyboardInterrupt:
         messagebox.showerror("ERROR",f"A fatal error occured: {exc_type,exc_value}")
     sys.__excepthook__(exc_type, exc_value, exc_traceback)
+
 #DEBUG
 debug_mode = False
 def flick_debug():
@@ -28,6 +27,7 @@ def flick_debug():
         debug.debug_window.command_entry.focus()
     else:
         debug.root.withdraw()
+
 def manual_exit():
     if debug_mode:
         on_exit()
@@ -83,15 +83,15 @@ def on_update():
                 if isinstance(manager.editor_canvas.configuration_data,list):
                     manager.update_configuration_entries(manager.editor_canvas.configuration_data[0])
                     for i in range(0,(len(manager.editor_canvas.configuration_data)-1)//2):
-                        if manager.editor_canvas.configuration_data[(i+1)*2-1]:
+                        if not manager.editor_canvas.configuration_data[(i+1)*2-1] is None:
                             manager.config_vars_x[i].set(manager.editor_canvas.configuration_data[(i+1)*2-1])
                             manager.config_entries_x[i].original_value = str(manager.editor_canvas.configuration_data[(i+1)*2-1])
-                        if manager.editor_canvas.configuration_data[(i+1)*2]:
+                        if not manager.editor_canvas.configuration_data[(i+1)*2] is None:
                             manager.config_vars_y[i].set(manager.editor_canvas.configuration_data[(i+1)*2])
                             manager.config_entries_y[i].original_value = str(manager.editor_canvas.configuration_data[(i+1)*2])
                     manager.editor_canvas.configuration_data = None
-
     manager.get("main").after(100,on_update)
+
 def on_exit():
     cmd_log_file = open("debug_cmd_log.json","w")
     json.dump(debug.debug_window.command_log,cmd_log_file,indent=6)
@@ -112,9 +112,11 @@ manager.get("main").after(0,on_update)
 
 # Set the custom hook
 sys.excepthook = custom_handler
+
 cmd_log_file = open("debug_cmd_log.json","r")
 debug.debug_window.command_log=json.load(cmd_log_file)
 cmd_log_file.close()
+
 session_save = open("last_session_info.json","r")
 last_session_data = json.load(session_save)
 if last_session_data["language"] != None:

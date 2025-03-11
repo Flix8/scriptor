@@ -70,6 +70,38 @@ class EditorCanvas(ScriptorCanvas):
             elif type == "up" and key in self.keys_pressed: #This might behave weirdly
                 self.keys_pressed.remove(key)
         self.update_step_size()
+        self.process_key_presses()
+    def process_key_presses(self):
+        if "entf" in self.keys_pressed:
+            self.delete_selection()
+            self.keys_pressed.remove("entf")
+        if "backspace" in self.keys_pressed:
+            self.delete_selection()
+            self.keys_pressed.remove("backspace")
+        if "b" in self.keys_pressed:
+            if self.selection_type == "connector":
+                for connector in self.letter.segments[self.selected_segment].connectors:
+                    if connector.selected and connector.type == "LINE":
+                        connector.set_type("BEZIER")
+                self.deselect_all_connectors()
+                self.mode = "normal"
+                self.selection_type = None
+                self.num_selected = 0
+                self.configuration_data = [0]
+                self.update()
+            self.keys_pressed.remove("b")
+        if "l" in self.keys_pressed:
+            if self.selection_type == "connector":
+                for connector in self.letter.segments[self.selected_segment].connectors:
+                    if connector.selected and connector.type == "BEZIER":
+                        connector.set_type("LINE")
+                self.deselect_all_connectors()
+                self.mode = "normal"
+                self.selection_type = None
+                self.num_selected = 0
+                self.configuration_data = [0]
+                self.update()
+            self.keys_pressed.remove("l")
     def on_click(self,event):
         real_x,real_y = event.x-350,event.y-300
         x,y = self.calculate_snapped_position(event.x-350, event.y-300)
