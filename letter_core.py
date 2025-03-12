@@ -29,8 +29,7 @@ class ScriptorCanvas():
         pass
     def draw(self):
         pass
-#manager.editor_canvas.letter.segments[self.selected_segment].connectors[0].set_type("BEZIER")
-#manager.editor_canvas.letter.segments[self.selected_segment].connectors[0].anchors[0].x = 50
+
 class EditorCanvas(ScriptorCanvas):
     def __init__(self,canvas):
         super().__init__(canvas)
@@ -361,6 +360,7 @@ class Connector():
             type = "LINE"
         self.type = type
         self.anchors = None if type == "LINE" else [Node(0,0),Node(0,0)]
+
 class EditorConnector(Connector):
     def __init__(self,type="LINE",width=3,color="#3d3d3d"):
         self.set_type(type)
@@ -381,6 +381,16 @@ class EditorConnector(Connector):
 class Letter():
     def __init__(self):
         self.segments = []
+        self.groups = []
+
+class Group():
+    def __init__(self,name,color="blue",parent="None"):
+        self.name = name
+        self.color = color
+        self.parent = parent if parent != "None" else None
+    def __str__(self):
+        return f"{self.name}:{self.color}:{self.parent if self.parent != None else "None"}"
+    
 def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=None,color_letter=None,width_letter=None):
         x,y = pos
         for segment_index, segment in enumerate(letter.segments):

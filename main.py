@@ -125,13 +125,14 @@ if last_session_data["language"] != None:
         messagebox.showwarning("Error Loading","Could not load language from last session - Missing")
     else:
         manager.get("main").language_name = last_session_data["language"]
-    if last_session_data["letter"] != None:
-        letters_path = manager.os.path.join("languages", manager.get("main").language_name, "letters")
-        letters = [f for f in manager.os.listdir(letters_path) if manager.os.path.isfile(manager.os.path.join(letters_path, f))]
-        if last_session_data["letter"] + ".json" not in letters:
-            messagebox.showwarning("Error Loading","Could not load letter from last session - Missing")
-        else:
-            manager.editor_canvas.load_letter(saving.load_letter(manager.get("main").language_name,last_session_data["letter"],True),last_session_data["letter"])
-            manager.editor_canvas.saved = True
+        saving.load_groups(last_session_data["language"])
+        if last_session_data["letter"] != None:
+            letters_path = manager.os.path.join("languages", manager.get("main").language_name, "letters")
+            letters = [f for f in manager.os.listdir(letters_path) if manager.os.path.isfile(manager.os.path.join(letters_path, f))]
+            if last_session_data["letter"] + ".json" not in letters:
+                messagebox.showwarning("Error Loading","Could not load letter from last session - Missing")
+            else:
+                manager.editor_canvas.load_letter(saving.load_letter(manager.get("main").language_name,last_session_data["letter"],True),last_session_data["letter"])
+                manager.editor_canvas.saved = True
 session_save.close()
 manager.get("main").mainloop()

@@ -4,7 +4,6 @@ Different modes:
 - Writing
 
 To-Do:
-- Configure Field (alignment, deleting, turn into bezier)
 - Functionality with multiple frames and switching between them.
 - Being able to put letters into a category for easy search in Write mode/Any open window
 - Configure menu

@@ -99,6 +99,7 @@ def open_language_selector():
         if selected_index:
             selected_language = listbox.get(selected_index)
             window.language_name = selected_language
+            saving.load_groups(selected_language)
             create_new_letter()
             close_language_selector()
         else:
@@ -113,6 +114,9 @@ def open_language_selector():
             os.makedirs(letters_path)
             listbox.insert(END, new_language_name)
             window.language_name = new_language_name
+            saving.all_groups = []
+            saving.create_config_file(new_language_name)
+            create_new_letter()
             close_language_selector()
     def close_language_selector():
         global language_selector_open

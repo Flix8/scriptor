@@ -2,6 +2,7 @@ import os, json
 import letter_core as l
 
 new_language = None
+all_groups = []
 
 class SessionData():
     def __init__(self,language,letter=None,open_frame="Editor"):
@@ -12,6 +13,7 @@ class SessionData():
 def to_plain_letter(letter: l.Letter) -> l.Letter:
     #Written by Copilot
     plain_letter = l.Letter()
+    plain_letter.groups = letter.groups
     for segment in letter.segments:
         plain_segment = l.Segment()
         plain_segment.name = segment.name
@@ -36,6 +38,56 @@ def save_letter(language: str, name_letter: str, letter: l.Letter) -> None:
     with open(file_path, 'w') as file:
         json.dump(letter, file, default=lambda o: o.__dict__, indent=6)
 
+def load_groups(language:str) -> None:
+    file_path = f"languages/{language}/config.txt"
+    all_groups = []
+    with open(file_path,"r") as file:
+        stage = None
+        for line in file:
+            line = line.rstrip()
+            if line == "groups":
+                stage = "GROUP"
+            elif line == "end_groups":
+                stage = None
+            elif stage == "GROUP":
+                name,color,parent = line.split(":")
+                all_groups.append(l.Group(name,color,parent))
+
+def create_group(language:str,group:l.Group) -> None:
+    file_path = f"languages/{language}/config.txt"
+    with open(file_path,"r") as file:
+        lines = file.readlines()
+    stage = None
+    for i,line in enumerate(lines):
+        if line == "end_groups":
+            lines.insert(i,str(group)+"\n")
+            break
+    with open(file_path,"w") as file:
+        file.writelines(lines)
+
+def delete_group(language:str,group:l.Group) -> None:
+    file_path = f"languages/{language}/config.txt"
+    with open(file_path,"r") as file:
+        lines = file.readlines()
+    stage = None
+    for i,line in enumerate(lines):
+        line = line.rstrip()
+        if line == "groups":
+            stage = "GROUP"
+        elif line == "end_groups":
+            stage = None
+        elif stage == "GROUP":
+            if group.name == line.split(":")[0]:
+                lines.pop(i)
+                break
+    with open(file_path,"w") as file:
+        file.writelines(lines)
+
+def create_config_file(language:str):
+    file_path = f"languages/{language}/config.txt"
+    with open(file_path,"w") as file:
+        file.write("groups\nend_groups")
+
 def load_letter(language: str, name_letter: str, use_editor_versions: bool = False) -> l.Letter:
     global new_language
     file_path = f"languages/{language}/letters/{name_letter}.json"
@@ -46,6 +98,8 @@ def load_letter(language: str, name_letter: str, use_editor_versions: bool = Fal
         data = json.load(file)
     
     letter = l.Letter()
+    if "groups" in data:
+        letter.groups = data["groups"]
     for segment_data in data['segments']:
         segment = l.Segment()
         segment.name = segment_data['name']

@@ -1,0 +1,4 @@
+groups
+VERB:blue:TEST
+TEST:red:None
+end_groups

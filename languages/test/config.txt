@@ -1,0 +1,4 @@
+groups
+VERB:blue:None
+IRREGULAR_VERB:light_blue:VERB
+end_groups

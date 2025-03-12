@@ -1,1 +1,5 @@
 THIS LOG IS FOR DEBUGGING PURPOSES. THANK YOU.
+[Wed Mar 12 17:48:16 2025]: Trying to execute command: saving.delete_group(manager.get("main").language_name,letter.Group("VERB","blue","TEST"))
+[Wed Mar 12 17:48:24 2025]: Trying to execute command: saving.create_group(manager.get("main").language_name,letter.Group("VERB","blue","TEST"))
+[Wed Mar 12 17:48:32 2025]: Trying to execute command: saving.delete_group(manager.get("main").language_name,letter.Group("TEST","blue","TEST"))
+[Wed Mar 12 17:48:37 2025]: Trying to execute command: saving.create_group(manager.get("main").language_name,letter.Group("TEST","red","None"))
