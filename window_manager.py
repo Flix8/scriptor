@@ -11,6 +11,7 @@ import letter_core as letter
 import saving_agent as saving
 #________GENERAL FUNCTIONS______________
 registered = {}
+group_selector_open = False
 language_selector_open = False
 letter_selector_open = False
 save_window_open = False
@@ -74,6 +75,26 @@ def delete_segment_button():
         editor_canvas.light_reset(False)
         editor_canvas.update()
 
+def on_group_double_click(event):
+    selected_index = editor_group_listbox.curselection()
+    if selected_index:
+        group = editor_canvas.letter.groups[selected_index[0]]
+        new_name = simpledialog.askstring("Rename Group", "Enter new name:", initialvalue=group)
+        if new_name:
+            new_name = new_name.upper()
+            editor_canvas.saved = False
+            editor_canvas.letter.groups.pop(selected_index[0])
+            editor_canvas.letter.groups.insert(selected_index[0],new_name)
+            saving.rename_group(get("main").language_name,group,new_name)
+            editor_group_listbox.delete(selected_index)
+            editor_group_listbox.insert(selected_index, new_name)
+
+def delete_group_button():
+    selected_index = editor_group_listbox.curselection()
+    if selected_index and len(editor_canvas.letter.groups) > 1:
+        editor_group_listbox.delete(selected_index)
+        editor_canvas.letter.groups.pop(selected_index[0])
+
 def delete_connector_or_node():
     editor_canvas.keys_pressed.append("backspace")
     editor_canvas.process_key_presses()
@@ -85,6 +106,72 @@ def turn_selected_connectors_into_lines():
 def turn_selected_connectors_into_beziers():
     editor_canvas.keys_pressed.append("b")
     editor_canvas.process_key_presses()
+
+def open_group_selector():
+    #Written by Copilot
+    global group_selector_open
+    if group_selector_open:
+        return
+    def on_ok():
+        selected_index = listbox.curselection()
+        if selected_index:
+            selected_group = listbox.get(selected_index)
+            editor_canvas.saved = False
+            print("ADD SELECTED GROUPS")
+        else:
+            messagebox.showwarning("No selection", "Please select at least one group.")
+    def on_cancel():
+        close_group_selector()
+    def on_new():
+        new_group_name = simpledialog.askstring("New Group", "Enter the name of the new language:")
+        if new_group_name:
+            print("NEW GROUP")
+            close_group_selector()
+    def close_group_selector():
+        global group_selector_open
+        close("group_selector")
+        group_selector_open = False
+    def on_group_double_click(event):
+        selected_index = listbox.curselection()
+        if selected_index:
+            group = saving.all_groups[selected_index[0]]
+            new_name = simpledialog.askstring("Rename Group", "Enter new name:", initialvalue=group.name)
+            if new_name:
+                new_name = new_name.upper()
+                editor_canvas.saved = False
+                if group.name in editor_canvas.letter.groups:
+                    editor_canvas.letter.groups.pop(selected_index[0])
+                    editor_canvas.letter.groups.insert(selected_index[0],new_name)
+                    editor_group_listbox.delete(selected_index)
+                    editor_group_listbox.insert(selected_index, new_name)
+                saving.rename_group(get("main").language_name,group.name,new_name)
+                listbox.delete(selected_index)
+                listbox.insert(selected_index, new_name)
+    group_selector_open = True
+    group_selector = Toplevel(window)
+    register("group_selector",group_selector)
+    group_selector.title("Select Group(s)")
+    group_selector.geometry("300x400")
+    group_selector.protocol("WM_DELETE_WINDOW", close_group_selector)
+
+    listbox = Listbox(group_selector)
+    listbox.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    listbox.bind('<Double-1>', on_group_double_click)
+
+    for group in saving.all_groups:
+        listbox.insert(END, group.name)
+
+    button_frame = Frame(group_selector)
+    button_frame.pack(fill=X, padx=10, pady=10)
+
+    ok_button = Button(button_frame, text="OK", command=on_ok)
+    ok_button.pack(side=LEFT, padx=5)
+
+    cancel_button = Button(button_frame, text="Cancel", command=on_cancel)
+    cancel_button.pack(side=LEFT, padx=5)
+
+    new_button = Button(button_frame, text="New", command=on_new)
+    new_button.pack(side=LEFT, padx=5)
 
 def open_language_selector():
     #Written by Copilot
@@ -304,7 +391,9 @@ def save_letter_selector():
     entry_label = Label(entry_frame, text="Enter name:")
     entry_label.pack(side=LEFT, padx=5)
 
-    entry = Entry(entry_frame)
+    txt_var = StringVar(entry_frame,editor_canvas.letter_name)
+    entry = Entry(entry_frame,textvariable=txt_var)
+    entry.txt_var = txt_var
     entry.pack(fill=X, expand=True, padx=5)
 
     button_frame = Frame(letter_selector)
@@ -320,7 +409,6 @@ def ask_save(action="new"):
     global save_window_open
 
     if save_window_open:
-        print("RET HERE")
         return
     def on_save():
         save_letter_selector()
@@ -551,10 +639,10 @@ def update_configuration_entries(num_pairs):
     window.shown_config_entries = num_pairs
     for i in range(4):
         if i < num_pairs:
-            config_labels_x[i].place(x=30, y=10 + i * 30)
-            config_entries_x[i].place(x=60, y=10 + i * 30)
-            config_labels_y[i].place(x=150, y=10 + i * 30)
-            config_entries_y[i].place(x=180, y=10 + i * 30)
+            config_labels_x[i].place(x=30, y=50 + i * 30)
+            config_entries_x[i].place(x=60, y=50 + i * 30)
+            config_labels_y[i].place(x=150, y=50 + i * 30)
+            config_entries_y[i].place(x=180, y=50 + i * 30)
         else:
             config_labels_x[i].place_forget()
             config_entries_x[i].place_forget()
@@ -569,21 +657,39 @@ line_img = line_img.resize((20,20))
 line_photo = ImageTk.PhotoImage(line_img,master=configuration_frame)
 config_line_button = Button(configuration_frame,image=line_photo,command=turn_selected_connectors_into_lines)
 config_line_button.line_photo = line_photo
-config_line_button.place(x=60,y=260)
+config_line_button.place(x=60,y=10)
 
 trash_img = Image.open("images/trash.png")
 trash_img = trash_img.resize((20,20))
 trash_photo = ImageTk.PhotoImage(trash_img,master=configuration_frame)
 config_delete_button = Button(configuration_frame,image=trash_photo,command=delete_connector_or_node) 
 config_delete_button.trash_photo = trash_photo
-config_delete_button.place(x=10,y=260)
+config_delete_button.place(x=10,y=10)
 
 bezier_img = Image.open("images/bezier.png")
 bezier_img = bezier_img.resize((20,20))
 bezier_photo = ImageTk.PhotoImage(bezier_img,master=configuration_frame)
 config_bezier_button = Button(configuration_frame,image=bezier_photo,command=turn_selected_connectors_into_beziers)
 config_bezier_button.bezier_photo = bezier_photo
-config_bezier_button.place(x=110,y=260)
+config_bezier_button.place(x=110,y=10)
+
+editor_group_listbox = Listbox(configuration_frame,width=43,height=5,bg=style.lookup("header.TFrame","background"),highlightcolor=style.lookup("hightlight.TListbox","background"))
+editor_group_listbox.bind('<Double-1>', on_group_double_click)
+editor_group_listbox.place(x=10,y=200)
+
+plus_img = Image.open("images/plus.png")
+plus_img = plus_img.resize((20,20))
+plus_photo = ImageTk.PhotoImage(plus_img,master=configuration_frame)
+editor_new_group_button = Button(configuration_frame,image=plus_photo,command=open_group_selector)
+editor_new_group_button.plus_photo = plus_photo
+editor_new_group_button.place(x=10,y=165)
+
+trash_img = Image.open("images/trash.png")
+trash_img = trash_img.resize((20,20))
+trash_photo = ImageTk.PhotoImage(trash_img,master=configuration_frame)
+editor_delete_group_button = Button(configuration_frame,image=trash_photo,command=delete_group_button) 
+editor_delete_group_button.trash_photo = trash_photo
+editor_delete_group_button.place(x=60,y=165)
 
 debug.init(window)
 

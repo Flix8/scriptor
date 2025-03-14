@@ -232,6 +232,8 @@ class EditorCanvas(ScriptorCanvas):
             self.cursor.x = -10
             self.cursor.y = -10
     def on_drag(self,event):
+        if self.selection_type == "connector":
+            return
         x,y = self.calculate_snapped_position(event.x-350, event.y-300)
         if isinstance(self.last_node_created,EditorNode):
             self.last_node_created.x = x

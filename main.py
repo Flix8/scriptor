@@ -79,6 +79,9 @@ def on_update():
                     manager.editor_segment_listbox.delete(0,END)
                     for segment in manager.editor_canvas.letter.segments:
                         manager.editor_segment_listbox.insert(END,segment.name)
+                    manager.editor_group_listbox.delete(0,END)
+                    for group in manager.editor_canvas.letter.groups:
+                        manager.editor_group_listbox.insert(END,group)
                     manager.editor_canvas.reload_segments = False
                 if isinstance(manager.editor_canvas.configuration_data,list):
                     manager.update_configuration_entries(manager.editor_canvas.configuration_data[0])

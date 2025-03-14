@@ -39,6 +39,7 @@ def save_letter(language: str, name_letter: str, letter: l.Letter) -> None:
         json.dump(letter, file, default=lambda o: o.__dict__, indent=6)
 
 def load_groups(language:str) -> None:
+    global all_groups
     file_path = f"languages/{language}/config.txt"
     all_groups = []
     with open(file_path,"r") as file:
@@ -64,8 +65,9 @@ def create_group(language:str,group:l.Group) -> None:
             break
     with open(file_path,"w") as file:
         file.writelines(lines)
+    load_groups(language)
 
-def delete_group(language:str,group:l.Group) -> None:
+def delete_group(language:str,group_name:str) -> None:
     file_path = f"languages/{language}/config.txt"
     with open(file_path,"r") as file:
         lines = file.readlines()
@@ -77,11 +79,33 @@ def delete_group(language:str,group:l.Group) -> None:
         elif line == "end_groups":
             stage = None
         elif stage == "GROUP":
-            if group.name == line.split(":")[0]:
+            if group_name == line.split(":")[0]:
                 lines.pop(i)
                 break
     with open(file_path,"w") as file:
         file.writelines(lines)
+    load_groups(language)
+
+def rename_group(language:str,group_name:str,new_name:str) -> None:
+    file_path = f"languages/{language}/config.txt"
+    with open(file_path,"r") as file:
+        lines = file.readlines()
+    stage = None
+    for i,line in enumerate(lines):
+        line = line.rstrip()
+        if line == "groups":
+            stage = "GROUP"
+        elif line == "end_groups":
+            stage = None
+        elif stage == "GROUP":
+            name,color,parent = line.split(":")
+            if group_name == name:
+                lines.pop(i)
+                lines.insert(i,str(l.Group(new_name,color,parent))+"\n")
+                break
+    with open(file_path,"w") as file:
+        file.writelines(lines)
+    load_groups(language)
 
 def create_config_file(language:str):
     file_path = f"languages/{language}/config.txt"
