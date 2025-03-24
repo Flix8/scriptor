@@ -2,6 +2,7 @@ import os
 from tkinter import *
 from tkinter import messagebox
 from tkinter import simpledialog
+from tkinter import colorchooser
 from tkinter.ttk import *
 import tkinter.font as font
 from PIL import Image, ImageTk
@@ -91,9 +92,8 @@ def on_group_double_click(event):
 
 def delete_group_button():
     selected_index = editor_group_listbox.curselection()
-    if selected_index and len(editor_canvas.letter.groups) > 1:
-        editor_group_listbox.delete(selected_index)
-        editor_canvas.letter.groups.pop(selected_index[0])
+    editor_group_listbox.delete(selected_index)
+    editor_canvas.letter.groups.pop(selected_index[0])
 
 def delete_connector_or_node():
     editor_canvas.keys_pressed.append("backspace")
@@ -117,16 +117,67 @@ def open_group_selector():
         if selected_index:
             selected_group = listbox.get(selected_index)
             editor_canvas.saved = False
-            print("ADD SELECTED GROUPS")
+            for group in selected_group:
+                if group not in editor_canvas.letter.groups:
+                    editor_canvas.letter.groups.append(group)
+                    editor_group_listbox.insert(END,group)
         else:
             messagebox.showwarning("No selection", "Please select at least one group.")
     def on_cancel():
         close_group_selector()
     def on_new():
-        new_group_name = simpledialog.askstring("New Group", "Enter the name of the new language:")
-        if new_group_name:
-            print("NEW GROUP")
-            close_group_selector()
+        def on_submit():
+            new_group_name = name_entry.get()
+            new_group_color = color_var.get()
+            selected_parent_index = parent_combobox.current()
+            if selected_parent_index >= 0:
+                new_group_parent = saving.all_groups[selected_parent_index].name
+            else:
+                new_group_parent = "None"
+
+            if new_group_name:
+                debug.send(f"NEW GROUP: Name={new_group_name}, Color={new_group_color}, Parent={new_group_parent}")
+                saving.create_group(window.language_name,letter.Group(new_group_name,new_group_color,new_group_parent))
+                listbox.insert(END,new_group_name)
+                close_new_group_dialog()
+
+        def close_new_group_dialog():
+            new_group_dialog.destroy()
+
+        def choose_color():
+            color_code = colorchooser.askcolor(title="Choose color")[1]
+            if color_code:
+                color_var.set(color_code)
+
+        new_group_dialog = Toplevel(window)
+        new_group_dialog.attributes('-topmost', True)
+        new_group_dialog.title("New Group")
+        new_group_dialog.geometry("300x400")
+        new_group_dialog.protocol("WM_DELETE_WINDOW", close_new_group_dialog)
+
+        name_label = Label(new_group_dialog, text="Name:")
+        name_label.pack(pady=5)
+        name_entry = Entry(new_group_dialog)
+        name_entry.pack(pady=5)
+
+        color_label = Label(new_group_dialog, text="Color:")
+        color_label.pack(pady=5)
+        color_var = StringVar()
+        color_button = Button(new_group_dialog, text="Choose Color", command=choose_color)
+        color_button.pack(pady=5)
+        color_entry = Entry(new_group_dialog, textvariable=color_var)
+        color_entry.pack(pady=5)
+
+        parent_label = Label(new_group_dialog, text="Parent Group:")
+        parent_label.pack(pady=5)
+        parent_combobox = Combobox(new_group_dialog, values=[group.name for group in saving.all_groups])
+        parent_combobox.pack(pady=5)
+
+        submit_button = Button(new_group_dialog, text="Submit", command=on_submit)
+        submit_button.pack(pady=10)
+
+        cancel_button = Button(new_group_dialog, text="Cancel", command=close_new_group_dialog)
+        cancel_button.pack(pady=5)
     def close_group_selector():
         global group_selector_open
         close("group_selector")
@@ -149,6 +200,7 @@ def open_group_selector():
                 listbox.insert(selected_index, new_name)
     group_selector_open = True
     group_selector = Toplevel(window)
+    group_selector.attributes('-topmost', True)
     register("group_selector",group_selector)
     group_selector.title("Select Group(s)")
     group_selector.geometry("300x400")
@@ -220,6 +272,7 @@ def open_language_selector():
                 listbox.insert(selected_index, new_name)
     language_selector_open = True
     language_selector = Toplevel(window)
+    language_selector.attributes('-topmost', True)
     register("language_selector",language_selector)
     language_selector.title("Select Language")
     language_selector.geometry("300x400")
@@ -299,6 +352,7 @@ def open_letter_selector():
             
     letter_selector_open = True
     letter_selector = Toplevel(window)
+    letter_selector.attributes('-topmost', True)
     register("letter_selector",letter_selector)
     letter_selector.title("Select Letter")
     letter_selector.geometry("300x450")
@@ -371,6 +425,7 @@ def save_letter_selector():
 
     letter_selector_open = True
     letter_selector = Toplevel(window)
+    letter_selector.attributes('-topmost', True)
     register("save_letter_selector",letter_selector)
     letter_selector.title("Save Letter")
     letter_selector.geometry("300x400")
@@ -691,7 +746,14 @@ editor_delete_group_button = Button(configuration_frame,image=trash_photo,comman
 editor_delete_group_button.trash_photo = trash_photo
 editor_delete_group_button.place(x=60,y=165)
 
+def reopen_debug_window_on_close():
+    debug.revive()
+    del registered["debug"]
+    register("debug",debug.root)
+
 debug.init(window)
+debug.debug_window.root.protocol("WM_DELETE_WINDOW", reopen_debug_window_on_close)
+
 
 register("debug",debug.root)
 register("main",window)

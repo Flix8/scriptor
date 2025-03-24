@@ -146,6 +146,7 @@ class EditorCanvas(ScriptorCanvas):
             mode = self.mode
             if mode != "normal" and self.selection_type == "node":
                 self.deselect_all_nodes()
+                self.last_pos = None
                 self.configuration_data = [0]
                 self.mode = "normal"
                 self.selection_type = None
@@ -183,6 +184,7 @@ class EditorCanvas(ScriptorCanvas):
                         self.configuration_data = [0]
             if mode != None and self.selection_type == "connector":
                 self.deselect_all_connectors()
+                self.last_pos = None
                 self.mode = "normal"
                 self.configuration_data = [0]
                 self.selection_type = None
@@ -232,8 +234,6 @@ class EditorCanvas(ScriptorCanvas):
             self.cursor.x = -10
             self.cursor.y = -10
     def on_drag(self,event):
-        if self.selection_type == "connector":
-            return
         x,y = self.calculate_snapped_position(event.x-350, event.y-300)
         if isinstance(self.last_node_created,EditorNode):
             self.last_node_created.x = x
@@ -252,7 +252,7 @@ class EditorCanvas(ScriptorCanvas):
                     self.configuration_data = [4,None,None,None,None,self.letter.segments[self.selected_segment].connectors[index].anchors[0].x,self.letter.segments[self.selected_segment].connectors[index].anchors[0].y,None,None]
                 else:
                     self.configuration_data = [4,None,None,None,None,None,None,self.letter.segments[self.selected_segment].connectors[index].anchors[1].x,self.letter.segments[self.selected_segment].connectors[index].anchors[1].y]
-            else:
+            elif self.selection_type != "connector":
                 self.to_deselect = None
                 for node in self.letter.segments[self.selected_segment].nodes:
                     if node.selected:

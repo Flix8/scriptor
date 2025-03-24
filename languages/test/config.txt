@@ -1,4 +1,5 @@
 groups
 VERB:blue:None
 IRREGULAR_VERB:light_blue:VERB
+TEST:#00ffff:None
 end_groups
