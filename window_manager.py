@@ -115,12 +115,12 @@ def open_group_selector():
     def on_ok():
         selected_index = listbox.curselection()
         if selected_index:
-            selected_group = listbox.get(selected_index)
             editor_canvas.saved = False
-            for group in selected_group:
-                if group not in editor_canvas.letter.groups:
-                    editor_canvas.letter.groups.append(group)
-                    editor_group_listbox.insert(END,group)
+            for index in selected_index:
+                selected_group = listbox.get(index)
+                if selected_group not in editor_canvas.letter.groups:
+                        editor_canvas.letter.groups.append(selected_group)
+                        editor_group_listbox.insert(END,selected_group)
         else:
             messagebox.showwarning("No selection", "Please select at least one group.")
     def on_cancel():
@@ -337,7 +337,7 @@ def open_letter_selector():
             selected_letter = listbox.get(selected_index)
             for item in canvas.find_all():
                 canvas.delete(item)
-            letter.draw_letter(saving.load_letter(window.language_name,selected_letter,False),canvas,0.2,(75,75),False,None)
+            letter.draw_letter(saving.load_letter(window.language_name,selected_letter,False),canvas,0.2,(75,75),False,None,"black")
 
     def on_letter_double_click(event):
         selected_index = listbox.curselection()
@@ -750,6 +750,7 @@ def reopen_debug_window_on_close():
     debug.revive()
     del registered["debug"]
     register("debug",debug.root)
+    debug.debug_window.root.protocol("WM_DELETE_WINDOW", reopen_debug_window_on_close)
 
 debug.init(window)
 debug.debug_window.root.protocol("WM_DELETE_WINDOW", reopen_debug_window_on_close)

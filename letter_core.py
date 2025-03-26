@@ -42,6 +42,7 @@ class EditorCanvas(ScriptorCanvas):
         self.letter = Letter()
         self.letter.segments.append(Segment())
         self.saved = True
+        self.draw_nodes = True
         self.configuration_data = None
         self.light_reset()
     def load_letter(self,letter,name):
@@ -61,6 +62,7 @@ class EditorCanvas(ScriptorCanvas):
         self.mode = "normal" #normal/selection_simple/selection_multiple
         self.selection_type = None #node/None/connector
         self.num_selected = 0
+        self.configuration_data = [0]
         if do_reload_segments: self.reload_segments = True
     def on_key(self,history):
         for type,key in history:
@@ -123,6 +125,9 @@ class EditorCanvas(ScriptorCanvas):
                 if node.selected:
                     self.to_deselect = node
                 else:
+                    if self.mode != "normal" and not "shift" in self.keys_pressed:
+                        self.mode = "normal"
+                        self.deselect_all_nodes()
                     node.select()
                     self.mode = "selection_simple" if self.mode == "normal" else "selection_multiple"
                     if self.mode == "selection_simple":
@@ -265,10 +270,14 @@ class EditorCanvas(ScriptorCanvas):
                         sendx += node.x
                         sendy += node.y
                         num += 1
+                if num == 0:
+                    sendx = x
+                    sendy = y
+                    num = 1
                 self.configuration_data = [1,sendx/num,sendy/num]
             self.update()
     def draw(self):
-        editor_draw(self.letter,self.canvas,self.selected_segment)
+        editor_draw(self.letter,self.canvas,self.selected_segment,self.draw_nodes)
     def delete_selection(self) -> None:
         if self.mode == "normal":
             return
@@ -321,6 +330,8 @@ class EditorCanvas(ScriptorCanvas):
                 y = connector.anchors[1].y + self.letter.segments[self.selected_segment].nodes[(i+1)%len(self.letter.segments[self.selected_segment].nodes)].y
                 anchor_points.append((x,y,i,1))
         return anchor_points
+    def set_draw_nodes(self,value:bool):
+        self.draw_nodes = value
 
 
 
@@ -393,7 +404,7 @@ class Group():
     def __str__(self):
         return f"{self.name}:{self.color}:{self.parent if self.parent != None else "None"}"
     
-def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=None,color_letter=None,width_letter=None):
+def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=None,color_letter=None,width_letter=None,base_color="black"):
         x,y = pos
         for segment_index, segment in enumerate(letter.segments):
             last_node = None
@@ -404,10 +415,10 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=No
                 if last_node != None:
                     connector = segment.connectors[i-1]
                     if isinstance(connector,EditorConnector):
-                        color = connector.color if sel else "gray"
+                        color = connector.color if sel else base_color
                         width = connector.width
                     else:
-                        color = color_letter if color_letter != None else "gray"
+                        color = color_letter if color_letter != None else base_color
                         width = width_letter
                     if connector.type == "LINE":
                         canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=color, width=width, tags="l_line")
@@ -423,10 +434,10 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=No
                     node = segment.nodes[0]
                     connector = segment.connectors[-1]
                     if isinstance(connector,EditorConnector):
-                        color = connector.color if sel else "gray"
+                        color = connector.color if sel else base_color
                         width = connector.width
                     else:
-                        color = color_letter if color_letter != None else "gray"
+                        color = color_letter if color_letter != None else base_color
                         width = width_letter
                     if connector.type == "LINE":
                         canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=color, width=width, tags="l_line")
@@ -440,12 +451,12 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=No
             if draw_nodes:
                 for node in segment.nodes:
                     if isinstance(node,EditorNode):
-                        color = node.color if sel else "gray"
+                        color = node.color if sel else base_color
                     else:
-                        color = color_letter if color_letter != None else "gray"
+                        color = color_letter if color_letter != None else base_color
                     draw_node(canvas,x,y,node,size,sel=sel,color=color)
-def editor_draw(letter,canvas,selected_segment_index):
-    draw_letter(letter,canvas,1,[350,300],True,selected_segment_index)
+def editor_draw(letter,canvas,selected_segment_index,draw_nodes=True):
+    draw_letter(letter,canvas,1,[350,300],draw_nodes,selected_segment_index if draw_nodes else None,base_color="gray" if draw_nodes else "black")
 
 def draw_node(canvas,x,y,node,size,tag="l_node",sel=True,color="gray"):
     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=color if sel else "gray", tags=tag)

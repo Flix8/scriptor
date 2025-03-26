@@ -1,2 +1,3 @@
 THIS LOG IS FOR DEBUGGING PURPOSES. THANK YOU.
-[Mon Mar 24 18:12:42 2025]: NEW GROUP: Name=TEST, Color=#00ffff, Parent=None
+[Wed Mar 26 18:22:57 2025]: Trying to execute command: manager.editor_canvas.set_draw_nodes(False)
+[Wed Mar 26 18:24:14 2025]: Trying to execute command: manager.editor_canvas.set_draw_nodes(True)

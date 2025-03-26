@@ -28,12 +28,15 @@ class DebugWindow:
 
     def send(self, message):
         """Add a message to the text area."""
-        self.text_area.configure(state='normal')
-        self.text_area.insert(tk.END, message + "\n")
-        self.text_area.see(tk.END)
-        self.text_area.configure(state='disabled')
-        with open("debug.log", "a") as file:
-            file.write(f"[{ctime(time())}]: {message}\n")
+        try:
+            self.text_area.configure(state='normal')
+            self.text_area.insert(tk.END, message + "\n")
+            self.text_area.see(tk.END)
+            self.text_area.configure(state='disabled')
+            with open("debug.log", "a") as file:
+                file.write(f"[{ctime(time())}]: {message}\n")
+        except tk.TclError:
+            print(f"Failed to sendd message to debug window: {message}")
 
     def clear(self):
         """Clear the text area."""
