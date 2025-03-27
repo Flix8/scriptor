@@ -314,15 +314,15 @@ def open_letter_selector():
         return
 
     def on_open():
-        selected_index = listbox.curselection()
-        if selected_index:
-            selected_letter = listbox.get(selected_index)
-            editor_canvas.load_letter(saving.load_letter(window.language_name,selected_letter,True),selected_letter)
+        selected_item = tree.selection()
+        if selected_item:
+            selected_letter = tree.item(selected_item, "text")
+            editor_canvas.load_letter(saving.load_letter(window.language_name, selected_letter, True), selected_letter)
             editor_canvas.saved = True
             close_letter_selector()
         else:
             messagebox.showwarning("No selection", "Please select a letter.")
-    
+
     def on_close():
         close_letter_selector()
 
@@ -330,46 +330,86 @@ def open_letter_selector():
         global letter_selector_open
         close("letter_selector")
         letter_selector_open = False
-    
+
     def on_letter_select(event):
-        selected_index = listbox.curselection()
-        if selected_index:
-            selected_letter = listbox.get(selected_index)
+        selected_item = tree.selection()
+        if selected_item:
+            selected_letter = tree.item(selected_item, "text")
             for item in canvas.find_all():
                 canvas.delete(item)
-            letter.draw_letter(saving.load_letter(window.language_name,selected_letter,False),canvas,0.2,(75,75),False,None,"black")
+            letter.draw_letter(saving.load_letter(window.language_name, selected_letter, False), canvas, 0.2, (75, 75), False, None, "black")
 
     def on_letter_double_click(event):
-        selected_index = listbox.curselection()
-        if selected_index:
-            letter_name = listbox.get(selected_index)
+        selected_item = tree.selection()
+        if selected_item:
+            letter_name = tree.item(selected_item, "text")
             new_name = simpledialog.askstring("Rename Letter", "Enter new name:", initialvalue=letter_name)
             if new_name and new_name != letter_name:
-                os.rename(os.path.join(letters_path, letter_name + ".json"),os.path.join(letters_path, new_name + ".json"))
-                listbox.delete(selected_index)
-                listbox.insert(selected_index, new_name)
+                os.rename(os.path.join(letters_path, letter_name + ".json"), os.path.join(letters_path, new_name + ".json"))
+                tree.item(selected_item, text=new_name)
 
-            
+    def on_group_filter_change(event):
+        selected_group = group_filter_combobox.get()
+        if selected_group != "All":
+            style.configure("Custom.TCombobox",fieldbackground=saving.get_group_obj(selected_group).color)
+        tree.delete(*tree.get_children())
+        for letter_name, letter_groups in groups.items():
+            if selected_group == "All" or selected_group in letter_groups:
+                if letter_groups:
+                    tree.insert("", "end", text=letter_name,tags=letter_groups[0])
+                else:
+                    tree.insert("", "end", text=letter_name)
+
+    style.configure("Custom.TCombobox",fieldbackground="white")
     letter_selector_open = True
     letter_selector = Toplevel(window)
     letter_selector.attributes('-topmost', True)
-    register("letter_selector",letter_selector)
+    register("letter_selector", letter_selector)
     letter_selector.title("Select Letter")
-    letter_selector.geometry("300x450")
+    letter_selector.geometry("300x500")
     letter_selector.protocol("WM_DELETE_WINDOW", close_letter_selector)
 
     canvas = Canvas(letter_selector, width=150, height=150, bg="white")
     canvas.pack(pady=10)
 
-    listbox = Listbox(letter_selector)
-    listbox.pack(fill=BOTH, expand=True, padx=10, pady=10)
-    listbox.bind('<<ListboxSelect>>', on_letter_select)
-    listbox.bind('<Double-1>', on_letter_double_click)
+    # Replace Listbox with Treeview
+    tree = Treeview(letter_selector, show="tree")
+    tree.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    tree.bind("<<TreeviewSelect>>", on_letter_select)
+    tree.bind("<Double-1>", on_letter_double_click)
 
     letters_path = os.path.join("languages", language, "letters")
     letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+
+    groups = {}
     for let in letters:
-        listbox.insert(END, os.path.splitext(let)[0])
+        let = os.path.splitext(let)[0]
+        groups[let] = saving.get_group_of_letter(window.language_name, let)
+        if groups[let]:
+            tree.insert("", "end", text=let,tags=groups[let][0])
+        else:
+            tree.insert("", "end", text=let)
+
+    # Create a dropdown list (combobox) for group filtering
+    group_filter_frame = Frame(letter_selector)
+    group_filter_frame.pack(fill=X, padx=10, pady=5)
+
+    group_filter_label = Label(group_filter_frame, text="Filter by Group:")
+    group_filter_label.pack(side=LEFT, padx=5)
+
+    all_groups = {"All"}  # Start with "All" as the default option
+    for letter_groups in groups.values():
+        all_groups.update(letter_groups)
+    
+    for group in all_groups:
+        if group == "All": continue
+        print(saving.get_group_obj(group).color)
+        tree.tag_configure(group,background=saving.get_group_obj(group).color)
+
+    group_filter_combobox = Combobox(group_filter_frame, values=list(all_groups), state="readonly",style="Custom.TCombobox")
+    group_filter_combobox.set("All")  # Default to "All"
+    group_filter_combobox.pack(fill=X, expand=True, padx=5)
+    group_filter_combobox.bind("<<ComboboxSelected>>", on_group_filter_change)
 
     button_frame = Frame(letter_selector)
     button_frame.pack(fill=X, padx=10, pady=10)
@@ -581,6 +621,7 @@ style.configure("secondary.TFrame", background="#1a1919")
 style.configure("toolbar.TFrame", background="#4a4949")
 style.configure("header.TFrame", background="#9e9d9d")
 style.configure("highlight.TListbox", background="#bfbfbf")
+style.configure("Custom.TCombobox", fieldbackground="lightblue", background="white")
 
 window.geometry("1000x800")
 background = Frame(window,width=1000,height=800,style="secondary.TFrame")

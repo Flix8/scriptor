@@ -3,6 +3,10 @@ import letter_core as l
 
 new_language = None
 all_groups = []
+def get_group_obj(name) -> l.Group:
+    for group in all_groups:
+        if group.name == name:
+            return group
 
 class SessionData():
     def __init__(self,language,letter=None,open_frame="Editor"):
@@ -145,3 +149,15 @@ def load_letter(language: str, name_letter: str, use_editor_versions: bool = Fal
         letter.segments.append(segment)
     
     return letter
+
+def get_group_of_letter(language:str, name_letter: str) -> list:
+    file_path = f"languages/{language}/letters/{name_letter}.json"
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"No such file: '{file_path}'")
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    groups = data["groups"]
+    for group_obj in all_groups:
+        if group_obj.name in groups and group_obj.parent != None:
+            groups.append(group_obj.parent)
+    return groups

@@ -1,3 +1,1 @@
 THIS LOG IS FOR DEBUGGING PURPOSES. THANK YOU.
-[Wed Mar 26 18:22:57 2025]: Trying to execute command: manager.editor_canvas.set_draw_nodes(False)
-[Wed Mar 26 18:24:14 2025]: Trying to execute command: manager.editor_canvas.set_draw_nodes(True)

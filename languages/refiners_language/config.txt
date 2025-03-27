@@ -1,4 +1,4 @@
 groups
-Grammar:#b70000:None
-Time:#ffb415:Grammar
+Grammar:#c2d8fc:None
+Time:#ffbfbf:Grammar
 end_groups
