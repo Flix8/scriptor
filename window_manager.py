@@ -150,7 +150,6 @@ def open_group_selector():
                 color_var.set(color_code)
 
         new_group_dialog = Toplevel(window)
-        new_group_dialog.attributes('-topmost', True)
         new_group_dialog.title("New Group")
         new_group_dialog.geometry("300x400")
         new_group_dialog.protocol("WM_DELETE_WINDOW", close_new_group_dialog)
@@ -200,7 +199,6 @@ def open_group_selector():
                 listbox.insert(selected_index, new_name)
     group_selector_open = True
     group_selector = Toplevel(window)
-    group_selector.attributes('-topmost', True)
     register("group_selector",group_selector)
     group_selector.title("Select Group(s)")
     group_selector.geometry("300x400")
@@ -272,7 +270,6 @@ def open_language_selector():
                 listbox.insert(selected_index, new_name)
     language_selector_open = True
     language_selector = Toplevel(window)
-    language_selector.attributes('-topmost', True)
     register("language_selector",language_selector)
     language_selector.title("Select Language")
     language_selector.geometry("300x400")
@@ -363,7 +360,6 @@ def open_letter_selector():
     style.configure("Custom.TCombobox",fieldbackground="white")
     letter_selector_open = True
     letter_selector = Toplevel(window)
-    letter_selector.attributes('-topmost', True)
     register("letter_selector", letter_selector)
     letter_selector.title("Select Letter")
     letter_selector.geometry("300x500")
@@ -465,7 +461,6 @@ def save_letter_selector():
 
     letter_selector_open = True
     letter_selector = Toplevel(window)
-    letter_selector.attributes('-topmost', True)
     register("save_letter_selector",letter_selector)
     letter_selector.title("Save Letter")
     letter_selector.geometry("300x400")

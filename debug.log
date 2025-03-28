@@ -1,1 +1,10 @@
 THIS LOG IS FOR DEBUGGING PURPOSES. THANK YOU.
+[Fri Mar 28 12:20:04 2025]: Trying to execute command: get manager.window.selected_language
+[Fri Mar 28 12:20:04 2025]: Error executing command: Traceback (most recent call last):
+  File "/Users/felix/Documents/GitHub/scriptor/main.py", line 61, in on_update
+    exec(command,globals())
+  File "<string>", line 1, in <module>
+  File "/Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/tkinter/__init__.py", line 2354, in __getattr__
+    return getattr(self.tk, attr)
+AttributeError: '_tkinter.tkapp' object has no attribute 'selected_language'
+

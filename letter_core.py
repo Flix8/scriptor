@@ -402,7 +402,7 @@ class Group():
         self.color = color
         self.parent = parent if parent != "None" else None
     def __str__(self):
-        return f"{self.name}:{self.color}:{self.parent if self.parent != None else "None"}"
+        return f"{self.name}:{self.color}:{self.parent if self.parent != None else 'None'}"
     
 def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=None,color_letter=None,width_letter=None,base_color="black"):
         x,y = pos
