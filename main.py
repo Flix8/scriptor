@@ -10,6 +10,7 @@ import keypress_tracker as tracker
 import debug_console as debug
 import letter_core as letter
 import saving_agent as saving
+import exporter as export
 
 def custom_handler(exc_type, exc_value, exc_traceback):
     on_exit()

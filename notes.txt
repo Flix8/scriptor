@@ -5,7 +5,6 @@ Different modes:
 
 To-Do:
 - Functionality with multiple frames and switching between them.
-- Being able to put letters into a category for easy search in Write mode/Any open window
 - Configure menu
     - Positioning of letters
     - An overview of all letters in text form (when clicked on one shows preview)

@@ -1,5 +1,5 @@
 {
-      "language": "refiners_language",
-      "letter": null,
+      "language": "test",
+      "letter": "test_letters",
       "open_frame": "Editor"
 }

@@ -1,1 +1,8 @@
-[]
+[
+      "export.export_preview_img(manager.window.language_name,manager.editor_canvas.letter_name,manager.editor_canvas.letter)",
+      "export.export_preview_img(manager.window.language_name,manager.editor_canvas.letter_name,manager.editor_canvas.letter)",
+      "export.export_preview_img(manager.window.language_name,manager.editor_canvas.letter_name,manager.editor_canvas.letter)",
+      "export.export_preview_img(manager.window.language_name,manager.editor_canvas.letter_name,manager.editor_canvas.letter)",
+      "export.export_preview_img(manager.window.language_name,manager.editor_canvas.letter_name,manager.editor_canvas.letter)",
+      "get manager.editor_canvas.letter"
+]

@@ -106,6 +106,9 @@ def turn_selected_connectors_into_lines():
 def turn_selected_connectors_into_beziers():
     editor_canvas.keys_pressed.append("b")
     editor_canvas.process_key_presses()
+def on_toggle_draw_nodes():
+    editor_canvas.draw_nodes = show_nodes_var.get()
+    editor_canvas.update()
 
 def open_group_selector():
     #Written by Copilot
@@ -655,20 +658,20 @@ navigation_frame.place(x=700,y=0)
 
 editor_frame = Frame(window,height=700,width=1000,style="secondary.TFrame")
 
-editor_header_frame = Frame(editor_frame,height=40,width=700,style="header.TFrame")
+editor_header_frame = Frame(editor_frame,height=40,width=704,style="header.TFrame")
 editor_selected_label = Label(editor_header_frame,font=('Helvetica',15),background="#9e9d9d",textvariable=txt_selected_label)
 editor_selected_label.letter = ""
 editor_selected_label.language = ""
 editor_selected_label.saved = None
 editor_selected_label.place(x=5,y=7)
 editor_frame.place(x=0,y=60)
-editor_header_frame.place(x=0,y=0)
+editor_header_frame.place(x=5,y=0)
 
 editor_canvas = letter.EditorCanvas(Canvas(editor_frame,width=700,height=600,background="#525252"))
-editor_canvas.canvas.place(x=0,y=40)
+editor_canvas.canvas.place(x=5,y=45)
 
 editor_segment_listbox_frame = Frame(editor_frame,width=282,height=300,style="header.TFrame")
-editor_segment_listbox_frame.place(x=710,y=344)
+editor_segment_listbox_frame.place(x=715,y=349)
 
 editor_segment_listbox = Listbox(editor_segment_listbox_frame,width=43,height=15,bg=style.lookup("header.TFrame","background"),highlightcolor=style.lookup("hightlight.TListbox","background"))
 editor_segment_listbox.bind('<<ListboxSelect>>', on_segment_select)
@@ -695,7 +698,7 @@ editor_canvas.canvas.create_image(0,0,image=grid_photo,anchor="nw",tags="grid")
 editor_canvas.grid_photo = grid_photo
 
 configuration_frame = Frame(editor_frame, width=282, height=300, style="header.TFrame")
-configuration_frame.place(x=710, y=40)
+configuration_frame.place(x=715, y=45)
 
 config_labels_x = [
     Label(configuration_frame, text=f"X1:", background=style.lookup("header.TFrame", "background")),
@@ -786,6 +789,13 @@ trash_photo = ImageTk.PhotoImage(trash_img,master=configuration_frame)
 editor_delete_group_button = Button(configuration_frame,image=trash_photo,command=delete_group_button) 
 editor_delete_group_button.trash_photo = trash_photo
 editor_delete_group_button.place(x=60,y=165)
+
+editor_extra_options_frame = Frame(editor_frame,height=40,width=992,style="header.TFrame")
+editor_extra_options_frame.place(x=5,y=655)
+
+show_nodes_var = BooleanVar(value=True)
+show_nodes_checkbox = Checkbutton(editor_extra_options_frame,text="Draw Nodes",variable=show_nodes_var,command=on_toggle_draw_nodes)
+show_nodes_checkbox.place(x=10, y=10)
 
 def reopen_debug_window_on_close():
     debug.revive()

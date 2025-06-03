@@ -1,5 +1,6 @@
 import os, json
 import letter_core as l
+import exporter
 
 new_language = None
 all_groups = []
@@ -41,6 +42,7 @@ def save_letter(language: str, name_letter: str, letter: l.Letter) -> None:
     file_path = f"{directory}/{name_letter}.json"
     with open(file_path, 'w') as file:
         json.dump(letter, file, default=lambda o: o.__dict__, indent=6)
+    exporter.export_preview_img(language,name_letter,letter)
 
 def load_groups(language:str) -> None:
     global all_groups
@@ -115,6 +117,9 @@ def create_config_file(language:str):
     file_path = f"languages/{language}/config.txt"
     with open(file_path,"w") as file:
         file.write("groups\nend_groups")
+    directory = f"languages/{language}/previews"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 def load_letter(language: str, name_letter: str, use_editor_versions: bool = False) -> l.Letter:
     global new_language
