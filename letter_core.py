@@ -1,4 +1,4 @@
-from math import sqrt
+from math import sqrt, sin, cos, radians
 import debug_console as debug
 class ScriptorCanvas():
     def __init__(self,canvas):
@@ -44,11 +44,13 @@ class EditorCanvas(ScriptorCanvas):
         self.saved = True
         self.draw_nodes = True
         self.configuration_data = None
+        self.center_edits = Node(0,0)
         self.light_reset()
     def load_letter(self,letter,name):
         self.letter_name = name
         self.light_reset()
         self.letter = letter
+        self.selected_segment = 0
         self.update()
     def light_reset(self,do_reload_segments=True):
         self.deselect_all_connectors()
@@ -63,6 +65,7 @@ class EditorCanvas(ScriptorCanvas):
         self.selection_type = None #node/None/connector
         self.num_selected = 0
         self.configuration_data = [0]
+        self.center_edits = Node(0,0)
         if do_reload_segments: self.reload_segments = True
     def on_key(self,history):
         for type,key in history:
@@ -73,6 +76,8 @@ class EditorCanvas(ScriptorCanvas):
         self.update_step_size()
         self.process_key_presses()
     def process_key_presses(self):
+        if self.canvas.focus_get() == None or str(self.canvas.focus_get()).startswith(".!toplevel"):
+            return
         if "entf" in self.keys_pressed:
             self.delete_selection()
             self.keys_pressed.remove("entf")
@@ -277,7 +282,7 @@ class EditorCanvas(ScriptorCanvas):
                 self.configuration_data = [1,sendx/num,sendy/num]
             self.update()
     def draw(self):
-        editor_draw(self.letter,self.canvas,self.selected_segment,self.draw_nodes)
+        editor_draw(self.letter,self.canvas,self.selected_segment,self.draw_nodes,self.center_edits)
     def delete_selection(self) -> None:
         if self.mode == "normal":
             return
@@ -296,6 +301,38 @@ class EditorCanvas(ScriptorCanvas):
                     nodes_copy.remove(self.letter.segments[self.selected_segment].nodes[index])
         self.letter.segments[self.selected_segment].nodes = nodes_copy
         self.letter.segments[self.selected_segment].connectors = connectors_copy
+        self.light_reset(False)
+        self.update()
+    def rotate_selection(self,angle,center=(0,0),use_center_edits=True) -> None:
+        if use_center_edits:
+            center = (self.center_edits.x,self.center_edits.y)
+        if self.selection_type == "node":
+            for node in self.letter.segments[self.selected_segment].nodes:
+                if node.selected:
+                    node.x -= center[0]
+                    node.y -= center[1]
+                    rotated_x = node.x * cos(radians(angle)) - node.y * sin(radians(angle))
+                    rotated_y = node.y * cos(radians(angle)) + node.x * sin(radians(angle))
+                    node.x = rotated_x
+                    node.y = rotated_y
+                    node.x += center[0]
+                    node.y += center[1]
+        self.light_reset(False)
+        self.update()
+    def mirror_selection(self,x_axis=False,y_axis=True,center=(0,0),use_center_edits=True) -> None:
+        if use_center_edits:
+            center = (self.center_edits.x,self.center_edits.y)
+        if self.selection_type == "node":
+            for node in self.letter.segments[self.selected_segment].nodes:
+                if node.selected:
+                    node.x -= center[0]
+                    node.y -= center[1]
+                    if x_axis:
+                        node.y = -node.y
+                    if y_axis:
+                        node.x = -node.x
+                    node.x += center[0]
+                    node.y += center[1]
         self.light_reset(False)
         self.update()
     def deselect_all_connectors(self):
@@ -455,8 +492,9 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=No
                     else:
                         color = color_letter if color_letter != None else base_color
                     draw_node(canvas,x,y,node,size,sel=sel,color=color)
-def editor_draw(letter,canvas,selected_segment_index,draw_nodes=True):
+def editor_draw(letter,canvas,selected_segment_index,draw_nodes=True,center_edits=Node(0,0)):
     draw_letter(letter,canvas,1,[350,300],draw_nodes,selected_segment_index if draw_nodes else None,base_color="gray" if draw_nodes else "black")
+    draw_node(canvas,350,300,EditorNode(center_edits.x,center_edits.y),1,color="purple")
 
 def draw_node(canvas,x,y,node,size,tag="l_node",sel=True,color="gray"):
     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=color if sel else "gray", tags=tag)

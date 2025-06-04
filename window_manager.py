@@ -106,9 +106,65 @@ def turn_selected_connectors_into_lines():
 def turn_selected_connectors_into_beziers():
     editor_canvas.keys_pressed.append("b")
     editor_canvas.process_key_presses()
+
+def rotate_left():
+    rotation = rotation_var.get()
+    try:
+        rotation = float(rotation)
+    except ValueError:
+        rotation = 0.0
+    editor_canvas.rotate_selection(-rotation)
+
+def rotate_right():
+    rotation = rotation_var.get()
+    try:
+        rotation = float(rotation)
+    except ValueError:
+        rotation = 0.0
+    editor_canvas.rotate_selection(rotation)
+
+def mirror_y():
+    editor_canvas.mirror_selection()
+
+def mirror_x():
+    editor_canvas.mirror_selection(True,False)
+
 def on_toggle_draw_nodes():
     editor_canvas.draw_nodes = show_nodes_var.get()
     editor_canvas.update()
+
+def validate_angle(new_value):
+    if new_value == "":
+        return True
+    try:
+        val = float(new_value)
+        return 0 <= val <= 360
+    except ValueError:
+        return False
+
+def on_center_change_x(new_value):
+    try:
+        center_x = float(new_value if new_value != "" else "0")
+        center_y = float(center_y_var.get() if center_y_var.get() != "" else "0")
+        if editor_canvas.center_edits.x != center_x or editor_canvas.center_edits.y != center_y:
+            editor_canvas.center_edits.x = center_x
+            editor_canvas.center_edits.y = center_y
+            editor_canvas.update()
+    except ValueError:
+        pass
+    return True
+
+def on_center_change_y(new_value):
+    try:
+        center_x = float(center_x_var.get() if center_x_var.get() != "" else "0")
+        center_y = float(new_value if new_value != "" else "0")
+        if editor_canvas.center_edits.x != center_x or editor_canvas.center_edits.y != center_y:
+            editor_canvas.center_edits.x = center_x
+            editor_canvas.center_edits.y = center_y
+            editor_canvas.update()
+    except ValueError:
+        pass
+    return True
 
 def open_group_selector():
     #Written by Copilot
@@ -789,8 +845,56 @@ editor_extra_options_frame = Frame(editor_frame,height=40,width=992,style="heade
 editor_extra_options_frame.place(x=5,y=655)
 
 show_nodes_var = BooleanVar(value=True)
-show_nodes_checkbox = Checkbutton(editor_extra_options_frame,text="Draw Nodes",variable=show_nodes_var,command=on_toggle_draw_nodes)
-show_nodes_checkbox.place(x=10, y=10)
+editor_show_nodes_checkbox = Checkbutton(editor_extra_options_frame,text="Draw Nodes",variable=show_nodes_var,command=on_toggle_draw_nodes)
+editor_show_nodes_checkbox.place(x=10, y=10)
+
+rotation_var = StringVar(editor_extra_options_frame)
+valid_angle_cmd = (editor_extra_options_frame.register(validate_angle),"%P")
+editor_rotation_degrees_entry_box = Entry(editor_extra_options_frame,validate="key",validatecommand=valid_angle_cmd,textvariable=rotation_var,width=8)
+editor_rotation_degrees_entry_box.place(x=170,y=10)
+
+undo_img = Image.open("images/undo.png")
+undo_img = undo_img.resize((20,20))
+undo_photo = ImageTk.PhotoImage(undo_img,master=editor_extra_options_frame)
+editor_rotate_left_button = Button(editor_extra_options_frame,image=undo_photo,command=rotate_left) 
+editor_rotate_left_button.undo_photo = undo_photo
+editor_rotate_left_button.place(x=240,y=5)
+
+redo_img = Image.open("images/redo.png")
+redo_img = redo_img.resize((20,20))
+redo_photo = ImageTk.PhotoImage(redo_img,master=editor_extra_options_frame)
+editor_rotate_right_button = Button(editor_extra_options_frame,image=redo_photo,command=rotate_right) 
+editor_rotate_right_button.redo_photo = redo_photo
+editor_rotate_right_button.place(x=280,y=5)
+
+center_x_label = Label(editor_extra_options_frame, text=f"Center X:", background=style.lookup("header.TFrame", "background"))
+center_y_label = Label(editor_extra_options_frame, text=f"Y:", background=style.lookup("header.TFrame", "background"))
+center_x_var = StringVar(editor_extra_options_frame)
+center_y_var = StringVar(editor_extra_options_frame)
+on_center_change_x_cmd = (editor_extra_options_frame.register(on_center_change_x),"%P")
+on_center_change_y_cmd = (editor_extra_options_frame.register(on_center_change_y),"%P")
+center_x_entry = Entry(editor_extra_options_frame,validate="key",validatecommand=on_center_change_x_cmd,textvariable=center_x_var,width=8)
+center_y_entry = Entry(editor_extra_options_frame,validate="key",validatecommand=on_center_change_y_cmd,textvariable=center_y_var,width=8)
+center_x_label.place(x=320,y=10)
+center_x_entry.place(x=380,y=10)
+center_y_label.place(x=440,y=10)
+center_y_entry.place(x=460,y=10)
+
+
+mirror_y_img = Image.open("images/mirror_y_axis.png")
+mirror_y_img = mirror_y_img.resize((20,20))
+mirror_y_photo = ImageTk.PhotoImage(mirror_y_img,master=editor_extra_options_frame)
+editor_mirror_y_axis_button = Button(editor_extra_options_frame,image=mirror_y_photo,command=mirror_y) 
+editor_mirror_y_axis_button.mirror_y_photo = mirror_y_photo
+editor_mirror_y_axis_button.place(x=600,y=5)
+
+mirror_x_img = Image.open("images/mirror_x_axis.png")
+mirror_x_img = mirror_x_img.resize((20,20))
+mirror_x_photo = ImageTk.PhotoImage(mirror_x_img,master=editor_extra_options_frame)
+editor_mirror_x_axis_button = Button(editor_extra_options_frame,image=mirror_x_photo,command=mirror_x) 
+editor_mirror_x_axis_button.mirror_x_photo = mirror_x_photo
+editor_mirror_x_axis_button.place(x=640,y=5)
+
 
 def reopen_debug_window_on_close():
     debug.revive()

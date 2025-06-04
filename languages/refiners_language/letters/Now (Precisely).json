@@ -1,0 +1,228 @@
+{
+      "segments": [
+            {
+                  "name": "InnerFrame",
+                  "nodes": [
+                        {
+                              "x": -160,
+                              "y": 0
+                        },
+                        {
+                              "x": 0,
+                              "y": -160
+                        },
+                        {
+                              "x": 160,
+                              "y": 0
+                        },
+                        {
+                              "x": 0,
+                              "y": 160
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        }
+                  ]
+            },
+            {
+                  "name": "OuterFrame",
+                  "nodes": [
+                        {
+                              "x": -200,
+                              "y": 0
+                        },
+                        {
+                              "x": 0,
+                              "y": -200
+                        },
+                        {
+                              "x": 200,
+                              "y": 0
+                        },
+                        {
+                              "x": 0,
+                              "y": 200
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Arrow",
+                  "nodes": [
+                        {
+                              "x": 15.000000000000005,
+                              "y": -80.0
+                        },
+                        {
+                              "x": -14.999999999999995,
+                              "y": -80.0
+                        },
+                        {
+                              "x": -15.0,
+                              "y": -10.000000000000002
+                        },
+                        {
+                              "x": -50.0,
+                              "y": -30.000000000000004
+                        },
+                        {
+                              "x": -50.0,
+                              "y": -3.061616997868383e-15
+                        },
+                        {
+                              "x": -15.000000000000002,
+                              "y": 20.0
+                        },
+                        {
+                              "x": -15.000000000000004,
+                              "y": 50.0
+                        },
+                        {
+                              "x": -50.0,
+                              "y": 29.999999999999996
+                        },
+                        {
+                              "x": -50.00000000000001,
+                              "y": 60.0
+                        },
+                        {
+                              "x": -5.5109105961630896e-15,
+                              "y": 90.0
+                        },
+                        {
+                              "x": 49.99999999999999,
+                              "y": 60.0
+                        },
+                        {
+                              "x": 50.0,
+                              "y": 30.000000000000004
+                        },
+                        {
+                              "x": 14.999999999999996,
+                              "y": 50.0
+                        },
+                        {
+                              "x": 14.999999999999998,
+                              "y": 20.0
+                        },
+                        {
+                              "x": 50.0,
+                              "y": 3.061616997868383e-15
+                        },
+                        {
+                              "x": 50.0,
+                              "y": -29.999999999999996
+                        },
+                        {
+                              "x": 15.0,
+                              "y": -9.999999999999998
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Time"
+      ]
+}

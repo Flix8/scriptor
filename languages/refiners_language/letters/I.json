@@ -1,0 +1,135 @@
+{
+      "segments": [
+            {
+                  "name": "Basis",
+                  "nodes": [
+                        {
+                              "x": -140,
+                              "y": -70
+                        },
+                        {
+                              "x": 140,
+                              "y": -70
+                        },
+                        {
+                              "x": 140,
+                              "y": -30
+                        },
+                        {
+                              "x": 20,
+                              "y": -30
+                        },
+                        {
+                              "x": 20,
+                              "y": 150
+                        },
+                        {
+                              "x": -20,
+                              "y": 150
+                        },
+                        {
+                              "x": -20,
+                              "y": -30
+                        },
+                        {
+                              "x": -140,
+                              "y": -30
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Half Circle",
+                  "nodes": [
+                        {
+                              "x": -60,
+                              "y": -70
+                        },
+                        {
+                              "x": 60,
+                              "y": -70
+                        },
+                        {
+                              "x": 20,
+                              "y": -70
+                        },
+                        {
+                              "x": -20,
+                              "y": -70
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": 40,
+                                          "y": -60
+                                    },
+                                    {
+                                          "x": -40,
+                                          "y": -60
+                                    }
+                              ]
+                        },
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": 0,
+                                          "y": 0
+                                    },
+                                    {
+                                          "x": 0,
+                                          "y": 0
+                                    }
+                              ]
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Pronoun"
+      ]
+}

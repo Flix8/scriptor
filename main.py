@@ -46,7 +46,6 @@ def on_update():
                 debug.send(f"Executing from clipboard:\n{clipboard}")
                 for command in clipboard.split("\n"):
                     debug.debug_window.to_execute.append(command)
-            manager.get('main').clipboard_clear()
         except TclError:
             debug.send("Clipboard empty!")
     if len(tracker.keypress_history) != 0:
