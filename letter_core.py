@@ -178,7 +178,12 @@ class EditorCanvas(ScriptorCanvas):
             for i,connector in enumerate(self.letter.segments[self.selected_segment].connectors):
                 p1 = self.letter.segments[self.selected_segment].nodes[i]
                 p2 = self.letter.segments[self.selected_segment].nodes[(i+1)%len(self.letter.segments[self.selected_segment].connectors)]
-                dist = distance_to_line_segment(p1,p2,Node(real_x,real_y))
+                if connector.type == "LINE":
+                    dist = distance_to_line_segment(p1,p2,Node(real_x,real_y))
+                elif connector.type == "BEZIER":
+                    dist = distance_to_bezier(p1,p2,connector.anchors[0],connector.anchors[1],Node(real_x,real_y))
+                else:
+                    dist = distance_to_half_circle(p1,p2,connector.direction,Node(real_x,real_y))
                 if dist <= 6:
                     if connector.selected:
                         connector.deselect()
@@ -491,6 +496,15 @@ class Group():
         self.parent = parent if parent != "None" else None
     def __str__(self):
         return f"{self.name}:{self.color}:{self.parent if self.parent != None else 'None'}"
+
+class LetterSpace():
+    def __init__(self,x:float=0,y:float=0,width:int=400,height:int=400,letter:str|None=None,children:list = []):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.letter = letter
+        self.children = children
     
 def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=None,color_letter=None,width_letter=None,base_color="black"):
         x,y = pos
@@ -608,3 +622,34 @@ def distance_to_line_segment(line_p1,line_p2,point) -> float:
 
     # Calculate the distance from the point to the projection
     return sqrt((x3 - projection_x) ** 2 + (y3 - projection_y) ** 2)
+
+dot = lambda v1,v2: v1.x * v2.x + v1.y * v2.y
+length = lambda v: sqrt(v.x**2+v.y**2)
+
+def distance_to_half_circle(circle_point1,circle_point2,direction,point) -> float:
+    midpoint = circle_point1 + (circle_point2-circle_point1)/2
+    v = circle_point1 - midpoint
+    normal = Node(-v.y,v.x) * direction
+    mp = point - midpoint
+    if dot(mp,normal) == abs(dot(mp,normal)):
+        return abs(length(mp)-length(v))
+    else:
+        return min(length(point-circle_point1),length(point-circle_point2))
+
+def distance_to_bezier(node1,node2, rel_anchor1, rel_anchor2, point, n=50):
+    """
+    Calculate the minimum distance from a point to a cubic Bezier curve.
+    The curve is defined as in draw_bezier.
+    """
+    anchor1 = Node(rel_anchor1.x + node1.x, rel_anchor1.y + node1.y)
+    anchor2 = Node(rel_anchor2.x + node2.x, rel_anchor2.y + node2.y)
+
+    min_dist = float('inf')
+    for i in range(n + 1):
+        t = i / n
+        x = (node1.x * (1-t)**3 + anchor1.x * 3 * t * (1-t)**2 + anchor2.x * 3 * t**2 * (1-t) + node2.x * t**3)
+        y = (node1.y * (1-t)**3 + anchor1.y * 3 * t * (1-t)**2 + anchor2.y * 3 * t**2 * (1-t) + node2.y * t**3)
+        dist = sqrt((point.x - x) ** 2 + (point.y - y) ** 2)
+        if dist < min_dist:
+            min_dist = dist
+    return min_dist
