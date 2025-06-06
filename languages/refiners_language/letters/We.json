@@ -4,6 +4,46 @@
                   "name": "Basis",
                   "nodes": [
                         {
+                              "x": 20,
+                              "y": 150
+                        },
+                        {
+                              "x": -20,
+                              "y": 150
+                        },
+                        {
+                              "x": -20,
+                              "y": 50
+                        },
+                        {
+                              "x": -70,
+                              "y": 50
+                        },
+                        {
+                              "x": -70,
+                              "y": 20
+                        },
+                        {
+                              "x": -20,
+                              "y": 20
+                        },
+                        {
+                              "x": -20,
+                              "y": -30
+                        },
+                        {
+                              "x": -140,
+                              "y": -30
+                        },
+                        {
+                              "x": -140,
+                              "y": -70
+                        },
+                        {
+                              "x": -50,
+                              "y": -70
+                        },
+                        {
                               "x": 50,
                               "y": -70
                         },
@@ -21,27 +61,19 @@
                         },
                         {
                               "x": 20,
-                              "y": 150
+                              "y": 20
                         },
                         {
-                              "x": -20,
-                              "y": 150
+                              "x": 70,
+                              "y": 20
                         },
                         {
-                              "x": -20,
-                              "y": -30
+                              "x": 70,
+                              "y": 50
                         },
                         {
-                              "x": -140,
-                              "y": -30
-                        },
-                        {
-                              "x": -140,
-                              "y": -70
-                        },
-                        {
-                              "x": -50,
-                              "y": -70
+                              "x": 20,
+                              "y": 50
                         }
                   ],
                   "connectors": [
@@ -94,6 +126,46 @@
                               "type": "CIRCLE",
                               "anchors": null,
                               "direction": 1
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
                         }
                   ]
             },

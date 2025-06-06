@@ -92,21 +92,25 @@ def on_group_double_click(event):
 
 def delete_group_button():
     selected_index = editor_group_listbox.curselection()
-    editor_group_listbox.delete(selected_index)
-    editor_canvas.letter.groups.pop(selected_index[0])
+    if selected_index:
+        editor_group_listbox.delete(selected_index)
+        editor_canvas.letter.groups.pop(selected_index[0])
 
 def delete_connector_or_node():
     editor_canvas.keys_pressed.append("backspace")
-    editor_canvas.process_key_presses()
+    editor_canvas.process_key_presses(True)
 
 def turn_selected_connectors_into_lines():
     editor_canvas.keys_pressed.append("l")
-    editor_canvas.process_key_presses()
+    editor_canvas.process_key_presses(True)
 
 def turn_selected_connectors_into_beziers():
     editor_canvas.keys_pressed.append("b")
-    editor_canvas.process_key_presses()
+    editor_canvas.process_key_presses(True)
 
+def turn_selected_connectors_into_half_circles():
+    editor_canvas.keys_pressed.append("c")
+    editor_canvas.process_key_presses(True)
 def rotate_left():
     rotation = rotation_var.get()
     try:
@@ -139,6 +143,15 @@ def validate_angle(new_value):
     try:
         val = float(new_value)
         return 0 <= val <= 360
+    except ValueError:
+        return False
+
+def validate_is_number(new_value):
+    if new_value == "" or new_value == "-":
+        return True
+    try:
+        val = float(new_value)
+        return True
     except ValueError:
         return False
 
@@ -391,9 +404,23 @@ def open_letter_selector():
         selected_item = tree.selection()
         if selected_item:
             selected_letter = tree.item(selected_item, "text")
-            for item in canvas.find_all():
-                canvas.delete(item)
-            letter.draw_letter(saving.load_letter(window.language_name, selected_letter, False), canvas, 0.2, (75, 75), False, None, "black")
+            # Load and display the preview image in the label
+            preview_path = os.path.join("languages", window.language_name, "previews", f"{selected_letter}.png")
+            if os.path.exists(preview_path):
+                img = Image.open(preview_path)
+                w, h = img.size
+                # Calculate cropping box for a centered square
+                if w > h:
+                    left = (w - h) // 2
+                    right = left + h
+                    img = img.crop((left, 0, right, h))
+                img = img.resize((150, 150), Image.LANCZOS)
+                photo = ImageTk.PhotoImage(img, master=preview_label)
+                preview_label.config(image=photo)
+                preview_label.image = photo  # Prevent garbage collection
+            else:
+                preview_label.config(image="", text="No preview available")
+                preview_label.image = None
 
     def on_letter_double_click(event):
         selected_item = tree.selection()
@@ -407,16 +434,16 @@ def open_letter_selector():
     def on_group_filter_change(event):
         selected_group = group_filter_combobox.get()
         if selected_group != "All":
-            style.configure("Custom.TCombobox",fieldbackground=saving.get_group_obj(selected_group).color)
+            style.configure("Custom.TCombobox", fieldbackground=saving.get_group_obj(selected_group).color)
         tree.delete(*tree.get_children())
         for letter_name, letter_groups in groups.items():
             if selected_group == "All" or selected_group in letter_groups:
                 if letter_groups:
-                    tree.insert("", "end", text=letter_name,tags=letter_groups[0])
+                    tree.insert("", "end", text=letter_name, tags=letter_groups[0])
                 else:
                     tree.insert("", "end", text=letter_name)
 
-    style.configure("Custom.TCombobox",fieldbackground="white")
+    style.configure("Custom.TCombobox", fieldbackground="white")
     letter_selector_open = True
     letter_selector = Toplevel(window)
     register("letter_selector", letter_selector)
@@ -424,10 +451,10 @@ def open_letter_selector():
     letter_selector.geometry("300x500")
     letter_selector.protocol("WM_DELETE_WINDOW", close_letter_selector)
 
-    canvas = Canvas(letter_selector, width=150, height=150, bg="white")
-    canvas.pack(pady=10)
+    # Use a Label for the preview image
+    preview_label = Label(letter_selector, width=150, anchor="center", text="No preview")
+    preview_label.pack(pady=10)
 
-    # Replace Listbox with Treeview
     tree = Treeview(letter_selector, show="tree")
     tree.pack(fill=BOTH, expand=True, padx=10, pady=10)
     tree.bind("<<TreeviewSelect>>", on_letter_select)
@@ -441,28 +468,27 @@ def open_letter_selector():
         let = os.path.splitext(let)[0]
         groups[let] = saving.get_group_of_letter(window.language_name, let)
         if groups[let]:
-            tree.insert("", "end", text=let,tags=groups[let][0])
+            tree.insert("", "end", text=let, tags=groups[let][0])
         else:
             tree.insert("", "end", text=let)
 
-    # Create a dropdown list (combobox) for group filtering
     group_filter_frame = Frame(letter_selector)
     group_filter_frame.pack(fill=X, padx=10, pady=5)
 
     group_filter_label = Label(group_filter_frame, text="Filter by Group:")
     group_filter_label.pack(side=LEFT, padx=5)
 
-    all_groups = {"All"}  # Start with "All" as the default option
+    all_groups = {"All"}
     for letter_groups in groups.values():
         all_groups.update(letter_groups)
-    
-    for group in all_groups:
-        if group == "All": continue
-        print(saving.get_group_obj(group).color)
-        tree.tag_configure(group,background=saving.get_group_obj(group).color)
 
-    group_filter_combobox = Combobox(group_filter_frame, values=list(all_groups), state="readonly",style="Custom.TCombobox")
-    group_filter_combobox.set("All")  # Default to "All"
+    for group in all_groups:
+        if group == "All":
+            continue
+        tree.tag_configure(group, background=saving.get_group_obj(group).color)
+
+    group_filter_combobox = Combobox(group_filter_frame, values=list(all_groups), state="readonly", style="Custom.TCombobox")
+    group_filter_combobox.set("All")
     group_filter_combobox.pack(fill=X, expand=True, padx=5)
     group_filter_combobox.bind("<<ComboboxSelected>>", on_group_filter_change)
 
@@ -661,6 +687,11 @@ def process_config_menu(event):
                         config_entries_y[2].original_value = config_entries_y[2].get()
                         config_entries_x[3].original_value = config_entries_x[3].get()
                         config_entries_y[3].original_value = config_entries_y[3].get()
+                    if connector.type == "CIRCLE":
+                        if abs(float(config_entries_x[2].get())) == float(config_entries_x[2].get()):
+                            connector.direction = 1
+                        else:
+                            connector.direction = -1
                     break
         editor_canvas.saved = False
         editor_canvas.update()
@@ -768,18 +799,20 @@ config_labels_y = [
 config_vars_x = [StringVar() for _ in range(4)]
 config_vars_y = [StringVar() for _ in range(4)]
 
+validate_is_number_cmd = (configuration_frame.register(validate_is_number),"%P")
+
 config_entries_x = [
-    Entry(configuration_frame, width=10, textvariable=config_vars_x[0]),
-    Entry(configuration_frame, width=10, textvariable=config_vars_x[1]),
-    Entry(configuration_frame, width=10, textvariable=config_vars_x[2]),
-    Entry(configuration_frame, width=10, textvariable=config_vars_x[3])
+    Entry(configuration_frame, width=10, textvariable=config_vars_x[0],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(configuration_frame, width=10, textvariable=config_vars_x[1],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(configuration_frame, width=10, textvariable=config_vars_x[2],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(configuration_frame, width=10, textvariable=config_vars_x[3],validate="key",validatecommand=validate_is_number_cmd)
 ]
 
 config_entries_y = [
-    Entry(configuration_frame, width=10, textvariable=config_vars_y[0]),
-    Entry(configuration_frame, width=10, textvariable=config_vars_y[1]),
-    Entry(configuration_frame, width=10, textvariable=config_vars_y[2]),
-    Entry(configuration_frame, width=10, textvariable=config_vars_y[3])
+    Entry(configuration_frame, width=10, textvariable=config_vars_y[0],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(configuration_frame, width=10, textvariable=config_vars_y[1],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(configuration_frame, width=10, textvariable=config_vars_y[2],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(configuration_frame, width=10, textvariable=config_vars_y[3],validate="key",validatecommand=validate_is_number_cmd)
 ]
 
 for entry in config_entries_x + config_entries_y:
@@ -822,6 +855,13 @@ bezier_photo = ImageTk.PhotoImage(bezier_img,master=configuration_frame)
 config_bezier_button = Button(configuration_frame,image=bezier_photo,command=turn_selected_connectors_into_beziers)
 config_bezier_button.bezier_photo = bezier_photo
 config_bezier_button.place(x=110,y=10)
+
+circle_img = Image.open("images/circle.png")
+circle_img = circle_img.resize((20,20))
+circle_photo = ImageTk.PhotoImage(circle_img,master=configuration_frame)
+config_circle_button = Button(configuration_frame,image=circle_photo,command=turn_selected_connectors_into_half_circles)
+config_circle_button.circle_photo = circle_photo
+config_circle_button.place(x=160,y=10)
 
 editor_group_listbox = Listbox(configuration_frame,width=43,height=5,bg=style.lookup("header.TFrame","background"),highlightcolor=style.lookup("hightlight.TListbox","background"))
 editor_group_listbox.bind('<Double-1>', on_group_double_click)

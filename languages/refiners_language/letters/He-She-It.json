@@ -4,28 +4,28 @@
                   "name": "Basis",
                   "nodes": [
                         {
+                              "x": 20,
+                              "y": -30
+                        },
+                        {
+                              "x": 20,
+                              "y": 120
+                        },
+                        {
                               "x": 50,
-                              "y": -70
+                              "y": 120
                         },
                         {
-                              "x": 140,
-                              "y": -70
+                              "x": 0,
+                              "y": 170
                         },
                         {
-                              "x": 140,
-                              "y": -30
-                        },
-                        {
-                              "x": 20,
-                              "y": -30
-                        },
-                        {
-                              "x": 20,
-                              "y": 150
+                              "x": -50,
+                              "y": 120
                         },
                         {
                               "x": -20,
-                              "y": 150
+                              "y": 120
                         },
                         {
                               "x": -20,
@@ -42,6 +42,18 @@
                         {
                               "x": -50,
                               "y": -70
+                        },
+                        {
+                              "x": 50,
+                              "y": -70
+                        },
+                        {
+                              "x": 140,
+                              "y": -70
+                        },
+                        {
+                              "x": 140,
+                              "y": -30
                         }
                   ],
                   "connectors": [
@@ -94,6 +106,21 @@
                               "type": "CIRCLE",
                               "anchors": null,
                               "direction": 1
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
                         }
                   ]
             },

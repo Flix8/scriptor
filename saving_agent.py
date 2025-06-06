@@ -30,6 +30,8 @@ def to_plain_letter(letter: l.Letter) -> l.Letter:
             if connector.type == "BEZIER":
                 plain_connector.anchors = [l.Node(connector.anchors[0].x, connector.anchors[0].y),
                                            l.Node(connector.anchors[1].x, connector.anchors[1].y)]
+            elif connector.type == "CIRCLE":
+                plain_connector.direction = connector.direction
             plain_segment.connectors.append(plain_connector)
         plain_letter.segments.append(plain_segment)
     return plain_letter
@@ -150,6 +152,8 @@ def load_letter(language: str, name_letter: str, use_editor_versions: bool = Fal
             if connector_data['type'] == "BEZIER":
                 connector.anchors = [l.Node(connector_data['anchors'][0]['x'], connector_data['anchors'][0]['y']),
                                      l.Node(connector_data['anchors'][1]['x'], connector_data['anchors'][1]['y'])]
+            if connector_data['type'] == "CIRCLE":
+                connector.direction = connector_data["direction"]
             segment.connectors.append(connector)
         letter.segments.append(segment)
     

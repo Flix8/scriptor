@@ -75,8 +75,9 @@ class EditorCanvas(ScriptorCanvas):
                 self.keys_pressed.remove(key)
         self.update_step_size()
         self.process_key_presses()
-    def process_key_presses(self):
-        if self.canvas.focus_get() == None or str(self.canvas.focus_get()).startswith(".!toplevel"):
+    def process_key_presses(self,disregard_focus=False):
+        #str(self.canvas.focus_get()).startswith(".!toplevel") or 
+        if not disregard_focus and (self.canvas.focus_get() == None or str(self.canvas.focus_get()) != ".!frame4.!canvas"):
             return
         if "entf" in self.keys_pressed:
             self.delete_selection()
@@ -87,7 +88,7 @@ class EditorCanvas(ScriptorCanvas):
         if "b" in self.keys_pressed:
             if self.selection_type == "connector":
                 for connector in self.letter.segments[self.selected_segment].connectors:
-                    if connector.selected and connector.type == "LINE":
+                    if connector.selected and connector.type != "BEZIER":
                         connector.set_type("BEZIER")
                 self.deselect_all_connectors()
                 self.mode = "normal"
@@ -96,10 +97,22 @@ class EditorCanvas(ScriptorCanvas):
                 self.configuration_data = [0]
                 self.update()
             self.keys_pressed.remove("b")
+        if "c" in self.keys_pressed:
+            if self.selection_type == "connector":
+                for connector in self.letter.segments[self.selected_segment].connectors:
+                    if connector.selected and connector.type != "CIRCLE":
+                        connector.set_type("CIRCLE")
+                self.deselect_all_connectors()
+                self.mode = "normal"
+                self.selection_type = None
+                self.num_selected = 0
+                self.configuration_data = [0]
+                self.update()
+            self.keys_pressed.remove("c")
         if "l" in self.keys_pressed:
             if self.selection_type == "connector":
                 for connector in self.letter.segments[self.selected_segment].connectors:
-                    if connector.selected and connector.type == "BEZIER":
+                    if connector.selected and connector.type != "LINE":
                         connector.set_type("LINE")
                 self.deselect_all_connectors()
                 self.mode = "normal"
@@ -109,6 +122,7 @@ class EditorCanvas(ScriptorCanvas):
                 self.update()
             self.keys_pressed.remove("l")
     def on_click(self,event):
+        self.canvas.focus_set()
         real_x,real_y = event.x-350,event.y-300
         x,y = self.calculate_snapped_position(event.x-350, event.y-300)
         self.last_pos = (x,y)
@@ -187,11 +201,15 @@ class EditorCanvas(ScriptorCanvas):
                                 #Sending to Configuration
                                 if connector.type == "LINE":
                                     self.configuration_data = [2,p1.x,p1.y,p2.x,p2.y]
-                                else:
+                                elif connector.type == "BEZIER":
                                     self.configuration_data = [4,p1.x,p1.y,p2.x,p2.y,connector.anchors[0].x,connector.anchors[0].y,connector.anchors[1].x,connector.anchors[1].y]
+                                else:
+                                    #5 -> Doing special thing (Hiding y coordinate for third)
+                                    self.configuration_data = [5,p1.x,p1.y,p2.x,p2.y,connector.direction,None]
                                 break
                     else:
                         self.configuration_data = [0]
+                    break
             if mode != None and self.selection_type == "connector":
                 self.deselect_all_connectors()
                 self.last_pos = None
@@ -377,6 +395,38 @@ class Node():
     def __init__(self,x,y):
         self.x = x
         self.y = y
+    def __add__(self, value):
+        if isinstance(value, Node):
+            return Node(self.x + value.x, self.y + value.y)
+        else:
+            return Node(self.x + value, self.y + value)
+
+    def __sub__(self, value):
+        if isinstance(value, Node):
+            return Node(self.x - value.x, self.y - value.y)
+        else:
+            return Node(self.x - value, self.y - value)
+
+    def __mul__(self, value):
+        if isinstance(value, Node):
+            return Node(self.x * value.x, self.y * value.y)
+        else:
+            return Node(self.x * value, self.y * value)
+
+    def __floordiv__(self, value):
+        if isinstance(value, Node):
+            return Node(self.x // value.x, self.y // value.y)
+        else:
+            return Node(self.x // value, self.y // value)
+
+    def __truediv__(self, value):
+        if isinstance(value, Node):
+            return Node(self.x / value.x, self.y / value.y)
+        else:
+            return Node(self.x / value, self.y / value)
+
+    def __repr__(self):
+        return f"Node({self.x}, {self.y})"
 class EditorNode(Node):
     def __init__(self,x,y,size=5,color="black"):
         self.x = x
@@ -405,11 +455,12 @@ class Connector():
     def __init__(self,type="LINE"):
         self.set_type(type)
     def set_type(self,type):
-        if type not in ["LINE","BEZIER"]:
+        if type not in ["LINE","BEZIER","CIRCLE"]:
             debug.send("INCORRECT CONNECTOR TYPE!")
             type = "LINE"
         self.type = type
-        self.anchors = None if type == "LINE" else [Node(0,0),Node(0,0)]
+        self.anchors = None if type != "BEZIER" else [Node(0,0),Node(0,0)]
+        self.direction = None if type != "CIRCLE" else 1 #1 -> Rotation clock-wise, -1 -> Rotation counter-clock-wise
 
 class EditorConnector(Connector):
     def __init__(self,type="LINE",width=3,color="#3d3d3d"):
@@ -459,13 +510,15 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=No
                         width = width_letter
                     if connector.type == "LINE":
                         canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=color, width=width, tags="l_line")
-                    else:
+                    elif connector.type == "BEZIER":
                         if isinstance(connector,EditorConnector) and connector.selected:
                             anchor1 = Node(connector.anchors[0].x*size,connector.anchors[0].y*size)
                             anchor2 = Node(connector.anchors[1].x*size,connector.anchors[1].y*size)
                             canvas.create_oval(x + node.x + 5*size + anchor2.x, y + node.y + 5*size + anchor2.y, x + node.x - 5*size + anchor2.x, y + node.y - 5*size + anchor2.y, fill="red", tags="l_node")
                             canvas.create_oval(x + last_node.x + 5*size + anchor1.x, y + last_node.y + 5*size + anchor1.y, x + last_node.x - 5*size + anchor1.x, y + last_node.y - 5*size + anchor1.y, fill="red", tags="l_node")
                         draw_bezier(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1],canvas,width,color)
+                    else:
+                        draw_half_circle(x,y,last_node,node,size,connector.direction,canvas,width,color)
                 last_node = node
             if len(segment.nodes) > 1:
                     node = segment.nodes[0]
@@ -478,13 +531,15 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=No
                         width = width_letter
                     if connector.type == "LINE":
                         canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=color, width=width, tags="l_line")
-                    else:
+                    elif connector.type == "BEZIER":
                         if isinstance(connector,EditorConnector) and connector.selected:
                             anchor1 = Node(connector.anchors[0].x*size,connector.anchors[0].y*size)
                             anchor2 = Node(connector.anchors[1].x*size,connector.anchors[1].y*size)
                             canvas.create_oval(x + node.x + 5*size + anchor2.x, y + node.y + 5*size + anchor2.y, x + node.x - 5*size + anchor2.x, y + node.y - 5*size + anchor2.y, fill="red", tags="l_node")
                             canvas.create_oval(x + last_node.x + 5*size + anchor1.x, y + last_node.y + 5*size + anchor1.y, x + last_node.x - 5*size + anchor1.x, y + last_node.y - 5*size + anchor1.y, fill="red", tags="l_node")
                         draw_bezier(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1],canvas,width,color)
+                    else:
+                        draw_half_circle(x,y,last_node,node,size,connector.direction,canvas,width,color)
             if draw_nodes:
                 for node in segment.nodes:
                     if isinstance(node,EditorNode):
@@ -513,6 +568,19 @@ def draw_bezier(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2,canva
         y = (node1.y * (1-t)**3 + anchor1.y * 3 * t * (1-t)**2 + anchor2.y * 3 * t**2 * (1-t) + node2.y * t**3)
 
         canvas.create_line(x, y, x_start, y_start,fill=color, width=width,tags="l_line")
+        x_start = x
+        y_start = y
+def draw_half_circle(posx,posy,abs_node1,abs_node2,size,direction,canvas,width=3,color="black"):
+    node1 = Node(abs_node1.x * size,abs_node1.y * size)
+    node2 = Node(abs_node2.x * size,abs_node2.y * size)
+    offset = node1 + (node2-node1)/2
+    x_start = node1.x - offset.x
+    y_start = node1.y - offset.y
+    n = 50
+    for i in range(n):
+        x = x_start * cos(radians(180/n*direction)) - y_start * sin(radians(180/n*direction))
+        y = y_start * cos(radians(180/n*direction)) + x_start * sin(radians(180/n*direction))
+        canvas.create_line(x + offset.x + posx, y + offset.y + posy, x_start + offset.x + posx, y_start + offset.y + posy,fill=color, width=width,tags="l_line")
         x_start = x
         y_start = y
 
