@@ -399,7 +399,7 @@ def open_letter_selector():
         global letter_selector_open
         close("letter_selector")
         letter_selector_open = False
-
+    
     def on_letter_select(event):
         selected_item = tree.selection()
         if selected_item:

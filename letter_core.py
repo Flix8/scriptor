@@ -393,6 +393,199 @@ class EditorCanvas(ScriptorCanvas):
     def set_draw_nodes(self,value:bool):
         self.draw_nodes = value
 
+class PositioningCanvas(ScriptorCanvas):
+    def __init__(self,canvas):
+        super().__init__(canvas)
+        self.selected_slot = None
+        self.letter_name = "Unnamed"
+        self.keys_pressed = []
+        self.cursor = EditorNode(0,0,5,"green")
+        self.cursor_step_size = 20
+        self.step_size_options = [20,10,5,1] #Needs to be imported from settings
+        self.slots = [] #List of LetterSpaces
+        self.letter = None
+        self.saved = True
+        self.configuration_data = None
+        self.light_reset()
+    def load_letter(self,letter,name):
+        self.letter_name = name
+        self.light_reset()
+        self.letter = letter
+        #TRY TO LOAD SLOTS
+        self.slots = []
+        self.selected_slot = None
+        self.update()
+    def light_reset(self,do_reload_slots=True):
+        self.deselect_all_slots()
+        #Canvas Interaction Stuff___________
+        self.last_slot_created = None
+        self.last_pos = None
+        self.to_deselect = None
+        #____________________
+        self.mode = "normal" #normal/selection_simple/selection_multiple
+        self.num_selected = 0
+        self.configuration_data = [0]
+        self.center_edits = Node(0,0)
+        if do_reload_slots: self.reload_slots = True
+    def on_key(self,history):
+        for type,key in history:
+            if type == "down" and key not in self.keys_pressed:
+                self.keys_pressed.append(key)
+            elif type == "up" and key in self.keys_pressed: #This might behave weirdly
+                self.keys_pressed.remove(key)
+        self.update_step_size()
+        self.process_key_presses()
+    def process_key_presses(self,disregard_focus=False):
+        #str(self.canvas.focus_get()).startswith(".!toplevel") or 
+        if not disregard_focus and (self.canvas.focus_get() == None or str(self.canvas.focus_get()) != ".!frame4.!canvas"):
+            return
+        if "entf" in self.keys_pressed:
+            self.delete_selection()
+            self.keys_pressed.remove("entf")
+        if "backspace" in self.keys_pressed:
+            self.delete_selection()
+            self.keys_pressed.remove("backspace")
+    def on_click(self,event):
+        self.canvas.focus_set()
+        real_x,real_y = event.x-350,event.y-300
+        x,y = self.calculate_snapped_position(event.x-350, event.y-300)
+        self.last_pos = (x,y)
+        selected = False
+        for slot in self.slots:
+            if is_inside_slot(real_x,real_y,slot):
+                if slot.selected:
+                    self.to_deselect = slot
+                else:
+                    if self.mode != "normal" and not "shift" in self.keys_pressed:
+                        self.mode = "normal"
+                        self.deselect_all_slots()
+                    slot.selected = True
+                    self.mode = "selection_simple" if self.mode == "normal" else "selection_multiple"
+                    if self.mode == "selection_simple":
+                        #Sending to Configuration
+                        self.configuration_data = [2,slot.x,slot.y,slot.width,slot.height]
+                    elif self.mode == "selection_multiple":
+                        #Sending to Configuration
+                        sendx,sendy = 0,0
+                        num = 0
+                        for slot in self.slots:
+                            if slot.selected:
+                                sendx += slot.x
+                                sendy += slot.y
+                                num += 1
+                        self.configuration_data = [1,sendx/num,sendy/num]
+                    self.num_selected += 1
+                selected = True
+                break                
+        if not selected:
+            mode = self.mode
+            if mode != "normal":
+                self.deselect_all_slots()
+                self.last_pos = None
+                self.configuration_data = [0]
+                self.mode = "normal"
+                self.num_selected = 0
+            elif mode == "normal":
+                self.saved = False
+                new_slot = EditorLetterSpace(x,y)
+                self.last_slot_created = new_slot
+                self.slots.append(new_slot)
+        self.update()
+    def on_click_release(self, event):
+        self.last_slot_created = None
+        self.last_pos = None
+        if isinstance(self.to_deselect,EditorLetterSpace):
+            slot = self.to_deselect
+            slot.selected = False
+            self.num_selected -= 1
+            self.mode = "selection_simple" if self.num_selected == 1 else "normal" if self.num_selected == 0 else self.mode
+            if self.mode == "normal":
+                self.configuration_data = [0]
+            elif self.mode == "selection_simple":
+                #Sending to Configuration
+                for slot in self.slots:
+                    if slot.selected:
+                        self.configuration_data = [1,slot.x,slot.y]
+                        break
+            elif self.mode == "selection_multiple":
+                #Sending to Configuration
+                sendx,sendy = 0,0
+                num = 0
+                for slot in self.slots:
+                    if slot.selected:
+                        sendx += slot.x
+                        sendy += slot.y
+                        num += 1
+                self.configuration_data = [1,sendx/num,sendy/num]
+            self.to_deselect = None
+            self.update()
+    def on_move(self,event):
+        if self.mode == "normal":
+            self.cursor.x, self.cursor.y = self.calculate_snapped_position(event.x-350,event.y-300)
+            self.update()
+            draw_node(self.canvas,350,300,self.cursor,1,"cursor",color=self.cursor.color)
+            self.cursor.x = -10
+            self.cursor.y = -10
+    def on_drag(self,event):
+        x,y = self.calculate_snapped_position(event.x-350, event.y-300)
+        if isinstance(self.last_slot_created,EditorLetterSpace):
+            self.last_slot_created.x = x
+            self.last_slot_created.y = y
+            self.update()
+        if isinstance(self.last_pos,tuple):
+            self.saved = False
+            dx = x-self.last_pos[0]
+            dy = y-self.last_pos[1]
+            self.last_pos = (x,y)
+            self.to_deselect = None
+            for slot in self.slots:
+                if slot.selected:
+                    slot.x += dx
+                    slot.y += dy
+            sendx,sendy = 0,0
+            num = 0
+            for slot in self.slots:
+                if slot.selected:
+                    sendx += slot.x
+                    sendy += slot.y
+                    num += 1
+            if num == 0:
+                sendx = x
+                sendy = y
+                num = 1
+            self.configuration_data = [1,sendx/num,sendy/num]
+            self.update()
+    def draw(self):
+        positioning_draw(self.letter,self.canvas,self.slots)
+    def delete_selection(self) -> None:
+        if self.mode == "normal":
+            return
+        self.saved = False
+        slots_copy = self.slots[:]
+        for index,slot in enumerate(self.slots):
+            if slot.selected:
+                slots_copy.remove(slot)
+        self.slots = slots_copy
+        self.light_reset(False)
+        self.update()
+    def deselect_all_slots(self):
+        for slot in self.slots:
+            if slot.selected:
+                slot.selected = False
+    def calculate_snapped_position(self,x,y) -> tuple:
+        x = (x//self.cursor_step_size)*self.cursor_step_size
+        y = (y//self.cursor_step_size)*self.cursor_step_size
+        return x,y
+    def update_step_size(self):
+        if "shift" in self.keys_pressed and "ctrl" in self.keys_pressed:
+            self.cursor_step_size = self.step_size_options[3]
+        elif "ctrl" in self.keys_pressed:
+            self.cursor_step_size = self.step_size_options[2]
+        elif "shift" in self.keys_pressed:
+            self.cursor_step_size = self.step_size_options[1]
+        else:
+            self.cursor_step_size = self.step_size_options[0]
+
 
 
 
@@ -505,7 +698,16 @@ class LetterSpace():
         self.height = height
         self.letter = letter
         self.children = children
-    
+
+class EditorLetterSpace():
+    def __init__(self,x:float=0,y:float=0,width:int=400,height:int=400):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.selected = False
+
+#Draw functions    
 def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=None,color_letter=None,width_letter=None,base_color="black"):
         x,y = pos
         for segment_index, segment in enumerate(letter.segments):
@@ -561,12 +763,22 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=No
                     else:
                         color = color_letter if color_letter != None else base_color
                     draw_node(canvas,x,y,node,size,sel=sel,color=color)
+
 def editor_draw(letter,canvas,selected_segment_index,draw_nodes=True,center_edits=Node(0,0)):
     draw_letter(letter,canvas,1,[350,300],draw_nodes,selected_segment_index if draw_nodes else None,base_color="gray" if draw_nodes else "black")
     draw_node(canvas,350,300,EditorNode(center_edits.x,center_edits.y),1,color="purple")
 
+def positioning_draw(letter,canvas,slots):
+    draw_letter(letter,canvas,1,[350,300],False,None,base_color="black")
+    for slot in slots:
+        draw_slot(canvas,350,300,slot,1,slot.selected)
+
 def draw_node(canvas,x,y,node,size,tag="l_node",sel=True,color="gray"):
     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=color if sel else "gray", tags=tag)
+
+def draw_slot(canvas,x,y,slot,size,sel=True):
+    canvas.create_rectangle(x+slot.x-slot.width/2*size,y+slot.y-slot.height/2*size,x+slot.x+slot.width/2*size,y+slot.y+slot.height/2*size,active_fill="#f7b0a8" if sel else "#bbf9fc",active_outline="#fc6d5d" if sel else "#8cbffa")
+
 def draw_bezier(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2,canvas,width=3,color="black"):
     #Modified code from: https://stackoverflow.com/a/50302363
     node1 = Node(posx + abs_node1.x * size,posy + abs_node1.y * size)
@@ -584,6 +796,7 @@ def draw_bezier(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2,canva
         canvas.create_line(x, y, x_start, y_start,fill=color, width=width,tags="l_line")
         x_start = x
         y_start = y
+
 def draw_half_circle(posx,posy,abs_node1,abs_node2,size,direction,canvas,width=3,color="black"):
     node1 = Node(abs_node1.x * size,abs_node1.y * size)
     node2 = Node(abs_node2.x * size,abs_node2.y * size)
@@ -598,6 +811,7 @@ def draw_half_circle(posx,posy,abs_node1,abs_node2,size,direction,canvas,width=3
         x_start = x
         y_start = y
 
+#Distance calculations
 def distance_to_line_segment(line_p1,line_p2,point) -> float:
     """
     Calculate the shortest distance from a point (Node point) to a line segment
@@ -653,3 +867,6 @@ def distance_to_bezier(node1,node2, rel_anchor1, rel_anchor2, point, n=50):
         if dist < min_dist:
             min_dist = dist
     return min_dist
+
+def is_inside_slot(x,y,slot:LetterSpace|EditorLetterSpace):
+    return (slot.x - slot.width/2) <= x <= (slot.x + slot.width/2) and (slot.y - slot.height/2) <= y <= (slot.y + slot.height/2)
