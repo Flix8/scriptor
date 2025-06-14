@@ -35,6 +35,7 @@ class EditorCanvas(ScriptorCanvas):
         super().__init__(canvas)
         self.selected_segment = 0
         self.letter_name = "Unnamed"
+        self.closest_node_index = None
         self.keys_pressed = []
         self.cursor = EditorNode(0,0,5,"green")
         self.cursor_step_size = 20
@@ -60,6 +61,7 @@ class EditorCanvas(ScriptorCanvas):
         self.last_pos = None
         self.to_deselect = None
         self.info_selected_anchor_point = None
+        self.closest_node_index = None
         #____________________
         self.mode = "normal" #normal/selection_simple/selection_multiple
         self.selection_type = None #node/None/connector
@@ -226,8 +228,13 @@ class EditorCanvas(ScriptorCanvas):
                 self.saved = False
                 new_node = EditorNode(x,y)
                 self.last_node_created = new_node
-                self.letter.segments[self.selected_segment].nodes.append(new_node)
-                self.letter.segments[self.selected_segment].connectors.append(EditorConnector())
+                if self.closest_node_index is not None:
+                    debug.send("inserting on index",self.closest_node_index)
+                    self.letter.segments[self.selected_segment].nodes.insert(self.closest_node_index,new_node)
+                    self.letter.segments[self.selected_segment].connectors.insert(self.closest_node_index,EditorConnector())
+                else:
+                    self.letter.segments[self.selected_segment].nodes.append(new_node)
+                    self.letter.segments[self.selected_segment].connectors.append(EditorConnector())
         self.update()
     def on_click_release(self, event):
         self.last_node_created = None
@@ -262,7 +269,45 @@ class EditorCanvas(ScriptorCanvas):
     def on_move(self,event):
         if self.selection_type == None:
             self.cursor.x, self.cursor.y = self.calculate_snapped_position(event.x-350,event.y-300)
+            if len(self.letter.segments[self.selected_segment].nodes) != 0:
+                min_length = 0
+                node_index = -1
+                for i,connector in enumerate(self.letter.segments[self.selected_segment].connectors):
+                    p1 = self.letter.segments[self.selected_segment].nodes[i]
+                    p2 = self.letter.segments[self.selected_segment].nodes[(i+1)%len(self.letter.segments[self.selected_segment].connectors)]
+                    if connector.type == "LINE":
+                        dist = distance_to_line_segment(p1,p2,self.cursor)
+                    elif connector.type == "BEZIER":
+                        dist = distance_to_bezier(p1,p2,connector.anchors[0],connector.anchors[1],self.cursor)
+                    else:
+                        dist = distance_to_half_circle(p1,p2,connector.direction,self.cursor)
+                    if node_index == -1:
+                        min_length = dist
+                        node_index = i
+                    elif dist <= min_length:
+                        min_length = dist
+                        node_index = i
+                if node_index != len(self.letter.segments[self.selected_segment].nodes) - 1:
+                    self.closest_node_index = node_index + 1
+                else:
+                    self.closest_node_index = 0
+            else:
+                self.closest_node_index = None             
             self.update()
+            if self.closest_node_index is not None:
+                node1 = self.letter.segments[self.selected_segment].nodes[self.closest_node_index-1]
+                node2 = self.letter.segments[self.selected_segment].nodes[self.closest_node_index]
+                existing_connector = self.letter.segments[self.selected_segment].connectors[self.closest_node_index-1]
+                new_connector_with_first_node = length(node1-self.cursor) >= length(node2-self.cursor)
+                if new_connector_with_first_node:
+                    node1,node2 = node2,node1
+                if existing_connector.type == "LINE":
+                    draw_line(self.canvas,350,300,node1,self.cursor,1,"#4a9094")
+                elif existing_connector.type == "BEZIER":
+                    draw_bezier(350,300,node1,self.cursor,1,existing_connector.anchors[0],existing_connector.anchors[1],self.canvas,color="#4a9094")
+                else:
+                    draw_half_circle(350,300,node1,self.cursor,1,existing_connector.direction if not new_connector_with_first_node else -existing_connector.direction,self.canvas,color="#4a9094")
+                draw_line(self.canvas,350,300,node2,self.cursor,1,"#4a9094")
             draw_node(self.canvas,350,300,self.cursor,1,"cursor",color=self.cursor.color)
             self.cursor.x = -10
             self.cursor.y = -10
@@ -775,6 +820,9 @@ def positioning_draw(letter,canvas,slots):
 
 def draw_node(canvas,x,y,node,size,tag="l_node",sel=True,color="gray"):
     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=color if sel else "gray", tags=tag)
+
+def draw_line(canvas,x,y,node1,node2,size,color="gray",width=3):
+    canvas.create_line(x + node1.x*size, y + node1.y*size, x + node2.x*size, y + node2.y*size, fill=color, width=width, tags="l_line")
 
 def draw_slot(canvas,x,y,slot,size,sel=True):
     canvas.create_rectangle(x+slot.x-slot.width/2*size,y+slot.y-slot.height/2*size,x+slot.x+slot.width/2*size,y+slot.y+slot.height/2*size,active_fill="#f7b0a8" if sel else "#bbf9fc",active_outline="#fc6d5d" if sel else "#8cbffa")
