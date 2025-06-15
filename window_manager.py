@@ -1,4 +1,4 @@
-import os
+import os,sys
 from tkinter import *
 from tkinter import messagebox
 from tkinter import simpledialog
@@ -11,12 +11,19 @@ import debug_console as debug
 import letter_core as letter
 import saving_agent as saving
 #________GENERAL FUNCTIONS______________
+on_windows = sys.platform != "darwin"
 registered = {}
 group_selector_open = False
 language_selector_open = False
 letter_selector_open = False
 save_window_open = False
 focused = 0
+
+def smart_place(widget,pos_windows:tuple,pos_mac:tuple):
+    if on_windows:
+        widget.place(x=pos_windows[0],y=pos_windows[1])
+    else:
+        widget.place(x=pos_mac[0],y=pos_mac[1])
 
 def get(name) -> Tk:
     if name in registered.keys():
@@ -716,27 +723,27 @@ background.lift()
 window.lift()
 window.title("Scriptor - Letter Editor")
 
-toolbar_frame = Frame(window,height=40,width=500,style="toolbar.TFrame")
-new_button = Button(toolbar_frame, text="New",width=10,command=lambda: create_new_letter())
-save_button = Button(toolbar_frame, text="Save",width=10,command=save_letter_selector)
-open_button = Button(toolbar_frame, text="Open",width=10,command=open_letter_selector)
-settings_button = Button(toolbar_frame, text="Settings",width=10,command=lambda: print("SETTINGS"))
-language_button = Button(toolbar_frame, text="Language",width=10,command=open_language_selector)
-new_button.place(x=20,y=7)
-save_button.place(x=100,y=7)
-open_button.place(x=180,y=7)
-settings_button.place(x=260,y=7)
-language_button.place(x=340,y=7)
-toolbar_frame.place(x=20,y=0)
+toolbar_frame = Frame(window,height=40,width=600,style="toolbar.TFrame")
+new_button = Button(toolbar_frame, text="New",width=10 if on_windows else 7,command=lambda: create_new_letter())
+save_button = Button(toolbar_frame, text="Save",width=10 if on_windows else 7,command=save_letter_selector)
+open_button = Button(toolbar_frame, text="Open",width=10 if on_windows else 7,command=open_letter_selector)
+settings_button = Button(toolbar_frame, text="Settings",width=10 if on_windows else 7,command=lambda: print("SETTINGS"))
+language_button = Button(toolbar_frame, text="Language",width=10 if on_windows else 7,command=open_language_selector)
+smart_place(new_button,(20,7),(20,7))
+smart_place(save_button,(100,7),(130,7))
+smart_place(open_button,(180,7),(240,7))
+smart_place(settings_button,(260,7),(350,7))
+smart_place(language_button,(340,7),(460,7))
+smart_place(toolbar_frame,(20,0),(20,0))
 
 navigation_frame = Frame(window,height=50,width=300,style="toolbar.TFrame")
-edit_button = Button(navigation_frame, text="Edit",width=10,command=lambda: print("EDIT"))
-configure_button = Button(navigation_frame, text="Configure",width=10,command=lambda: print("CONFIGURE"))
-write_button = Button(navigation_frame, text="Write",width=10,command=lambda: print("WRITE"))
-write_button.place(x=20,y=7)
-edit_button.place(x=120,y=7)
-configure_button.place(x=220,y=7)
-navigation_frame.place(x=700,y=0)
+edit_button = Button(navigation_frame, text="Edit",width=10 if on_windows else 7,command=lambda: print("EDIT"))
+configure_button = Button(navigation_frame, text="Configure",width=10 if on_windows else 7,command=lambda: print("CONFIGURE"))
+write_button = Button(navigation_frame, text="Write",width=10 if on_windows else 7,command=lambda: print("WRITE"))
+smart_place(write_button,(20,7),(20,7))
+smart_place(edit_button,(120,7),(120,7))
+smart_place(configure_button,(220,7),(220,7))
+smart_place(navigation_frame,(700,0),(700,0))
 
 editor_frame = Frame(window,height=700,width=1000,style="secondary.TFrame")
 
@@ -745,34 +752,34 @@ editor_selected_label = Label(editor_header_frame,font=('Helvetica',15),backgrou
 editor_selected_label.letter = ""
 editor_selected_label.language = ""
 editor_selected_label.saved = None
-editor_selected_label.place(x=5,y=7)
-editor_frame.place(x=0,y=60)
-editor_header_frame.place(x=5,y=0)
+smart_place(editor_selected_label,(5,7),(5,7))
+smart_place(editor_frame,(0,60),(0,60))
+smart_place(editor_header_frame,(5,0),(5,0))
 
 editor_canvas = letter.EditorCanvas(Canvas(editor_frame,width=700,height=600,background="#525252"))
-editor_canvas.canvas.place(x=5,y=45)
+smart_place(editor_canvas.canvas,(5,45),(5,45))
 
 editor_segment_listbox_frame = Frame(editor_frame,width=282,height=300,style="header.TFrame")
-editor_segment_listbox_frame.place(x=715,y=349)
+smart_place(editor_segment_listbox_frame,(715,349),(715,349))
 
 editor_segment_listbox = Listbox(editor_segment_listbox_frame,width=43,height=15,bg=style.lookup("header.TFrame","background"),highlightcolor=style.lookup("hightlight.TListbox","background"))
 editor_segment_listbox.bind('<<ListboxSelect>>', on_segment_select)
 editor_segment_listbox.bind('<Double-1>', on_segment_double_click)
-editor_segment_listbox.place(x=10,y=45)
+smart_place(editor_segment_listbox,(10,45),(10,45))
 
 plus_img = Image.open("images/plus.png")
 plus_img = plus_img.resize((20,20))
 plus_photo = ImageTk.PhotoImage(plus_img,master=editor_segment_listbox_frame)
 editor_new_segment_button = Button(editor_segment_listbox_frame,image=plus_photo,command=new_segment_button)
 editor_new_segment_button.plus_photo = plus_photo
-editor_new_segment_button.place(x=10,y=10)
+smart_place(editor_new_segment_button,(10,10),(10,10))
 
 trash_img = Image.open("images/trash.png")
 trash_img = trash_img.resize((20,20))
 trash_photo = ImageTk.PhotoImage(trash_img,master=editor_segment_listbox_frame)
 editor_delete_segment_button = Button(editor_segment_listbox_frame,image=trash_photo,command=delete_segment_button) 
 editor_delete_segment_button.trash_photo = trash_photo
-editor_delete_segment_button.place(x=60,y=10)
+smart_place(editor_delete_segment_button,(60,10),(70,10))
 
 grid_img = Image.open("images/grid.png")
 grid_photo = ImageTk.PhotoImage(grid_img,master=window)
@@ -780,7 +787,7 @@ editor_canvas.canvas.create_image(0,0,image=grid_photo,anchor="nw",tags="grid")
 editor_canvas.grid_photo = grid_photo
 
 configuration_frame = Frame(editor_frame, width=282, height=300, style="header.TFrame")
-configuration_frame.place(x=715, y=45)
+smart_place(configuration_frame,(715,45),(715,45))
 
 config_labels_x = [
     Label(configuration_frame, text=f"X1:", background=style.lookup("header.TFrame", "background")),
@@ -822,10 +829,10 @@ def update_configuration_entries(num_pairs):
     window.shown_config_entries = num_pairs
     for i in range(4):
         if i < num_pairs:
-            config_labels_x[i].place(x=30, y=50 + i * 30)
-            config_entries_x[i].place(x=60, y=50 + i * 30)
-            config_labels_y[i].place(x=150, y=50 + i * 30)
-            config_entries_y[i].place(x=180, y=50 + i * 30)
+            smart_place(config_labels_x[i],(30,50+i*30),(30,50+i*30))
+            smart_place(config_entries_x[i],(60,50+i*30),(60,50+i*30))
+            smart_place(config_labels_y[i],(150,50+i*30),(150,50+i*30))
+            smart_place(config_entries_y[i],(180,50+i*30),(180,50+i*30))
         else:
             config_labels_x[i].place_forget()
             config_entries_x[i].place_forget()
@@ -835,77 +842,77 @@ def update_configuration_entries(num_pairs):
 window.shown_config_entries = 0
 update_configuration_entries(window.shown_config_entries)
 
-line_img = Image.open("images/line.png")
-line_img = line_img.resize((20,20))
-line_photo = ImageTk.PhotoImage(line_img,master=configuration_frame)
-config_line_button = Button(configuration_frame,image=line_photo,command=turn_selected_connectors_into_lines)
-config_line_button.line_photo = line_photo
-config_line_button.place(x=60,y=10)
-
 trash_img = Image.open("images/trash.png")
 trash_img = trash_img.resize((20,20))
 trash_photo = ImageTk.PhotoImage(trash_img,master=configuration_frame)
 config_delete_button = Button(configuration_frame,image=trash_photo,command=delete_connector_or_node) 
 config_delete_button.trash_photo = trash_photo
-config_delete_button.place(x=10,y=10)
+smart_place(config_delete_button,(10,10),(10,10))
+
+line_img = Image.open("images/line.png")
+line_img = line_img.resize((20,20))
+line_photo = ImageTk.PhotoImage(line_img,master=configuration_frame)
+config_line_button = Button(configuration_frame,image=line_photo,command=turn_selected_connectors_into_lines)
+config_line_button.line_photo = line_photo
+smart_place(config_line_button,(60,10),(70,10))
 
 bezier_img = Image.open("images/bezier.png")
 bezier_img = bezier_img.resize((20,20))
 bezier_photo = ImageTk.PhotoImage(bezier_img,master=configuration_frame)
 config_bezier_button = Button(configuration_frame,image=bezier_photo,command=turn_selected_connectors_into_beziers)
 config_bezier_button.bezier_photo = bezier_photo
-config_bezier_button.place(x=110,y=10)
+smart_place(config_bezier_button,(110,10),(130,10))
 
 circle_img = Image.open("images/circle.png")
 circle_img = circle_img.resize((20,20))
 circle_photo = ImageTk.PhotoImage(circle_img,master=configuration_frame)
 config_circle_button = Button(configuration_frame,image=circle_photo,command=turn_selected_connectors_into_half_circles)
 config_circle_button.circle_photo = circle_photo
-config_circle_button.place(x=160,y=10)
+smart_place(config_circle_button,(160,10),(190,10))
 
 editor_group_listbox = Listbox(configuration_frame,width=43,height=5,bg=style.lookup("header.TFrame","background"),highlightcolor=style.lookup("hightlight.TListbox","background"))
 editor_group_listbox.bind('<Double-1>', on_group_double_click)
-editor_group_listbox.place(x=10,y=200)
+smart_place(editor_group_listbox,(10,200),(10,200))
 
 plus_img = Image.open("images/plus.png")
 plus_img = plus_img.resize((20,20))
 plus_photo = ImageTk.PhotoImage(plus_img,master=configuration_frame)
 editor_new_group_button = Button(configuration_frame,image=plus_photo,command=open_group_selector)
 editor_new_group_button.plus_photo = plus_photo
-editor_new_group_button.place(x=10,y=165)
+smart_place(editor_new_group_button,(10,165),(10,165))
 
 trash_img = Image.open("images/trash.png")
 trash_img = trash_img.resize((20,20))
 trash_photo = ImageTk.PhotoImage(trash_img,master=configuration_frame)
 editor_delete_group_button = Button(configuration_frame,image=trash_photo,command=delete_group_button) 
 editor_delete_group_button.trash_photo = trash_photo
-editor_delete_group_button.place(x=60,y=165)
+smart_place(editor_delete_group_button,(60,165),(70,165))
 
 editor_extra_options_frame = Frame(editor_frame,height=40,width=992,style="header.TFrame")
-editor_extra_options_frame.place(x=5,y=655)
+smart_place(editor_extra_options_frame,(5,655),(5,655))
 
 show_nodes_var = BooleanVar(value=True)
 editor_show_nodes_checkbox = Checkbutton(editor_extra_options_frame,text="Draw Nodes",variable=show_nodes_var,command=on_toggle_draw_nodes)
-editor_show_nodes_checkbox.place(x=10, y=10)
+smart_place(editor_show_nodes_checkbox,(10,10),(10,10))
 
 rotation_var = StringVar(editor_extra_options_frame)
 valid_angle_cmd = (editor_extra_options_frame.register(validate_angle),"%P")
 editor_rotation_degrees_entry_box = Entry(editor_extra_options_frame,validate="key",validatecommand=valid_angle_cmd,textvariable=rotation_var,width=8)
-editor_rotation_degrees_entry_box.place(x=170,y=10)
+smart_place(editor_rotation_degrees_entry_box,(170,10),(170,10))
 
 undo_img = Image.open("images/undo.png")
 undo_img = undo_img.resize((20,20))
 undo_photo = ImageTk.PhotoImage(undo_img,master=editor_extra_options_frame)
 editor_rotate_left_button = Button(editor_extra_options_frame,image=undo_photo,command=rotate_left) 
 editor_rotate_left_button.undo_photo = undo_photo
-editor_rotate_left_button.place(x=240,y=5)
+smart_place(editor_rotate_left_button,(240,5),(260,5))
 
 redo_img = Image.open("images/redo.png")
 redo_img = redo_img.resize((20,20))
 redo_photo = ImageTk.PhotoImage(redo_img,master=editor_extra_options_frame)
 editor_rotate_right_button = Button(editor_extra_options_frame,image=redo_photo,command=rotate_right) 
 editor_rotate_right_button.redo_photo = redo_photo
-editor_rotate_right_button.place(x=280,y=5)
+smart_place(editor_rotate_right_button,(280,5),(320,5))
 
 center_x_label = Label(editor_extra_options_frame, text=f"Center X:", background=style.lookup("header.TFrame", "background"))
 center_y_label = Label(editor_extra_options_frame, text=f"Y:", background=style.lookup("header.TFrame", "background"))
@@ -915,10 +922,10 @@ on_center_change_x_cmd = (editor_extra_options_frame.register(on_center_change_x
 on_center_change_y_cmd = (editor_extra_options_frame.register(on_center_change_y),"%P")
 center_x_entry = Entry(editor_extra_options_frame,validate="key",validatecommand=on_center_change_x_cmd,textvariable=center_x_var,width=8)
 center_y_entry = Entry(editor_extra_options_frame,validate="key",validatecommand=on_center_change_y_cmd,textvariable=center_y_var,width=8)
-center_x_label.place(x=320,y=10)
-center_x_entry.place(x=380,y=10)
-center_y_label.place(x=440,y=10)
-center_y_entry.place(x=460,y=10)
+smart_place(center_x_label,(320,10),(390,10))
+smart_place(center_x_entry,(380,10),(460,10))
+smart_place(center_y_label,(440,10),(550,10))
+smart_place(center_y_entry,(460,10),(580,10))
 
 
 mirror_y_img = Image.open("images/mirror_y_axis.png")
@@ -926,14 +933,14 @@ mirror_y_img = mirror_y_img.resize((20,20))
 mirror_y_photo = ImageTk.PhotoImage(mirror_y_img,master=editor_extra_options_frame)
 editor_mirror_y_axis_button = Button(editor_extra_options_frame,image=mirror_y_photo,command=mirror_y) 
 editor_mirror_y_axis_button.mirror_y_photo = mirror_y_photo
-editor_mirror_y_axis_button.place(x=600,y=5)
+smart_place(editor_mirror_y_axis_button,(600,5),(700,5))
 
 mirror_x_img = Image.open("images/mirror_x_axis.png")
 mirror_x_img = mirror_x_img.resize((20,20))
 mirror_x_photo = ImageTk.PhotoImage(mirror_x_img,master=editor_extra_options_frame)
 editor_mirror_x_axis_button = Button(editor_extra_options_frame,image=mirror_x_photo,command=mirror_x) 
 editor_mirror_x_axis_button.mirror_x_photo = mirror_x_photo
-editor_mirror_x_axis_button.place(x=640,y=5)
+smart_place(editor_mirror_x_axis_button,(640,5),(770,5))
 
 
 def reopen_debug_window_on_close():
