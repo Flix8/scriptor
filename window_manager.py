@@ -18,6 +18,25 @@ language_selector_open = False
 letter_selector_open = False
 save_window_open = False
 focused = 0
+def change_tab(name) -> None:
+    if name == window.current_frame:
+        return
+    if name == "EDITOR":
+        smart_place(editor_frame,(0,60),(0,60))
+        config_frame.place_forget()
+        editor_canvas.active = True
+        positioning_canvas.active = False
+        editor_frame.lift()
+        window.current_frame = name
+    elif name == "WRITE":
+        window.current_frame = name
+    elif name == "CONFIG":
+        editor_frame.place_forget()
+        smart_place(config_frame,(0,60),(0,60))
+        editor_canvas.active = False
+        positioning_canvas.active = True
+        config_frame.lift()
+        window.current_frame = name
 
 def smart_place(widget,pos_windows:tuple,pos_mac:tuple):
     if on_windows:
@@ -53,6 +72,10 @@ def show_frame(frame:Frame):
     frame.tkraise()
 
 #_______BUTTON FUNCTIONS________________
+def on_zoom_slider_change(event):
+    config_canvas_zoom_stringvar.set(str(config_canvas_zoom_intvar.get()/100))
+    positioning_canvas.zoom = config_canvas_zoom_intvar.get()/100
+    positioning_canvas.zoom_changed()
 def on_segment_select(event):
     selected_index = editor_segment_listbox.curselection()
     if selected_index:
@@ -102,6 +125,9 @@ def delete_group_button():
     if selected_index:
         editor_group_listbox.delete(selected_index)
         editor_canvas.letter.groups.pop(selected_index[0])
+
+def delete_letter_space():
+    positioning_canvas.keys_pressed.append("backspace")
 
 def delete_connector_or_node():
     editor_canvas.keys_pressed.append("backspace")
@@ -393,8 +419,12 @@ def open_letter_selector():
         selected_item = tree.selection()
         if selected_item:
             selected_letter = tree.item(selected_item, "text")
-            editor_canvas.load_letter(saving.load_letter(window.language_name, selected_letter, True), selected_letter)
-            editor_canvas.saved = True
+            if window.current_frame == "EDITOR":
+                editor_canvas.load_letter(saving.load_letter(window.language_name, selected_letter, True), selected_letter)
+                editor_canvas.saved = True
+            elif window.current_frame == "CONFIG":
+                positioning_canvas.load_letter(saving.load_letter(window.language_name, selected_letter, True), selected_letter)
+                positioning_canvas.saved = True
             close_letter_selector()
         else:
             messagebox.showwarning("No selection", "Please select a letter.")
@@ -646,11 +676,11 @@ def create_new_letter():
     new_letter.segments.append(letter.Segment())
     editor_canvas.load_letter(new_letter,"Unnamed")
 
-def process_config_menu(event):
+def process_inspector_menu(event):
     #Check if anything was changed
     change = False
-    for i,entry_x,var_x,entry_y,var_y in zip(range(4),config_entries_x,config_vars_x,config_entries_y,config_vars_y):
-        if i >= window.shown_config_entries:
+    for i,entry_x,var_x,entry_y,var_y in zip(range(4),inspector_entries_x,inspector_vars_x,inspector_entries_y,inspector_vars_y):
+        if i >= window.shown_inspector_entries:
             break
         if entry_x.original_value != var_x.get():
             change = True
@@ -664,10 +694,10 @@ def process_config_menu(event):
     else:
         if editor_canvas.selection_type == "node":
             #This should work for simple selections and multiple ones
-            dx = float(config_entries_x[0].get()) - float(config_entries_x[0].original_value)
-            dy = float(config_entries_y[0].get()) - float(config_entries_y[0].original_value)
-            config_entries_x[0].original_value = config_entries_x[0].get()
-            config_entries_y[0].original_value = config_entries_y[0].get()
+            dx = float(inspector_entries_x[0].get()) - float(inspector_entries_x[0].original_value)
+            dy = float(inspector_entries_y[0].get()) - float(inspector_entries_y[0].original_value)
+            inspector_entries_x[0].original_value = inspector_entries_x[0].get()
+            inspector_entries_y[0].original_value = inspector_entries_y[0].get()
             for node in editor_canvas.letter.segments[editor_canvas.selected_segment].nodes:
                 if node.selected:
                     node.x += dx
@@ -677,36 +707,79 @@ def process_config_menu(event):
                 if connector.selected:
                     node1 = editor_canvas.letter.segments[editor_canvas.selected_segment].nodes[i]
                     node2 = editor_canvas.letter.segments[editor_canvas.selected_segment].nodes[(i+1)%len(editor_canvas.letter.segments[editor_canvas.selected_segment].connectors)]
-                    node1.x = float(config_entries_x[0].get())
-                    node1.y = float(config_entries_y[0].get())
-                    node2.x = float(config_entries_x[1].get())
-                    node2.y = float(config_entries_y[1].get())
-                    config_entries_x[0].original_value = config_entries_x[0].get()
-                    config_entries_y[0].original_value = config_entries_y[0].get()
-                    config_entries_x[1].original_value = config_entries_x[1].get()
-                    config_entries_y[1].original_value = config_entries_y[1].get()
+                    node1.x = float(inspector_entries_x[0].get())
+                    node1.y = float(inspector_entries_y[0].get())
+                    node2.x = float(inspector_entries_x[1].get())
+                    node2.y = float(inspector_entries_y[1].get())
+                    inspector_entries_x[0].original_value = inspector_entries_x[0].get()
+                    inspector_entries_y[0].original_value = inspector_entries_y[0].get()
+                    inspector_entries_x[1].original_value = inspector_entries_x[1].get()
+                    inspector_entries_y[1].original_value = inspector_entries_y[1].get()
                     if connector.type == "BEZIER":
-                        connector.anchors[0].x = float(config_entries_x[2].get())
-                        connector.anchors[0].y = float(config_entries_y[2].get())
-                        connector.anchors[1].x = float(config_entries_x[3].get())
-                        connector.anchors[1].y = float(config_entries_y[3].get())
-                        config_entries_x[2].original_value = config_entries_x[2].get()
-                        config_entries_y[2].original_value = config_entries_y[2].get()
-                        config_entries_x[3].original_value = config_entries_x[3].get()
-                        config_entries_y[3].original_value = config_entries_y[3].get()
+                        connector.anchors[0].x = float(inspector_entries_x[2].get())
+                        connector.anchors[0].y = float(inspector_entries_y[2].get())
+                        connector.anchors[1].x = float(inspector_entries_x[3].get())
+                        connector.anchors[1].y = float(inspector_entries_y[3].get())
+                        inspector_entries_x[2].original_value = inspector_entries_x[2].get()
+                        inspector_entries_y[2].original_value = inspector_entries_y[2].get()
+                        inspector_entries_x[3].original_value = inspector_entries_x[3].get()
+                        inspector_entries_y[3].original_value = inspector_entries_y[3].get()
                     if connector.type == "CIRCLE":
-                        if abs(float(config_entries_x[2].get())) == float(config_entries_x[2].get()):
+                        if abs(float(inspector_entries_x[2].get())) == float(inspector_entries_x[2].get()):
                             connector.direction = 1
                         else:
                             connector.direction = -1
                     break
         editor_canvas.saved = False
         editor_canvas.update()
+
+def process_config_inspector_menu(event):
+    #Check if anything was changed
+    change = False
+    changed_index = -1
+    for i,entry_x,var_x,entry_y,var_y in zip(range(2),config_inspector_entries_x,config_inspector_vars_x,config_inspector_entries_y,config_inspector_vars_y):
+        if i >= window.shown_inspector_entries:
+            break
+        if entry_x.original_value != var_x.get():
+            changed_index = i
+            change = True
+            break
+        if entry_y.original_value != var_y.get():
+            changed_index = i
+            change = True
+            break
+    if not change:
+        debug.send("Nothing changed!")
+        return
+    else:
+        #This should work for simple selections and multiple ones
+        dx = float(config_inspector_entries_x[i].get()) - float(config_inspector_entries_x[i].original_value)
+        dy = float(config_inspector_entries_y[i].get()) - float(config_inspector_entries_y[i].original_value)
+        config_inspector_entries_x[i].original_value = config_inspector_entries_x[i].get()
+        config_inspector_entries_y[i].original_value = config_inspector_entries_y[i].get()
+        for slot in positioning_canvas.slots:
+            if slot.selected:
+                if changed_index == 0:
+                    slot.x += dx
+                    slot.y += dy
+                else:
+                    slot.width += dx
+                    slot.height += dy
+        positioning_canvas.saved = False
+        positioning_canvas.update()
+
 window = Tk()
 window.language_name = ""
+window.current_frame = "EDITOR" #EDITOR, WRITE, CONFIG
 #Tk Variables
-txt_selected_label = StringVar(window)
-txt_selected_label.set("Selected: Placeholder [Placeholder]")
+editor_txt_selected_label = StringVar(window)
+editor_txt_selected_label.set("Selected: Placeholder [Placeholder]")
+config_txt_selected_label = StringVar(window)
+config_txt_selected_label.set("Selected: Placeholder [Placeholder]")
+
+config_canvas_zoom_stringvar = StringVar(window)
+config_canvas_zoom_stringvar.set("1.0")
+config_canvas_zoom_intvar = IntVar(window)
 #Style
 style = Style(window)
 style.configure("secondary.TFrame", background="#1a1919")
@@ -737,18 +810,19 @@ smart_place(language_button,(340,7),(460,7))
 smart_place(toolbar_frame,(20,0),(20,0))
 
 navigation_frame = Frame(window,height=50,width=300,style="toolbar.TFrame")
-edit_button = Button(navigation_frame, text="Edit",width=10 if on_windows else 7,command=lambda: print("EDIT"))
-configure_button = Button(navigation_frame, text="Configure",width=10 if on_windows else 7,command=lambda: print("CONFIGURE"))
-write_button = Button(navigation_frame, text="Write",width=10 if on_windows else 7,command=lambda: print("WRITE"))
+edit_button = Button(navigation_frame, text="Edit",width=10 if on_windows else 7,command=lambda: change_tab("EDITOR"))
+configure_button = Button(navigation_frame, text="Configure",width=10 if on_windows else 7,command=lambda: change_tab("CONFIG"))
+write_button = Button(navigation_frame, text="Write",width=10 if on_windows else 7,command=lambda: change_tab("WRITE"))
 smart_place(write_button,(20,7),(20,7))
 smart_place(edit_button,(120,7),(120,7))
 smart_place(configure_button,(220,7),(220,7))
 smart_place(navigation_frame,(700,0),(700,0))
 
+#__________________________________EDITOR____________________________________________
 editor_frame = Frame(window,height=700,width=1000,style="secondary.TFrame")
 
 editor_header_frame = Frame(editor_frame,height=40,width=704,style="header.TFrame")
-editor_selected_label = Label(editor_header_frame,font=('Helvetica',15),background="#9e9d9d",textvariable=txt_selected_label)
+editor_selected_label = Label(editor_header_frame,font=('Helvetica',15),background="#9e9d9d",textvariable=editor_txt_selected_label)
 editor_selected_label.letter = ""
 editor_selected_label.language = ""
 editor_selected_label.saved = None
@@ -783,108 +857,112 @@ smart_place(editor_delete_segment_button,(60,10),(70,10))
 
 grid_img = Image.open("images/grid.png")
 grid_photo = ImageTk.PhotoImage(grid_img,master=window)
-editor_canvas.canvas.create_image(0,0,image=grid_photo,anchor="nw",tags="grid")
+editor_canvas.canvas.create_image(0,0,image=grid_photo,anchor="nw",tags=["grid","base"])
+editor_canvas.canvas.create_line(350-200,300-200,350+200,300-200,fill="gray",tags="grid")
+editor_canvas.canvas.create_line(350-200,300+200,350+200,300+200,fill="gray",tags="grid")
+editor_canvas.canvas.create_line(350-200,300-200,350-200,300+200,fill="gray",tags="grid")
+editor_canvas.canvas.create_line(350+200,300-200,350+200,300+200,fill="gray",tags="grid")
 editor_canvas.grid_photo = grid_photo
 
-configuration_frame = Frame(editor_frame, width=282, height=300, style="header.TFrame")
-smart_place(configuration_frame,(715,45),(715,45))
+inspector_frame = Frame(editor_frame, width=282, height=300, style="header.TFrame")
+smart_place(inspector_frame,(715,45),(715,45))
 
-config_labels_x = [
-    Label(configuration_frame, text=f"X1:", background=style.lookup("header.TFrame", "background")),
-    Label(configuration_frame, text=f"X2:", background=style.lookup("header.TFrame", "background")),
-    Label(configuration_frame, text=f"X3:", background=style.lookup("header.TFrame", "background")),
-    Label(configuration_frame, text=f"X4:", background=style.lookup("header.TFrame", "background"))
+inspector_labels_x = [
+    Label(inspector_frame, text=f"X1:", background=style.lookup("header.TFrame", "background")),
+    Label(inspector_frame, text=f"X2:", background=style.lookup("header.TFrame", "background")),
+    Label(inspector_frame, text=f"X3:", background=style.lookup("header.TFrame", "background")),
+    Label(inspector_frame, text=f"X4:", background=style.lookup("header.TFrame", "background"))
 ]
 
-config_labels_y = [
-    Label(configuration_frame, text=f"Y1:", background=style.lookup("header.TFrame", "background")),
-    Label(configuration_frame, text=f"Y2:", background=style.lookup("header.TFrame", "background")),
-    Label(configuration_frame, text=f"Y3:", background=style.lookup("header.TFrame", "background")),
-    Label(configuration_frame, text=f"Y4:", background=style.lookup("header.TFrame", "background"))
+inspector_labels_y = [
+    Label(inspector_frame, text=f"Y1:", background=style.lookup("header.TFrame", "background")),
+    Label(inspector_frame, text=f"Y2:", background=style.lookup("header.TFrame", "background")),
+    Label(inspector_frame, text=f"Y3:", background=style.lookup("header.TFrame", "background")),
+    Label(inspector_frame, text=f"Y4:", background=style.lookup("header.TFrame", "background"))
 ]
 
-config_vars_x = [StringVar() for _ in range(4)]
-config_vars_y = [StringVar() for _ in range(4)]
+inspector_vars_x = [StringVar() for _ in range(4)]
+inspector_vars_y = [StringVar() for _ in range(4)]
 
-validate_is_number_cmd = (configuration_frame.register(validate_is_number),"%P")
+validate_is_number_cmd = (inspector_frame.register(validate_is_number),"%P")
 
-config_entries_x = [
-    Entry(configuration_frame, width=10, textvariable=config_vars_x[0],validate="key",validatecommand=validate_is_number_cmd),
-    Entry(configuration_frame, width=10, textvariable=config_vars_x[1],validate="key",validatecommand=validate_is_number_cmd),
-    Entry(configuration_frame, width=10, textvariable=config_vars_x[2],validate="key",validatecommand=validate_is_number_cmd),
-    Entry(configuration_frame, width=10, textvariable=config_vars_x[3],validate="key",validatecommand=validate_is_number_cmd)
+inspector_entries_x = [
+    Entry(inspector_frame, width=10, textvariable=inspector_vars_x[0],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(inspector_frame, width=10, textvariable=inspector_vars_x[1],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(inspector_frame, width=10, textvariable=inspector_vars_x[2],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(inspector_frame, width=10, textvariable=inspector_vars_x[3],validate="key",validatecommand=validate_is_number_cmd)
 ]
 
-config_entries_y = [
-    Entry(configuration_frame, width=10, textvariable=config_vars_y[0],validate="key",validatecommand=validate_is_number_cmd),
-    Entry(configuration_frame, width=10, textvariable=config_vars_y[1],validate="key",validatecommand=validate_is_number_cmd),
-    Entry(configuration_frame, width=10, textvariable=config_vars_y[2],validate="key",validatecommand=validate_is_number_cmd),
-    Entry(configuration_frame, width=10, textvariable=config_vars_y[3],validate="key",validatecommand=validate_is_number_cmd)
+inspector_entries_y = [
+    Entry(inspector_frame, width=10, textvariable=inspector_vars_y[0],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(inspector_frame, width=10, textvariable=inspector_vars_y[1],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(inspector_frame, width=10, textvariable=inspector_vars_y[2],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(inspector_frame, width=10, textvariable=inspector_vars_y[3],validate="key",validatecommand=validate_is_number_cmd)
 ]
 
-for entry in config_entries_x + config_entries_y:
-    entry.bind("<Return>", process_config_menu)
+for entry in inspector_entries_x + inspector_entries_y:
+    entry.bind("<Return>", process_inspector_menu)
 
-def update_configuration_entries(num_pairs):
-    window.shown_config_entries = num_pairs
+def update_inspector_entries(num_pairs):
+    window.shown_inspector_entries = num_pairs
     for i in range(4):
         if i < num_pairs:
-            smart_place(config_labels_x[i],(30,50+i*30),(30,50+i*30))
-            smart_place(config_entries_x[i],(60,50+i*30),(60,50+i*30))
-            smart_place(config_labels_y[i],(150,50+i*30),(150,50+i*30))
-            smart_place(config_entries_y[i],(180,50+i*30),(180,50+i*30))
+            smart_place(inspector_labels_x[i],(30,50+i*30),(30,50+i*30))
+            smart_place(inspector_entries_x[i],(60,50+i*30),(60,50+i*30))
+            smart_place(inspector_labels_y[i],(150,50+i*30),(150,50+i*30))
+            smart_place(inspector_entries_y[i],(180,50+i*30),(180,50+i*30))
         else:
-            config_labels_x[i].place_forget()
-            config_entries_x[i].place_forget()
-            config_labels_y[i].place_forget()
-            config_entries_y[i].place_forget()
+            inspector_labels_x[i].place_forget()
+            inspector_entries_x[i].place_forget()
+            inspector_labels_y[i].place_forget()
+            inspector_entries_y[i].place_forget()
 
-window.shown_config_entries = 0
-update_configuration_entries(window.shown_config_entries)
+window.shown_inspector_entries = 0
+update_inspector_entries(window.shown_inspector_entries)
 
 trash_img = Image.open("images/trash.png")
 trash_img = trash_img.resize((20,20))
-trash_photo = ImageTk.PhotoImage(trash_img,master=configuration_frame)
-config_delete_button = Button(configuration_frame,image=trash_photo,command=delete_connector_or_node) 
-config_delete_button.trash_photo = trash_photo
-smart_place(config_delete_button,(10,10),(10,10))
+trash_photo = ImageTk.PhotoImage(trash_img,master=inspector_frame)
+inspector_delete_button = Button(inspector_frame,image=trash_photo,command=delete_connector_or_node) 
+inspector_delete_button.trash_photo = trash_photo
+smart_place(inspector_delete_button,(10,10),(10,10))
 
 line_img = Image.open("images/line.png")
 line_img = line_img.resize((20,20))
-line_photo = ImageTk.PhotoImage(line_img,master=configuration_frame)
-config_line_button = Button(configuration_frame,image=line_photo,command=turn_selected_connectors_into_lines)
-config_line_button.line_photo = line_photo
-smart_place(config_line_button,(60,10),(70,10))
+line_photo = ImageTk.PhotoImage(line_img,master=inspector_frame)
+inspector_line_button = Button(inspector_frame,image=line_photo,command=turn_selected_connectors_into_lines)
+inspector_line_button.line_photo = line_photo
+smart_place(inspector_line_button,(60,10),(70,10))
 
 bezier_img = Image.open("images/bezier.png")
 bezier_img = bezier_img.resize((20,20))
-bezier_photo = ImageTk.PhotoImage(bezier_img,master=configuration_frame)
-config_bezier_button = Button(configuration_frame,image=bezier_photo,command=turn_selected_connectors_into_beziers)
-config_bezier_button.bezier_photo = bezier_photo
-smart_place(config_bezier_button,(110,10),(130,10))
+bezier_photo = ImageTk.PhotoImage(bezier_img,master=inspector_frame)
+inspector_bezier_button = Button(inspector_frame,image=bezier_photo,command=turn_selected_connectors_into_beziers)
+inspector_bezier_button.bezier_photo = bezier_photo
+smart_place(inspector_bezier_button,(110,10),(130,10))
 
 circle_img = Image.open("images/circle.png")
 circle_img = circle_img.resize((20,20))
-circle_photo = ImageTk.PhotoImage(circle_img,master=configuration_frame)
-config_circle_button = Button(configuration_frame,image=circle_photo,command=turn_selected_connectors_into_half_circles)
-config_circle_button.circle_photo = circle_photo
-smart_place(config_circle_button,(160,10),(190,10))
+circle_photo = ImageTk.PhotoImage(circle_img,master=inspector_frame)
+inspector_circle_button = Button(inspector_frame,image=circle_photo,command=turn_selected_connectors_into_half_circles)
+inspector_circle_button.circle_photo = circle_photo
+smart_place(inspector_circle_button,(160,10),(190,10))
 
-editor_group_listbox = Listbox(configuration_frame,width=43,height=5,bg=style.lookup("header.TFrame","background"),highlightcolor=style.lookup("hightlight.TListbox","background"))
+editor_group_listbox = Listbox(inspector_frame,width=43,height=5,bg=style.lookup("header.TFrame","background"),highlightcolor=style.lookup("hightlight.TListbox","background"))
 editor_group_listbox.bind('<Double-1>', on_group_double_click)
 smart_place(editor_group_listbox,(10,200),(10,200))
 
 plus_img = Image.open("images/plus.png")
 plus_img = plus_img.resize((20,20))
-plus_photo = ImageTk.PhotoImage(plus_img,master=configuration_frame)
-editor_new_group_button = Button(configuration_frame,image=plus_photo,command=open_group_selector)
+plus_photo = ImageTk.PhotoImage(plus_img,master=inspector_frame)
+editor_new_group_button = Button(inspector_frame,image=plus_photo,command=open_group_selector)
 editor_new_group_button.plus_photo = plus_photo
 smart_place(editor_new_group_button,(10,165),(10,165))
 
 trash_img = Image.open("images/trash.png")
 trash_img = trash_img.resize((20,20))
-trash_photo = ImageTk.PhotoImage(trash_img,master=configuration_frame)
-editor_delete_group_button = Button(configuration_frame,image=trash_photo,command=delete_group_button) 
+trash_photo = ImageTk.PhotoImage(trash_img,master=inspector_frame)
+editor_delete_group_button = Button(inspector_frame,image=trash_photo,command=delete_group_button) 
 editor_delete_group_button.trash_photo = trash_photo
 smart_place(editor_delete_group_button,(60,165),(70,165))
 
@@ -942,6 +1020,86 @@ editor_mirror_x_axis_button = Button(editor_extra_options_frame,image=mirror_x_p
 editor_mirror_x_axis_button.mirror_x_photo = mirror_x_photo
 smart_place(editor_mirror_x_axis_button,(640,5),(770,5))
 
+#__________________________________CONFIG____________________________________________
+config_frame = Frame(window,height=700,width=1000,style="secondary.TFrame")
+
+config_header_frame = Frame(config_frame,height=40,width=704,style="header.TFrame")
+config_selected_label = Label(config_header_frame,font=('Helvetica',15),background="#9e9d9d",textvariable=config_txt_selected_label)
+config_selected_label.letter = ""
+config_selected_label.language = ""
+config_selected_label.saved = None
+smart_place(config_selected_label,(5,7),(5,7))
+smart_place(config_header_frame,(5,0),(5,0))
+
+positioning_canvas = letter.PositioningCanvas(Canvas(config_frame,width=700,height=600,background="#525252"))
+smart_place(positioning_canvas.canvas,(5,45),(5,45))
+
+positioning_canvas.canvas.create_image(0,0,image=grid_photo,anchor="nw",tags="grid")
+positioning_canvas.canvas.create_image(0,0,image=grid_photo,anchor="nw",tags=["grid","base"])
+positioning_canvas.canvas.create_line(350-200,300-200,350+200,300-200,fill="gray",tags="grid")
+positioning_canvas.canvas.create_line(350-200,300+200,350+200,300+200,fill="gray",tags="grid")
+positioning_canvas.canvas.create_line(350-200,300-200,350-200,300+200,fill="gray",tags="grid")
+positioning_canvas.canvas.create_line(350+200,300-200,350+200,300+200,fill="gray",tags="grid")
+positioning_canvas.grid_photo = grid_photo
+
+config_inspector_frame = Frame(config_frame, width=282, height=300, style="header.TFrame")
+smart_place(config_inspector_frame,(715,45),(715,45))
+
+config_inspector_labels_x = [
+    Label(config_inspector_frame, text=f"X:", background=style.lookup("header.TFrame", "background")),
+    Label(config_inspector_frame, text=f"Width:", background=style.lookup("header.TFrame", "background")),
+]
+
+config_inspector_labels_y = [
+    Label(inspector_frame, text=f"Y:", background=style.lookup("header.TFrame", "background")),
+    Label(inspector_frame, text=f"Height:", background=style.lookup("header.TFrame", "background"))
+]
+
+config_inspector_vars_x = [StringVar() for _ in range(2)]
+config_inspector_vars_y = [StringVar() for _ in range(2)]
+
+config_inspector_entries_x = [
+    Entry(config_inspector_frame, width=10, textvariable=config_inspector_vars_x[0],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(config_inspector_frame, width=10, textvariable=config_inspector_vars_x[1],validate="key",validatecommand=validate_is_number_cmd),
+]
+
+config_inspector_entries_y = [
+    Entry(config_inspector_frame, width=10, textvariable=config_inspector_vars_y[0],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(config_inspector_frame, width=10, textvariable=config_inspector_vars_y[1],validate="key",validatecommand=validate_is_number_cmd)
+]
+
+for entry in config_inspector_entries_x + config_inspector_entries_y:
+    entry.bind("<Return>", process_config_inspector_menu)
+
+def config_update_inspector_entries(num_pairs):
+    window.shown_inspector_entries = num_pairs
+    for i in range(2):
+        if i < num_pairs:
+            smart_place(config_inspector_labels_x[i],(30,50+i*30),(30,50+i*30))
+            smart_place(config_inspector_entries_x[i],(60,50+i*30),(60,50+i*30))
+            smart_place(config_inspector_labels_y[i],(150,50+i*30),(150,50+i*30))
+            smart_place(config_inspector_entries_y[i],(180,50+i*30),(180,50+i*30))
+        else:
+            config_inspector_labels_x[i].place_forget()
+            config_inspector_entries_x[i].place_forget()
+            config_inspector_labels_y[i].place_forget()
+            config_inspector_entries_y[i].place_forget()
+
+window.config_shown_inspector_entries = 0
+update_inspector_entries(window.config_shown_inspector_entries)
+
+config_inspector_delete_button = Button(config_inspector_frame,image=trash_photo,command=delete_letter_space) 
+config_inspector_delete_button.trash_photo = trash_photo
+smart_place(config_inspector_delete_button,(10,10),(10,10))
+
+config_canvas_zoom_slider = Scale(config_inspector_frame,from_=100,to=400,value=100,length=180,variable=config_canvas_zoom_intvar,command=on_zoom_slider_change)
+config_canvas_zoom_entry = Entry(config_inspector_frame,width=10,textvariable=config_canvas_zoom_stringvar,validate="key",validatecommand=validate_is_number_cmd)
+smart_place(config_canvas_zoom_slider,(10,250),(10,250))
+smart_place(config_canvas_zoom_entry,(200,250),(200,250))
+
+
+editor_frame.lift()
+config_frame.lower()
 
 def reopen_debug_window_on_close():
     debug.revive()

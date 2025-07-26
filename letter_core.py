@@ -43,6 +43,7 @@ class EditorCanvas(ScriptorCanvas):
         self.letter = Letter()
         self.letter.segments.append(Segment())
         self.saved = True
+        self.active = True
         self.draw_nodes = True
         self.configuration_data = None
         self.center_edits = Node(0,0)
@@ -79,7 +80,7 @@ class EditorCanvas(ScriptorCanvas):
         self.process_key_presses()
     def process_key_presses(self,disregard_focus=False):
         #str(self.canvas.focus_get()).startswith(".!toplevel") or 
-        if not disregard_focus and (self.canvas.focus_get() == None or str(self.canvas.focus_get()) != ".!frame4.!canvas"):
+        if not disregard_focus and (self.canvas.focus_get() == None or str(self.canvas.focus_get()) != ".!frame4.!canvas") or not self.active:
             return
         if "entf" in self.keys_pressed:
             self.delete_selection()
@@ -124,6 +125,8 @@ class EditorCanvas(ScriptorCanvas):
                 self.update()
             self.keys_pressed.remove("l")
     def on_click(self,event):
+        if not self.active: return
+
         self.canvas.focus_set()
         real_x,real_y = event.x-350,event.y-300
         x,y = self.calculate_snapped_position(event.x-350, event.y-300)
@@ -237,6 +240,8 @@ class EditorCanvas(ScriptorCanvas):
                     self.letter.segments[self.selected_segment].connectors.append(EditorConnector())
         self.update()
     def on_click_release(self, event):
+        if not self.active: return
+        
         self.last_node_created = None
         self.last_pos = None
         self.info_selected_anchor_point = None
@@ -267,6 +272,8 @@ class EditorCanvas(ScriptorCanvas):
             self.to_deselect = None
             self.update()
     def on_move(self,event):
+        if not self.active: return
+        
         if self.selection_type == None:
             self.cursor.x, self.cursor.y = self.calculate_snapped_position(event.x-350,event.y-300)
             if len(self.letter.segments[self.selected_segment].nodes) != 0:
@@ -312,6 +319,8 @@ class EditorCanvas(ScriptorCanvas):
             self.cursor.x = -10
             self.cursor.y = -10
     def on_drag(self,event):
+        if not self.active: return
+        
         x,y = self.calculate_snapped_position(event.x-350, event.y-300)
         if isinstance(self.last_node_created,EditorNode):
             self.last_node_created.x = x
@@ -450,6 +459,8 @@ class PositioningCanvas(ScriptorCanvas):
         self.slots = [] #List of LetterSpaces
         self.letter = None
         self.saved = True
+        self.active = False
+        self.zoom = 1.0
         self.configuration_data = None
         self.light_reset()
     def load_letter(self,letter,name):
@@ -482,7 +493,7 @@ class PositioningCanvas(ScriptorCanvas):
         self.process_key_presses()
     def process_key_presses(self,disregard_focus=False):
         #str(self.canvas.focus_get()).startswith(".!toplevel") or 
-        if not disregard_focus and (self.canvas.focus_get() == None or str(self.canvas.focus_get()) != ".!frame4.!canvas"):
+        if not disregard_focus and (self.canvas.focus_get() == None or str(self.canvas.focus_get()) != ".!frame4.!canvas") or not self.active:
             return
         if "entf" in self.keys_pressed:
             self.delete_selection()
@@ -491,9 +502,15 @@ class PositioningCanvas(ScriptorCanvas):
             self.delete_selection()
             self.keys_pressed.remove("backspace")
     def on_click(self,event):
+        if not self.active: return
+        
         self.canvas.focus_set()
         real_x,real_y = event.x-350,event.y-300
+        real_x *= self.zoom
+        real_y *= self.zoom
         x,y = self.calculate_snapped_position(event.x-350, event.y-300)
+        x *= self.zoom
+        y *= self.zoom
         self.last_pos = (x,y)
         selected = False
         for slot in self.slots:
@@ -537,6 +554,8 @@ class PositioningCanvas(ScriptorCanvas):
                 self.slots.append(new_slot)
         self.update()
     def on_click_release(self, event):
+        if not self.active: return
+        
         self.last_slot_created = None
         self.last_pos = None
         if isinstance(self.to_deselect,EditorLetterSpace):
@@ -565,6 +584,8 @@ class PositioningCanvas(ScriptorCanvas):
             self.to_deselect = None
             self.update()
     def on_move(self,event):
+        if not self.active: return
+        
         if self.mode == "normal":
             self.cursor.x, self.cursor.y = self.calculate_snapped_position(event.x-350,event.y-300)
             self.update()
@@ -572,7 +593,11 @@ class PositioningCanvas(ScriptorCanvas):
             self.cursor.x = -10
             self.cursor.y = -10
     def on_drag(self,event):
+        if not self.active: return
+        
         x,y = self.calculate_snapped_position(event.x-350, event.y-300)
+        x *= self.zoom
+        y *= self.zoom
         if isinstance(self.last_slot_created,EditorLetterSpace):
             self.last_slot_created.x = x
             self.last_slot_created.y = y
@@ -598,10 +623,13 @@ class PositioningCanvas(ScriptorCanvas):
                 sendx = x
                 sendy = y
                 num = 1
-            self.configuration_data = [1,sendx/num,sendy/num]
+            if self.mode == "selection_simple":
+                self.configuration_data = [2,sendx/num,sendy/num,None,None]
+            else:
+                self.configuration_data = [1,sendx/num,sendy/num]
             self.update()
     def draw(self):
-        positioning_draw(self.letter,self.canvas,self.slots)
+        positioning_draw(self.letter,self.canvas,self.slots,self.zoom)
     def delete_selection(self) -> None:
         if self.mode == "normal":
             return
@@ -630,6 +658,13 @@ class PositioningCanvas(ScriptorCanvas):
             self.cursor_step_size = self.step_size_options[1]
         else:
             self.cursor_step_size = self.step_size_options[0]
+    def zoom_changed(self):
+        self.clear("base")
+        self.canvas.create_line(350-200/self.zoom,300-200/self.zoom,350+200/self.zoom,300-200/self.zoom,fill="gray",tags="grid")
+        self.canvas.create_line(350-200/self.zoom,300+200/self.zoom,350+200/self.zoom,300+200/self.zoom,fill="gray",tags="grid")
+        self.canvas.create_line(350-200/self.zoom,300-200/self.zoom,350-200/self.zoom,300+200/self.zoom,fill="gray",tags="grid")
+        self.canvas.create_line(350+200/self.zoom,300-200/self.zoom,350+200/self.zoom,300+200/self.zoom,fill="gray",tags="grid")
+        self.draw()
 
 
 
@@ -736,7 +771,7 @@ class Group():
         return f"{self.name}:{self.color}:{self.parent if self.parent != None else 'None'}"
 
 class LetterSpace():
-    def __init__(self,x:float=0,y:float=0,width:int=400,height:int=400,letter:str|None=None,children:list = []):
+    def __init__(self,x:float=0,y:float=0,width:int=100,height:int=100,letter:str|None=None,children:list = []):
         self.x = x
         self.y = y
         self.width = width
@@ -745,7 +780,7 @@ class LetterSpace():
         self.children = children
 
 class EditorLetterSpace():
-    def __init__(self,x:float=0,y:float=0,width:int=400,height:int=400):
+    def __init__(self,x:float=0,y:float=0,width:int=100,height:int=100):
         self.x = x
         self.y = y
         self.width = width
@@ -813,10 +848,11 @@ def editor_draw(letter,canvas,selected_segment_index,draw_nodes=True,center_edit
     draw_letter(letter,canvas,1,[350,300],draw_nodes,selected_segment_index if draw_nodes else None,base_color="gray" if draw_nodes else "black")
     draw_node(canvas,350,300,EditorNode(center_edits.x,center_edits.y),1,color="purple")
 
-def positioning_draw(letter,canvas,slots):
-    draw_letter(letter,canvas,1,[350,300],False,None,base_color="black")
+def positioning_draw(letter,canvas,slots,zoom:float=1.0):
+    if letter is not None:
+        draw_letter(resized_letter(letter,zoom),canvas,1,[350,300],False,None,base_color="black")
     for slot in slots:
-        draw_slot(canvas,350,300,slot,1,slot.selected)
+        draw_slot(canvas,350,300,resized_letterspace(slot,zoom),1,slot.selected)
 
 def draw_node(canvas,x,y,node,size,tag="l_node",sel=True,color="gray"):
     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=color if sel else "gray", tags=tag)
@@ -825,7 +861,7 @@ def draw_line(canvas,x,y,node1,node2,size,color="gray",width=3):
     canvas.create_line(x + node1.x*size, y + node1.y*size, x + node2.x*size, y + node2.y*size, fill=color, width=width, tags="l_line")
 
 def draw_slot(canvas,x,y,slot,size,sel=True):
-    canvas.create_rectangle(x+slot.x-slot.width/2*size,y+slot.y-slot.height/2*size,x+slot.x+slot.width/2*size,y+slot.y+slot.height/2*size,active_fill="#f7b0a8" if sel else "#bbf9fc",active_outline="#fc6d5d" if sel else "#8cbffa")
+    canvas.create_rectangle(x+slot.x-slot.width/2*size,y+slot.y-slot.height/2*size,x+slot.x+slot.width/2*size,y+slot.y+slot.height/2*size,fill="#f7b0a8" if sel else "#bbf9fc",outline="#fc6d5d" if sel else "#8cbffa")
 
 def draw_bezier(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2,canvas,width=3,color="black"):
     #Modified code from: https://stackoverflow.com/a/50302363
@@ -918,3 +954,33 @@ def distance_to_bezier(node1,node2, rel_anchor1, rel_anchor2, point, n=50):
 
 def is_inside_slot(x,y,slot:LetterSpace|EditorLetterSpace):
     return (slot.x - slot.width/2) <= x <= (slot.x + slot.width/2) and (slot.y - slot.height/2) <= y <= (slot.y + slot.height/2)
+
+def resized_letter(letter:Letter,zoom:float) -> Letter:
+    resized = Letter()
+    for segment in letter.segments:
+        resized_segment = Segment()
+        for node in segment.nodes:
+            resized_node = EditorNode(x=node.x/zoom,y=node.y/zoom,size=node.size,color=node.color)
+            if node.selected:
+                resized_node.select()
+            else:
+                resized_node.deselect()
+            resized_segment.nodes.append(resized_node)
+        resized_segment.name = segment.name
+        resized_segment.connectors = segment.connectors
+        resized.segments.append(resized_segment)
+    resized.groups = letter.groups[:]
+    return resized
+
+def resized_letterspace(slot:LetterSpace|EditorLetterSpace,zoom:float):
+    if type(slot) == LetterSpace:
+        resized = LetterSpace()
+    else:
+        resized = EditorLetterSpace()
+    resized.x = slot.x/zoom
+    resized.y = slot.y/zoom
+    resized.height = slot.height/zoom
+    resized.width = slot.width/zoom
+    resized.selected = slot.selected
+    #Children not done yet!
+    return resized

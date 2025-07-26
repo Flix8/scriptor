@@ -9,14 +9,22 @@ def get_group_obj(name) -> l.Group:
         if group.name == name:
             return group
 
+class ReducedLetterSpace():
+    def __init__(self,x:float=0,y:float=0,width:int=100,height:int=100):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+
 class SessionData():
-    def __init__(self,language,letter=None,open_frame="Editor"):
+    def __init__(self,language,letter_editor=None,letter_config=None,open_frame="EDITOR"):
         self.language = language if language != "" else None
-        self.letter = letter if letter != "Unnamed" else None
+        self.letter_editor = letter_editor if letter_editor != "Unnamed" else None
+        self.letter_config = letter_config if letter_config != "Unnamed" else None
         self.open_frame = open_frame
 
 def to_plain_letter(letter: l.Letter) -> l.Letter:
-    #Written by Copilot
+    #Partly written by Copilot
     plain_letter = l.Letter()
     plain_letter.groups = letter.groups
     for segment in letter.segments:
@@ -36,6 +44,9 @@ def to_plain_letter(letter: l.Letter) -> l.Letter:
         plain_letter.segments.append(plain_segment)
     return plain_letter
 
+def to_reduced_letter_space(letter_space: l.LetterSpace|l.EditorLetterSpace) -> ReducedLetterSpace:
+    return ReducedLetterSpace(letter_space.x,letter_space.y,letter_space.width,letter_space.height)
+
 def save_letter(language: str, name_letter: str, letter: l.Letter) -> None:
     letter = to_plain_letter(letter)
     directory = f"languages/{language}/letters"
@@ -45,6 +56,18 @@ def save_letter(language: str, name_letter: str, letter: l.Letter) -> None:
     with open(file_path, 'w') as file:
         json.dump(letter, file, default=lambda o: o.__dict__, indent=6)
     exporter.export_preview_img(language,name_letter,letter)
+
+def save_positioning(language: str, name_letter_space: str, letter_space: l.LetterSpace, is_template:bool=True) -> None:
+    letter_space = to_reduced_letter_space(letter_space)
+    if is_template:
+        directory = f"languages/{language}/positioning/templates"
+    else:
+        directory = f"languages/{language}/positioning/letters"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    file_path = f"{directory}/{name_letter_space}.json"
+    with open(file_path, 'w') as file:
+        json.dump(letter_space, file, default=lambda o: o.__dict__, indent=6)
 
 def load_groups(language:str) -> None:
     global all_groups

@@ -51,6 +51,7 @@ def on_update():
     if len(tracker.keypress_history) != 0:
         #Need to send to focused canvas
         manager.editor_canvas.on_key(tracker.keypress_history)
+        manager.positioning_canvas.on_key(tracker.keypress_history)
     tracker.keypress_history.clear()
     #Executing command in console
     if len(debug.debug_window.to_execute) != 0:
@@ -69,9 +70,9 @@ def on_update():
             if saving.new_language != None:
                 manager.window.language_name = saving.new_language
                 saving.new_language = None
-            if True:#This should look if the editor is in focus
+            if manager.window.current_frame == "EDITOR":
                 if manager.editor_selected_label.letter != manager.editor_canvas.letter_name or manager.editor_selected_label.language != manager.window.language_name or manager.editor_selected_label.saved != manager.editor_canvas.saved:
-                    manager.txt_selected_label.set(f"Selected: {manager.editor_canvas.letter_name} [{manager.window.language_name}] {'*' if not manager.editor_canvas.saved else ''}")
+                    manager.editor_txt_selected_label.set(f"Selected: {manager.editor_canvas.letter_name} [{manager.window.language_name}] {'*' if not manager.editor_canvas.saved else ''}")
                     manager.editor_selected_label.letter = manager.editor_canvas.letter_name
                     manager.editor_selected_label.language = manager.window.language_name
                     manager.editor_selected_label.saved = manager.editor_canvas.saved
@@ -85,20 +86,38 @@ def on_update():
                     manager.editor_canvas.reload_segments = False
                 if isinstance(manager.editor_canvas.configuration_data,list):
                     if manager.editor_canvas.configuration_data[0] == 5:
-                        manager.update_configuration_entries(3)
-                        manager.config_labels_x[2].place_forget()
-                        manager.config_labels_y[2].place_forget()
-                        manager.config_entries_y[2].place_forget()
+                        manager.update_inspector_entries(3)
+                        manager.inspector_labels_x[2].place_forget()
+                        manager.inspector_labels_y[2].place_forget()
+                        manager.inspector_entries_y[2].place_forget()
                     else:
-                        manager.update_configuration_entries(manager.editor_canvas.configuration_data[0])
+                        manager.update_inspector_entries(manager.editor_canvas.configuration_data[0])
                     for i in range(0,(len(manager.editor_canvas.configuration_data)-1)//2):
                         if not manager.editor_canvas.configuration_data[(i+1)*2-1] is None:
-                            manager.config_vars_x[i].set(manager.editor_canvas.configuration_data[(i+1)*2-1])
-                            manager.config_entries_x[i].original_value = str(manager.editor_canvas.configuration_data[(i+1)*2-1])
+                            manager.inspector_vars_x[i].set(manager.editor_canvas.configuration_data[(i+1)*2-1])
+                            manager.inspector_entries_x[i].original_value = str(manager.editor_canvas.configuration_data[(i+1)*2-1])
                         if not manager.editor_canvas.configuration_data[(i+1)*2] is None:
-                            manager.config_vars_y[i].set(manager.editor_canvas.configuration_data[(i+1)*2])
-                            manager.config_entries_y[i].original_value = str(manager.editor_canvas.configuration_data[(i+1)*2])
+                            manager.inspector_vars_y[i].set(manager.editor_canvas.configuration_data[(i+1)*2])
+                            manager.inspector_entries_y[i].original_value = str(manager.editor_canvas.configuration_data[(i+1)*2])
                     manager.editor_canvas.configuration_data = None
+            elif manager.window.current_frame == "CONFIG":
+                if manager.config_selected_label.letter != manager.positioning_canvas.letter_name or manager.config_selected_label.language != manager.window.language_name or manager.config_selected_label.saved != manager.positioning_canvas.saved:
+                    manager.config_txt_selected_label.set(f"Selected: {manager.positioning_canvas.letter_name} [{manager.window.language_name}] {'*' if not manager.positioning_canvas.saved else ''}")
+                    manager.editor_selected_label.letter = manager.positioning_canvas.letter_name
+                    manager.editor_selected_label.language = manager.window.language_name
+                    manager.editor_selected_label.saved = manager.positioning_canvas.saved
+                if isinstance(manager.positioning_canvas.configuration_data,list):
+                    manager.config_update_inspector_entries(manager.positioning_canvas.configuration_data[0])
+                    for i in range(0,(len(manager.positioning_canvas.configuration_data)-1)//2):
+                        if not manager.positioning_canvas.configuration_data[(i+1)*2-1] is None:
+                            manager.config_inspector_vars_x[i].set(manager.positioning_canvas.configuration_data[(i+1)*2-1])
+                            manager.config_inspector_entries_x[i].original_value = str(manager.positioning_canvas.configuration_data[(i+1)*2-1])
+                        if not manager.positioning_canvas.configuration_data[(i+1)*2] is None:
+                            manager.config_inspector_vars_y[i].set(manager.positioning_canvas.configuration_data[(i+1)*2])
+                            manager.config_inspector_entries_y[i].original_value = str(manager.positioning_canvas.configuration_data[(i+1)*2])
+                    manager.positioning_canvas.configuration_data = None
+            elif manager.window.current_frame == "WRITE":
+                pass
     manager.get("main").after(100,on_update)
 
 def on_exit():
@@ -106,7 +125,7 @@ def on_exit():
     json.dump(debug.debug_window.command_log,cmd_log_file,indent=6)
     cmd_log_file.close()
     session_save = open("last_session_info.json","w")
-    json.dump(saving.SessionData(manager.get("main").language_name,manager.editor_canvas.letter_name),session_save,default=lambda o: o.__dict__,indent=6)
+    json.dump(saving.SessionData(manager.get("main").language_name,manager.editor_canvas.letter_name,manager.positioning_canvas.letter_name,manager.window.current_frame),session_save,default=lambda o: o.__dict__,indent=6)
     session_save.close()
     for window_name in manager.registered:
         if window_name == "main": continue
@@ -135,13 +154,21 @@ if last_session_data["language"] != None:
     else:
         manager.get("main").language_name = last_session_data["language"]
         saving.load_groups(last_session_data["language"])
-        if last_session_data["letter"] != None:
+        if last_session_data["letter_editor"] != None:
             letters_path = manager.os.path.join("languages", manager.get("main").language_name, "letters")
             letters = [f for f in manager.os.listdir(letters_path) if manager.os.path.isfile(manager.os.path.join(letters_path, f))]
-            if last_session_data["letter"] + ".json" not in letters:
+            if last_session_data["letter_editor"] + ".json" not in letters:
                 messagebox.showwarning("Error Loading","Could not load letter from last session - Missing")
             else:
-                manager.editor_canvas.load_letter(saving.load_letter(manager.get("main").language_name,last_session_data["letter"],True),last_session_data["letter"])
+                manager.editor_canvas.load_letter(saving.load_letter(manager.get("main").language_name,last_session_data["letter_editor"],True),last_session_data["letter_editor"])
                 manager.editor_canvas.saved = True
+        if last_session_data["letter_config"] != None:
+            letters_path = manager.os.path.join("languages", manager.get("main").language_name, "letters")
+            letters = [f for f in manager.os.listdir(letters_path) if manager.os.path.isfile(manager.os.path.join(letters_path, f))]
+            if last_session_data["letter_config"] + ".json" not in letters:
+                messagebox.showwarning("Error Loading","Could not load letter from last session - Missing")
+            else:
+                manager.positioning_canvas.load_letter(saving.load_letter(manager.get("main").language_name,last_session_data["letter_config"],True),last_session_data["letter_config"])
+                manager.positioning_canvas.saved = True
 session_save.close()
 manager.get("main").mainloop()

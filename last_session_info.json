@@ -1,5 +1,6 @@
 {
       "language": "refiners_language",
-      "letter": "Find",
-      "open_frame": "Editor"
+      "letter_editor": "We",
+      "letter_config": "Find",
+      "open_frame": "CONFIG"
 }
