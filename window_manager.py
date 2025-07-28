@@ -72,10 +72,21 @@ def show_frame(frame:Frame):
     frame.tkraise()
 
 #_______BUTTON FUNCTIONS________________
+def config_canvas_unload_letter():
+    positioning_canvas.letter = None
+    positioning_canvas.update()
+
+def save_button_func():
+    if window.current_frame == "EDITOR":
+        save_letter_editor()
+    elif window.current_frame == "CONFIG":
+        save_positioning_config()
+
 def on_zoom_slider_change(event):
     config_canvas_zoom_stringvar.set(str(config_canvas_zoom_intvar.get()/100))
     positioning_canvas.zoom = config_canvas_zoom_intvar.get()/100
     positioning_canvas.zoom_changed()
+
 def on_segment_select(event):
     selected_index = editor_segment_listbox.curselection()
     if selected_index:
@@ -213,9 +224,9 @@ def on_center_change_y(new_value):
     return True
 
 def open_group_selector():
-    #Written by Copilot
+    #Base written by Copilot
     global group_selector_open
-    if group_selector_open:
+    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG")):
         return
     def on_ok():
         selected_index = listbox.curselection()
@@ -329,8 +340,8 @@ def open_group_selector():
     new_button.pack(side=LEFT, padx=5)
 
 def open_language_selector():
-    #Written by Copilot
-    if not editor_canvas.saved:
+    #Base written by Copilot
+    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG")):
         ask_save("language")
         return
     global language_selector_open
@@ -402,7 +413,7 @@ def open_language_selector():
     new_button.pack(side=LEFT, padx=5)
 
 def open_letter_selector():
-    if not editor_canvas.saved:
+    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG")):
         ask_save("open")
         return
     if window.language_name == "":
@@ -423,7 +434,9 @@ def open_letter_selector():
                 editor_canvas.load_letter(saving.load_letter(window.language_name, selected_letter, True), selected_letter)
                 editor_canvas.saved = True
             elif window.current_frame == "CONFIG":
-                positioning_canvas.load_letter(saving.load_letter(window.language_name, selected_letter, True), selected_letter)
+                positioning_canvas.load_letter(saving.load_letter(window.language_name, selected_letter, True), selected_letter,not keep_slots_boolvar.get())
+                if saving.does_positioning_for_letter_exist(window.language_name,selected_letter) and not keep_slots_boolvar.get():
+                    positioning_canvas.load_slots(saving.load_positioning(window.language_name,selected_letter,False,True))
                 positioning_canvas.saved = True
             close_letter_selector()
         else:
@@ -538,7 +551,115 @@ def open_letter_selector():
     close_button = Button(button_frame, text="Close", command=on_close)
     close_button.pack(side=LEFT, padx=5)
 
-def save_letter_selector():
+    if window.current_frame == "CONFIG":
+        keep_slots_boolvar = BooleanVar(letter_selector)
+        keep_slots = Checkbutton(button_frame,text="Keep Slots",state=OFF,variable=keep_slots_boolvar)
+        keep_slots.pack(side=LEFT, padx=5)
+
+def open_positioning_window(use_editor_version:bool = True):
+    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG")):
+        ask_save("open")
+        return
+    if window.language_name == "":
+        messagebox.showwarning("No selection", "Please select a language.")
+        return
+    global letter_selector_open
+
+    language = window.language_name
+
+    if letter_selector_open:
+        return
+
+    def on_open():
+        selected_index = listbox.curselection()
+        if selected_index:
+            selected_letter = listbox.get(selected_index)
+            positioning_canvas.load_slots(saving.load_positioning(window.language_name,selected_letter,positioning_selector.open_tab == "TEMPLATE",use_editor_version))
+            positioning_canvas.saved = True
+            close_letter_selector()
+        else:
+            messagebox.showwarning("No selection", "Please select a letter.")
+
+    def on_close():
+        close_letter_selector()
+
+    def close_letter_selector():
+        global letter_selector_open
+        close("pos_selector")
+        letter_selector_open = False
+
+    def on_letter_double_click(event):
+        selected_index = listbox.curselection()
+        if selected_index:
+            letter_name = listbox.get(selected_index)
+            new_name = simpledialog.askstring("Rename Positioning/Template", "Enter new name:", initialvalue=letter_name)
+            letters_path = os.path.join("languages", language, "positioning","templates" if positioning_canvas.letter is None else "letters")
+            if new_name and new_name != letter_name:
+                os.rename(os.path.join(letters_path, letter_name + ".json"), os.path.join(letters_path, new_name + ".json"))
+                listbox.delete(selected_index)
+                listbox.insert(selected_index,new_name)
+    
+    def change_tab(new_tab:str):
+        if new_tab == "TEMPLATE" and positioning_selector.open_tab != "TEMPLATE":
+            positioning_selector.title("Select Template")
+            positioning_selector.open_tab = "TEMPLATE"
+
+            letters_path = os.path.join("languages", language, "positioning","templates")
+            letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+            listbox.delete(0,END)
+            for let in letters:
+                listbox.insert(END, os.path.splitext(let)[0])
+        elif new_tab == "LETTER" and positioning_selector.open_tab != "LETTER":
+            positioning_selector.title("Select Letter Positioning")
+            positioning_selector.open_tab = "LETTER"
+
+            letters_path = os.path.join("languages", language, "positioning","letters")
+            letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+            listbox.delete(0,END)
+            for let in letters:
+                listbox.insert(END, os.path.splitext(let)[0])
+
+    style.configure("Custom.TCombobox", fieldbackground="white")
+    letter_selector_open = True
+    positioning_selector = Toplevel(window)
+    register("pos_selector", positioning_selector)
+    positioning_selector.geometry("300x500")
+    positioning_selector.protocol("WM_DELETE_WINDOW", close_letter_selector)
+
+    letters_button = Button(positioning_selector,text="Letters",command=lambda:change_tab("LETTER"))
+    letters_button.pack(padx=10, pady=10)
+
+    template_button = Button(positioning_selector,text="Templates",command=lambda:change_tab("TEMPLATE"))
+    template_button.pack(padx=10, pady=10)
+
+    listbox = Listbox(positioning_selector)
+    listbox.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    listbox.bind("<Double-1>", on_letter_double_click)
+
+    if positioning_canvas.letter is None:
+        positioning_selector.title("Select Template")
+        letters_path = os.path.join("languages", language, "positioning","templates")
+        positioning_selector.open_tab = "TEMPLATE"
+    else:
+        positioning_selector.title("Select Letter Positioning")
+        letters_path = os.path.join("languages", language, "positioning","letters")
+        positioning_selector.open_tab = "LETTER"
+
+    letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+
+    for let in letters:
+        listbox.insert(END, os.path.splitext(let)[0])
+
+    button_frame = Frame(positioning_selector)
+    button_frame.pack(fill=X, padx=10, pady=10)
+
+    open_button = Button(button_frame, text="Open", command=on_open)
+    open_button.pack(side=LEFT, padx=5)
+
+    close_button = Button(button_frame, text="Close", command=on_close)
+    close_button.pack(side=LEFT, padx=5)
+
+def save_letter_editor():
     global letter_selector_open
 
     language = window.language_name
@@ -571,7 +692,7 @@ def save_letter_selector():
 
     def close_letter_selector():
         global letter_selector_open
-        close("save_letter_selector")
+        close("save_letter_editor")
         letter_selector_open = False
 
     def on_letter_select(event):
@@ -582,13 +703,13 @@ def save_letter_selector():
             entry.insert(0, selected_letter)
 
     letter_selector_open = True
-    letter_selector = Toplevel(window)
-    register("save_letter_selector",letter_selector)
-    letter_selector.title("Save Letter")
-    letter_selector.geometry("300x400")
-    letter_selector.protocol("WM_DELETE_WINDOW", close_letter_selector)
+    save_window = Toplevel(window)
+    register("save_letter_editor",save_window)
+    save_window.title("Save Letter")
+    save_window.geometry("300x400")
+    save_window.protocol("WM_DELETE_WINDOW", close_letter_selector)
 
-    listbox = Listbox(letter_selector)
+    listbox = Listbox(save_window)
     listbox.pack(fill=BOTH, expand=True, padx=10, pady=10)
     listbox.bind('<<ListboxSelect>>', on_letter_select)
 
@@ -597,7 +718,7 @@ def save_letter_selector():
     for let in letters:
         listbox.insert(END, os.path.splitext(let)[0])
 
-    entry_frame = Frame(letter_selector)
+    entry_frame = Frame(save_window)
     entry_frame.pack(fill=X, padx=10, pady=10)
 
     entry_label = Label(entry_frame, text="Enter name:")
@@ -608,7 +729,119 @@ def save_letter_selector():
     entry.txt_var = txt_var
     entry.pack(fill=X, expand=True, padx=5)
 
-    button_frame = Frame(letter_selector)
+    button_frame = Frame(save_window)
+    button_frame.pack(fill=X, padx=10, pady=10)
+
+    save_button = Button(button_frame, text="Save", command=on_save)
+    save_button.pack(side=LEFT, padx=5)
+
+    cancel_button = Button(button_frame, text="Cancel", command=on_cancel)
+    cancel_button.pack(side=LEFT, padx=5)
+
+def save_positioning_config():
+    global letter_selector_open
+
+    language = window.language_name
+
+    if letter_selector_open:
+        return
+
+    def on_save():
+        selected_index = listbox.curselection()
+        if selected_index:
+            selected_letter = listbox.get(selected_index)
+            debug.send(f"Saving {selected_letter}[{window.language_name}]")
+            saving.save_positioning(window.language_name,selected_letter,positioning_canvas.slots,save_window.open_tab == "TEMPLATE")
+            positioning_canvas.letter_name = selected_letter
+            positioning_canvas.saved = True
+            close_letter_selector()
+        else:
+            entered_name = entry.get()
+            if entered_name:
+                debug.send(f"Saving {entered_name}[{window.language_name}]")
+                saving.save_positioning(window.language_name,selected_letter,positioning_canvas.slots,save_window.open_tab == "TEMPLATE")
+                positioning_canvas.letter_name = entered_name
+                positioning_canvas.saved = True
+                close_letter_selector()
+            else:
+                messagebox.showwarning("No name", "Please enter a name or select a letter.")
+    
+    def on_cancel():
+        close_letter_selector()
+
+    def close_letter_selector():
+        global letter_selector_open
+        close("save_positioning_config")
+        letter_selector_open = False
+
+    def on_letter_select(event):
+        selected_index = listbox.curselection()
+        if selected_index:
+            selected_letter = listbox.get(selected_index)
+            entry.delete(0, END)
+            entry.insert(0, selected_letter)
+    
+    def change_tab(new_tab:str):
+        if new_tab == "TEMPLATE" and save_window.open_tab != "TEMPLATE":
+            save_window.title("Save Template")
+            save_window.open_tab = "TEMPLATE"
+
+            letters_path = os.path.join("languages", language, "positioning","templates")
+            letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+            listbox.delete(0,END)
+            for let in letters:
+                listbox.insert(END, os.path.splitext(let)[0])
+        elif new_tab == "LETTER" and save_window.open_tab != "LETTER":
+            save_window.title("Save Letter Positioning")
+            save_window.open_tab = "LETTER"
+
+            letters_path = os.path.join("languages", language, "letters")
+            letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+            listbox.delete(0,END)
+            for let in letters:
+                listbox.insert(END, os.path.splitext(let)[0])
+
+    letter_selector_open = True
+    save_window = Toplevel(window)
+    register("save_positioning_config",save_window)
+    save_window.geometry("300x400")
+    save_window.protocol("WM_DELETE_WINDOW", close_letter_selector)
+
+    letters_button = Button(save_window,text="Letters",command=lambda:change_tab("LETTER"))
+    letters_button.pack(padx=10, pady=10)
+
+    template_button = Button(save_window,text="Templates",command=lambda:change_tab("TEMPLATE"))
+    template_button.pack(padx=10, pady=10)
+
+    listbox = Listbox(save_window)
+    listbox.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    listbox.bind('<<ListboxSelect>>', on_letter_select)
+
+    #Default to template or letter depending on what is currently present in editor
+    if positioning_canvas.letter is None:
+        save_window.title("Save Template")
+        letters_path = os.path.join("languages", language, "positioning","templates")
+        save_window.open_tab = "TEMPLATE"
+    else:
+        save_window.title("Save Letter Positioning")
+        letters_path = os.path.join("languages", language, "letters")
+        save_window.open_tab = "LETTER"
+    letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+    for let in letters:
+        listbox.insert(END, os.path.splitext(let)[0])
+
+    entry_frame = Frame(save_window)
+    entry_frame.pack(fill=X, padx=10, pady=10)
+
+    entry_label = Label(entry_frame, text="Enter name:")
+    entry_label.pack(side=LEFT, padx=5)
+
+    txt_var = StringVar(entry_frame,positioning_canvas.letter_name)
+    entry = Entry(entry_frame,textvariable=txt_var)
+    entry.txt_var = txt_var
+    entry.pack(fill=X, expand=True, padx=5)
+
+    button_frame = Frame(save_window)
     button_frame.pack(fill=X, padx=10, pady=10)
 
     save_button = Button(button_frame, text="Save", command=on_save)
@@ -623,7 +856,7 @@ def ask_save(action="new"):
     if save_window_open:
         return
     def on_save():
-        save_letter_selector()
+        save_button_func()
         close_save_window()
 
     def on_ignore():
@@ -668,13 +901,17 @@ def ask_save(action="new"):
     cancel_button.pack(side=LEFT, padx=5)
 
 def create_new_letter():
-    if not editor_canvas.saved:
+    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG")):
         ask_save("new")
         return
-    editor_canvas.saved = True
-    new_letter = letter.Letter()
-    new_letter.segments.append(letter.Segment())
-    editor_canvas.load_letter(new_letter,"Unnamed")
+    if window.current_frame == "EDITOR":
+        editor_canvas.saved = True
+        new_letter = letter.Letter()
+        new_letter.segments.append(letter.Segment())
+        editor_canvas.load_letter(new_letter,"Unnamed")
+    elif window.current_frame == "CONFIG":
+        positioning_canvas.saved = True
+        positioning_canvas.load_letter(None,"Unnamed")
 
 def process_inspector_menu(event):
     #Check if anything was changed
@@ -798,7 +1035,7 @@ window.title("Scriptor - Letter Editor")
 
 toolbar_frame = Frame(window,height=40,width=600,style="toolbar.TFrame")
 new_button = Button(toolbar_frame, text="New",width=10 if on_windows else 7,command=lambda: create_new_letter())
-save_button = Button(toolbar_frame, text="Save",width=10 if on_windows else 7,command=save_letter_selector)
+save_button = Button(toolbar_frame, text="Save",width=10 if on_windows else 7,command=save_button_func)
 open_button = Button(toolbar_frame, text="Open",width=10 if on_windows else 7,command=open_letter_selector)
 settings_button = Button(toolbar_frame, text="Settings",width=10 if on_windows else 7,command=lambda: print("SETTINGS"))
 language_button = Button(toolbar_frame, text="Language",width=10 if on_windows else 7,command=open_language_selector)
@@ -1096,6 +1333,11 @@ config_canvas_zoom_slider = Scale(config_inspector_frame,from_=100,to=400,value=
 config_canvas_zoom_entry = Entry(config_inspector_frame,width=10,textvariable=config_canvas_zoom_stringvar,validate="key",validatecommand=validate_is_number_cmd)
 smart_place(config_canvas_zoom_slider,(10,250),(10,250))
 smart_place(config_canvas_zoom_entry,(200,250),(200,250))
+
+config_turn_into_template_button = Button(config_inspector_frame,text="Clear Letter",command=config_canvas_unload_letter)
+config_load_slots_button = Button(config_inspector_frame,text="Load Positioning",command=lambda:open_positioning_window(True))
+smart_place(config_turn_into_template_button,(10,200),(10,200))
+smart_place(config_load_slots_button,(100,200),(100,200))
 
 
 editor_frame.lift()

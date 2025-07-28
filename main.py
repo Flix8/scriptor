@@ -169,6 +169,8 @@ if last_session_data["language"] != None:
                 messagebox.showwarning("Error Loading","Could not load letter from last session - Missing")
             else:
                 manager.positioning_canvas.load_letter(saving.load_letter(manager.get("main").language_name,last_session_data["letter_config"],True),last_session_data["letter_config"])
+                if saving.does_positioning_for_letter_exist(manager.window.language_name,last_session_data["letter_config"]):
+                    manager.positioning_canvas.load_slots(saving.load_positioning(manager.window.language_name,last_session_data["letter_config"],False,True))
                 manager.positioning_canvas.saved = True
 session_save.close()
 manager.get("main").mainloop()

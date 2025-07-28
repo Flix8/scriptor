@@ -57,8 +57,10 @@ def save_letter(language: str, name_letter: str, letter: l.Letter) -> None:
         json.dump(letter, file, default=lambda o: o.__dict__, indent=6)
     exporter.export_preview_img(language,name_letter,letter)
 
-def save_positioning(language: str, name_letter_space: str, letter_space: l.LetterSpace, is_template:bool=True) -> None:
-    letter_space = to_reduced_letter_space(letter_space)
+def save_positioning(language: str, name_letter_space: str, letter_spaces: list, is_template:bool=True) -> None:
+    reduced_letter_spaces = []
+    for letter_space in letter_spaces:
+        reduced_letter_spaces.append(to_reduced_letter_space(letter_space))
     if is_template:
         directory = f"languages/{language}/positioning/templates"
     else:
@@ -67,7 +69,7 @@ def save_positioning(language: str, name_letter_space: str, letter_space: l.Lett
         os.makedirs(directory)
     file_path = f"{directory}/{name_letter_space}.json"
     with open(file_path, 'w') as file:
-        json.dump(letter_space, file, default=lambda o: o.__dict__, indent=6)
+        json.dump(reduced_letter_spaces, file, default=lambda o: o.__dict__, indent=6)
 
 def load_groups(language:str) -> None:
     global all_groups
@@ -181,6 +183,37 @@ def load_letter(language: str, name_letter: str, use_editor_versions: bool = Fal
         letter.segments.append(segment)
     
     return letter
+
+def does_positioning_for_letter_exist(language:str, letter_name:str) -> bool:
+    file_path = f"languages/{language}/positioning/letters/{letter_name}.json"
+    return os.path.exists(file_path)
+
+def load_positioning(language: str, name_positioning: str, is_template:bool = True, use_editor_versions: bool = False) -> list:
+    global new_language
+    if is_template:
+        file_path = f"languages/{language}/positioning/templates/{name_positioning}.json"
+    else:
+        file_path = f"languages/{language}/positioning/letters/{name_positioning}.json"
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"No such file: '{file_path}'")
+    new_language = language
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    
+    slots = []
+    for slot_data in data:
+        if use_editor_versions:
+            slot = l.EditorLetterSpace()
+        else:
+            slot = l.LetterSpace()
+        slot.x = slot_data['x']
+        slot.y = slot_data['y']
+        slot.width = slot_data['width']
+        slot.height = slot_data['height']
+        slots.append(slot)
+    
+    return slots
+
 
 def get_group_of_letter(language:str, name_letter: str) -> list:
     file_path = f"languages/{language}/letters/{name_letter}.json"

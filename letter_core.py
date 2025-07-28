@@ -450,7 +450,6 @@ class EditorCanvas(ScriptorCanvas):
 class PositioningCanvas(ScriptorCanvas):
     def __init__(self,canvas):
         super().__init__(canvas)
-        self.selected_slot = None
         self.letter_name = "Unnamed"
         self.keys_pressed = []
         self.cursor = EditorNode(0,0,5,"green")
@@ -463,13 +462,15 @@ class PositioningCanvas(ScriptorCanvas):
         self.zoom = 1.0
         self.configuration_data = None
         self.light_reset()
-    def load_letter(self,letter,name):
+    def load_letter(self,letter,name,reset_slots:bool=True):
         self.letter_name = name
         self.light_reset()
         self.letter = letter
-        #TRY TO LOAD SLOTS
-        self.slots = []
-        self.selected_slot = None
+        if reset_slots:
+            self.slots = []
+        self.update()
+    def load_slots(self,slots:list=[]):
+        self.slots = slots
         self.update()
     def light_reset(self,do_reload_slots=True):
         self.deselect_all_slots()
