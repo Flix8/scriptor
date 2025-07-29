@@ -771,6 +771,8 @@ class Group():
     def __str__(self):
         return f"{self.name}:{self.color}:{self.parent if self.parent != None else 'None'}"
 
+        
+
 class LetterSpace():
     def __init__(self,x:float=0,y:float=0,width:int=100,height:int=100,letter:str|None=None,children:list = []):
         self.x = x
@@ -779,6 +781,73 @@ class LetterSpace():
         self.height = height
         self.letter = letter
         self.children = children
+        self.outline_color_mode = "GLOBAL" #GLOBAL, PARENT, CUSTOM
+        self.global_outline_color = ""
+        self.parent_outline_color = ""
+        self.custom_outline_color = ""
+    def update_outline_color(self,mode="GLOBAL",color="black",is_parent_outline_color:bool=False):
+        #Recursivly update all the children
+        if mode == "GLOBAL" and self.global_outline_color != color:
+            self.global_outline_color = color
+            if is_parent_outline_color:
+                self.parent_outline_color = color
+            for child in self.children:
+                child.update_outline_color(mode,color,self.outline_color_mode=="GLOBAL")
+                if is_parent_outline_color:
+                    child.update_outline_color("PARENT",color)
+        if mode == "PARENT":
+            self.parent_outline_color = color
+            if self.outline_color_mode == "PARENT":
+                for child in self.children:
+                    child.update_outline_color("PARENT",color)
+        if mode == "CUSTOM":
+            self.custom_outline_color = color
+            if is_parent_outline_color:
+                self.parent_outline_color = color
+            for child in self.children:
+                if self.outline_color_mode == "CUSTOM":
+                    child.update_outline_color("PARENT",color)
+    def load_slots(self,slots:list=[]):
+        self.children += slots
+    def delete_slot(self,index):
+        self.children.pop(index)
+        
+class WritingRoot():
+    def __init__(self,canvas,width:int=600,height:int=600,children:list=[]):
+        self.width = width
+        self.height = height
+        self.canvas = canvas
+        self.children = children
+        self.linear_children = self.make_children_linear(children) #Linear version that can be accessed with an index
+    
+    def get_child_with_index(self,index:int):
+        return self.linear_children[index]
+    
+    def delete_child_with_index(self,parent_index:int,child_index:int):
+        self.linear_children[parent_index].children.pop(child_index-parent_index)
+        self.linear_children.pop(child_index)
+    
+    def load_letter_into_slot_with_index(self,letter:Letter|None,index:int):
+        self.linear_children[index].letter = letter
+    
+    def load_slots_for_child_with_index(self,index:int,slots:list):
+        cur_index = index
+        for slot in slots:
+            self.linear_children.insert(cur_index,slot)
+            cur_index += 1
+        self.linear_children[index].load_slots(slots)
+
+    def make_children_linear(self,children:list) -> list:
+        linear_children = []
+        for child in children:
+            self.make_slot_linear(child,linear_children)
+        return linear_children
+    
+    def make_slot_linear(self,slot:LetterSpace,linear_children):
+        linear_children.append(slot)
+        for child in slot.children:
+            self.make_slot_linear(child,linear_children)
+    
 
 class EditorLetterSpace():
     def __init__(self,x:float=0,y:float=0,width:int=100,height:int=100):
@@ -789,8 +858,8 @@ class EditorLetterSpace():
         self.selected = False
 
 #Draw functions    
-def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=None,color_letter=None,width_letter=None,base_color="black"):
-        x,y = pos
+def draw_letter(letter:Letter,canvas,size:float,center:Node,draw_nodes=True,selected_segment_index:int|None=None,color_letter:str|None=None,width_letter=None,base_color:str|None="black"):
+        x,y = center.x,center.y
         for segment_index, segment in enumerate(letter.segments):
             last_node = None
             sel = (segment_index == selected_segment_index) if selected_segment_index != None else True #Is not selected?
@@ -846,14 +915,30 @@ def draw_letter(letter,canvas,size,pos,draw_nodes=True,selected_segment_index=No
                     draw_node(canvas,x,y,node,size,sel=sel,color=color)
 
 def editor_draw(letter,canvas,selected_segment_index,draw_nodes=True,center_edits=Node(0,0)):
-    draw_letter(letter,canvas,1,[350,300],draw_nodes,selected_segment_index if draw_nodes else None,base_color="gray" if draw_nodes else "black")
+    draw_letter(letter,canvas,1,Node(350,300),draw_nodes,selected_segment_index if draw_nodes else None,base_color="gray" if draw_nodes else "black")
     draw_node(canvas,350,300,EditorNode(center_edits.x,center_edits.y),1,color="purple")
 
-def positioning_draw(letter,canvas,slots,zoom:float=1.0):
+def positioning_draw(letter,canvas,slots,zoom:float=1.0,center:Node=Node(0,0)):
     if letter is not None:
-        draw_letter(resized_letter(letter,zoom),canvas,1,[350,300],False,None,base_color="black")
+        draw_letter(resized_letter(letter,zoom),canvas,1,Node(350+center.x,300+center.y),False,None,base_color="black")
+        
     for slot in slots:
-        draw_slot(canvas,350,300,resized_letterspace(slot,zoom),1,slot.selected)
+        draw_slot(canvas,350+center.x,300+center.y,resized_letterspace(slot,zoom),1,slot.selected)
+
+def writing_draw(writing_root:WritingRoot,canvas,zoom:float=1.0):
+    canvas.create_window(0,0,window=writing_root.canvas)
+    for child in writing_root.children:
+        recursive_slots_draw(writing_root.canvas,child,zoom)
+
+def recursive_slots_draw(canvas,slot:LetterSpace,zoom:float=1.0,center:Node=Node(0,0)):
+    #Draw self
+    if slot.letter is not None:
+        draw_letter(resized_letter(slot.letter,zoom),canvas,1,Node(350+center.x,300+center.y),False,None,base_color="black")
+    else:
+        draw_slot(canvas,350+center.x,300+center.y,resized_letterspace(slot,zoom),1,False)
+    #Draw children
+    for child in slot.children:
+        recursive_slots_draw(canvas,child,zoom,Node(slot.x,slot.y))
 
 def draw_node(canvas,x,y,node,size,tag="l_node",sel=True,color="gray"):
     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=color if sel else "gray", tags=tag)

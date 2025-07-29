@@ -413,6 +413,7 @@ def open_language_selector():
     new_button.pack(side=LEFT, padx=5)
 
 def open_letter_selector():
+    #Partly written by Copilot
     if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG")):
         ask_save("open")
         return
@@ -426,23 +427,15 @@ def open_letter_selector():
     if letter_selector_open:
         return
 
-    def on_open():
-        selected_item = tree.selection()
-        if selected_item:
-            selected_letter = tree.item(selected_item, "text")
-            if window.current_frame == "EDITOR":
-                editor_canvas.load_letter(saving.load_letter(window.language_name, selected_letter, True), selected_letter)
-                editor_canvas.saved = True
-            elif window.current_frame == "CONFIG":
-                positioning_canvas.load_letter(saving.load_letter(window.language_name, selected_letter, True), selected_letter,not keep_slots_boolvar.get())
-                if saving.does_positioning_for_letter_exist(window.language_name,selected_letter) and not keep_slots_boolvar.get():
-                    positioning_canvas.load_slots(saving.load_positioning(window.language_name,selected_letter,False,True))
-                positioning_canvas.saved = True
-            close_letter_selector()
-        else:
-            messagebox.showwarning("No selection", "Please select a letter.")
-
-    def on_close():
+    def on_open(selected_letter):
+        if window.current_frame == "EDITOR":
+            editor_canvas.load_letter(saving.load_letter(window.language_name, selected_letter, True), selected_letter)
+            editor_canvas.saved = True
+        elif window.current_frame == "CONFIG":
+            positioning_canvas.load_letter(saving.load_letter(window.language_name, selected_letter, True), selected_letter, not keep_slots_boolvar.get())
+            if saving.does_positioning_for_letter_exist(window.language_name, selected_letter) and not keep_slots_boolvar.get():
+                positioning_canvas.load_slots(saving.load_positioning(window.language_name, selected_letter, False, True))
+            positioning_canvas.saved = True
         close_letter_selector()
 
     def close_letter_selector():
@@ -450,65 +443,84 @@ def open_letter_selector():
         close("letter_selector")
         letter_selector_open = False
     
-    def on_letter_select(event):
-        selected_item = tree.selection()
-        if selected_item:
-            selected_letter = tree.item(selected_item, "text")
-            # Load and display the preview image in the label
-            preview_path = os.path.join("languages", window.language_name, "previews", f"{selected_letter}.png")
-            if os.path.exists(preview_path):
-                img = Image.open(preview_path)
-                w, h = img.size
-                # Calculate cropping box for a centered square
-                if w > h:
-                    left = (w - h) // 2
-                    right = left + h
-                    img = img.crop((left, 0, right, h))
-                img = img.resize((150, 150), Image.LANCZOS)
-                photo = ImageTk.PhotoImage(img, master=preview_label)
-                preview_label.config(image=photo)
-                preview_label.image = photo  # Prevent garbage collection
-            else:
-                preview_label.config(image="", text="No preview available")
-                preview_label.image = None
 
-    def on_letter_double_click(event):
-        selected_item = tree.selection()
-        if selected_item:
-            letter_name = tree.item(selected_item, "text")
-            new_name = simpledialog.askstring("Rename Letter", "Enter new name:", initialvalue=letter_name)
-            if new_name and new_name != letter_name:
-                os.rename(os.path.join(letters_path, letter_name + ".json"), os.path.join(letters_path, new_name + ".json"))
-                tree.item(selected_item, text=new_name)
+    def on_letter_rename(letter_name, btn):
+        new_name = simpledialog.askstring("Rename Letter", "Enter new name:", initialvalue=letter_name)
+        if new_name and new_name != letter_name:
+            os.rename(os.path.join(letters_path, letter_name + ".json"), os.path.join(letters_path, new_name + ".json"))
+            btn.config(text=new_name)
 
-    def on_group_filter_change(event):
+    def on_group_filter_change(event=None):
         selected_group = group_filter_combobox.get()
-        if selected_group != "All":
-            style.configure("Custom.TCombobox", fieldbackground=saving.get_group_obj(selected_group).color)
-        tree.delete(*tree.get_children())
-        for letter_name, letter_groups in groups.items():
-            if selected_group == "All" or selected_group in letter_groups:
-                if letter_groups:
-                    tree.insert("", "end", text=letter_name, tags=letter_groups[0])
-                else:
-                    tree.insert("", "end", text=letter_name)
+        for widget in grid_frame.winfo_children():
+            widget.destroy()
+        display_letters(selected_group)
+    
+    def on_search_change(new_value):
+        on_group_filter_change()
+        return True
 
-    style.configure("Custom.TCombobox", fieldbackground="white")
+    def display_letters(selected_group="All"):
+        col_count = 4
+        row = col = 0
+
+        #Sort the letters here before displaying, because trying to reassign makes python think it's a local variable (?)
+        selected_sorting_type = group_sort_combobox.get()
+        if selected_sorting_type == "Name":
+            #Solution provided by https://stackoverflow.com/a/47017849
+            groups_to_use = dict(sorted(groups.items()))
+        elif selected_sorting_type == "Group":
+            #Solution provided by https://stackoverflow.com/a/613218
+            groups_to_use = dict(sorted(groups.items(), key=lambda item: item[1]))
+
+        for letter_name, letter_groups in groups_to_use.items():
+            if not letter_name.lower().startswith(search_stringvar.get()):
+                continue
+            if selected_group == "All" or selected_group in letter_groups:
+                preview_path = os.path.join("languages", window.language_name, "previews", f"{letter_name}.png")
+                if os.path.exists(preview_path):
+                    img = Image.open(preview_path)
+                    w, h = img.size
+                    if w > h:
+                        left = (w - h) // 2
+                        right = left + h
+                        img = img.crop((left, 0, right, h))
+                    img = img.resize((60, 60), Image.LANCZOS)
+                    photo = ImageTk.PhotoImage(img, master=letter_selector)
+                else:
+                    # fallback image
+                    img = Image.new("RGB", (60, 60), "gray")
+                    photo = ImageTk.PhotoImage(img, master=letter_selector)
+                btn = Button(grid_frame, text=letter_name, image=photo, compound="top",
+                             command=lambda name=letter_name: on_open(name))
+                btn.image = photo  # Prevent garbage collection
+                btn.bind("<Double-Button-1>", lambda e, name=letter_name, b=btn: on_letter_rename(name, b))
+                btn.grid(row=row, column=col, padx=10, pady=10)
+                col += 1
+                if col >= col_count:
+                    col = 0
+                    row += 1
+
     letter_selector_open = True
     letter_selector = Toplevel(window)
     register("letter_selector", letter_selector)
     letter_selector.title("Select Letter")
-    letter_selector.geometry("300x500")
+    letter_selector.geometry("800x500")
     letter_selector.protocol("WM_DELETE_WINDOW", close_letter_selector)
 
-    # Use a Label for the preview image
-    preview_label = Label(letter_selector, width=150, anchor="center", text="No preview")
-    preview_label.pack(pady=10)
+    # Scrollable grid setup
+    canvas = Canvas(letter_selector)
+    scrollbar = Scrollbar(letter_selector, orient="vertical", command=canvas.yview)
+    canvas.configure(yscrollcommand=scrollbar.set)
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
 
-    tree = Treeview(letter_selector, show="tree")
-    tree.pack(fill=BOTH, expand=True, padx=10, pady=10)
-    tree.bind("<<TreeviewSelect>>", on_letter_select)
-    tree.bind("<Double-1>", on_letter_double_click)
+    grid_frame = Frame(canvas)
+    canvas.create_window((0, 0), window=grid_frame, anchor="nw")
+
+    def on_frame_configure(event):
+        canvas.configure(scrollregion=canvas.bbox("all"))
+    grid_frame.bind("<Configure>", on_frame_configure)
 
     letters_path = os.path.join("languages", language, "letters")
     letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
@@ -517,10 +529,6 @@ def open_letter_selector():
     for let in letters:
         let = os.path.splitext(let)[0]
         groups[let] = saving.get_group_of_letter(window.language_name, let)
-        if groups[let]:
-            tree.insert("", "end", text=let, tags=groups[let][0])
-        else:
-            tree.insert("", "end", text=let)
 
     group_filter_frame = Frame(letter_selector)
     group_filter_frame.pack(fill=X, padx=10, pady=5)
@@ -532,29 +540,46 @@ def open_letter_selector():
     for letter_groups in groups.values():
         all_groups.update(letter_groups)
 
-    for group in all_groups:
-        if group == "All":
-            continue
-        tree.tag_configure(group, background=saving.get_group_obj(group).color)
-
-    group_filter_combobox = Combobox(group_filter_frame, values=list(all_groups), state="readonly", style="Custom.TCombobox")
+    group_filter_combobox = Combobox(group_filter_frame, values=list(all_groups), state="readonly")
     group_filter_combobox.set("All")
     group_filter_combobox.pack(fill=X, expand=True, padx=5)
     group_filter_combobox.bind("<<ComboboxSelected>>", on_group_filter_change)
 
+    group_sort_frame = Frame(letter_selector)
+    group_sort_frame.pack(fill=X, padx=10, pady=5)
+
+    group_sort_label = Label(group_sort_frame, text="Sort by:")
+    group_sort_label.pack(side=LEFT, padx=5)
+
+    options = {"Name","Group"}
+    group_sort_combobox = Combobox(group_sort_frame, values=list(options), state="readonly")
+    group_sort_combobox.set("Name")
+    group_sort_combobox.pack(fill=X, expand=True, padx=5)
+    group_sort_combobox.bind("<<ComboboxSelected>>", on_group_filter_change)
+
+    group_search_frame = Frame(letter_selector)
+    group_search_frame.pack(fill=X, padx=10, pady=5)
+
+    group_search_label = Label(group_search_frame, text="Search:")
+    group_search_label.pack(side=LEFT, padx=5)
+
+    search_stringvar = StringVar(letter_selector)
+    search_stringvar.trace_add("write", lambda name, index, mode, sv=search_stringvar: on_search_change(sv))
+    group_search_entry = Entry(group_search_frame,width=20,textvariable=search_stringvar)
+    group_search_entry.pack(fill=X, expand=True, padx=5)
+
     button_frame = Frame(letter_selector)
     button_frame.pack(fill=X, padx=10, pady=10)
 
-    open_button = Button(button_frame, text="Open", command=on_open)
-    open_button.pack(side=LEFT, padx=5)
-
-    close_button = Button(button_frame, text="Close", command=on_close)
+    close_button = Button(button_frame, text="Close", command=close_letter_selector)
     close_button.pack(side=LEFT, padx=5)
 
     if window.current_frame == "CONFIG":
         keep_slots_boolvar = BooleanVar(letter_selector)
-        keep_slots = Checkbutton(button_frame,text="Keep Slots",state=OFF,variable=keep_slots_boolvar)
+        keep_slots = Checkbutton(button_frame, text="Keep Slots", state=OFF, variable=keep_slots_boolvar)
         keep_slots.pack(side=LEFT, padx=5)
+
+    display_letters("All")
 
 def open_positioning_window(use_editor_version:bool = True):
     if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG")):
@@ -759,7 +784,7 @@ def save_positioning_config():
             entered_name = entry.get()
             if entered_name:
                 debug.send(f"Saving {entered_name}[{window.language_name}]")
-                saving.save_positioning(window.language_name,selected_letter,positioning_canvas.slots,save_window.open_tab == "TEMPLATE")
+                saving.save_positioning(window.language_name,entered_name,positioning_canvas.slots,save_window.open_tab == "TEMPLATE")
                 positioning_canvas.letter_name = entered_name
                 positioning_canvas.saved = True
                 close_letter_selector()

@@ -4,14 +4,6 @@ Different modes:
 - Writing
 
 To-Do:
-- Functionality with multiple frames and switching between them.
-- Configure menu
-    - Positioning of letters
-        - You can define that they require letters inside them and of what group
-        - Letter Slots on a canvas (that can be moved if wanted) -> create template
-        - New letter slots are added when placing certain signs
-    - An overview of all letters in text form (when clicked on one shows preview)
-        - The ability to delete and rename
 - Write menu
     - You can choose background color (Color Picker?)
     - Canvas is not interactive, button to add next letter
