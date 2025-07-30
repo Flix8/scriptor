@@ -117,7 +117,24 @@ def on_update():
                             manager.config_inspector_entries_y[i].original_value = str(manager.positioning_canvas.configuration_data[(i+1)*2])
                     manager.positioning_canvas.configuration_data = None
             elif manager.window.current_frame == "WRITE":
-                pass
+                if manager.write_selected_label.letter != manager.write_canvas.text_name or manager.write_selected_label.language != manager.window.language_name or manager.write_selected_label.saved != manager.write_canvas.saved:
+                    manager.write_txt_selected_label.set(f"Selected: {manager.write_canvas.text_name} [{manager.window.language_name}] {'*' if not manager.write_canvas.saved else ''}")
+                    manager.write_selected_label.letter = manager.write_canvas.text_name
+                    manager.write_selected_label.language = manager.window.language_name
+                    manager.write_selected_label.saved = manager.write_canvas.saved
+                if manager.write_canvas.reload_slots:
+                    #Reload slots
+                    manager.write_canvas.reload_slots = False
+                if isinstance(manager.write_canvas.configuration_data,list):
+                    manager.write_update_inspector_entries(manager.write_canvas.configuration_data[0])
+                    for i in range(0,(len(manager.write_canvas.configuration_data)-1)//2):
+                        if not manager.write_canvas.configuration_data[(i+1)*2-1] is None:
+                            manager.write_inspector_vars_x[i].set(manager.write_canvas.configuration_data[(i+1)*2-1])
+                            manager.write_inspector_entries_x[i].original_value = str(manager.write_canvas.configuration_data[(i+1)*2-1])
+                        if not manager.write_canvas.configuration_data[(i+1)*2] is None:
+                            manager.write_inspector_vars_y[i].set(manager.write_canvas.configuration_data[(i+1)*2])
+                            manager.write_inspector_entries_y[i].original_value = str(manager.write_canvas.configuration_data[(i+1)*2])
+                    manager.write_canvas.configuration_data = None
     manager.get("main").after(100,on_update)
 
 def on_exit():

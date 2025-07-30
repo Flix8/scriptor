@@ -24,18 +24,29 @@ def change_tab(name) -> None:
     if name == "EDITOR":
         smart_place(editor_frame,(0,60),(0,60))
         config_frame.place_forget()
+        write_frame.place_forget()
         editor_canvas.active = True
         positioning_canvas.active = False
+        write_canvas.active = False
         editor_frame.lift()
-        window.current_frame = name
-    elif name == "WRITE":
         window.current_frame = name
     elif name == "CONFIG":
         editor_frame.place_forget()
+        write_frame.place_forget()
         smart_place(config_frame,(0,60),(0,60))
         editor_canvas.active = False
         positioning_canvas.active = True
+        write_canvas.active = False
         config_frame.lift()
+        window.current_frame = name
+    elif name == "WRITE":
+        editor_frame.place_forget()
+        config_frame.place_forget()
+        smart_place(write_frame,(0,60),(0,60))
+        editor_canvas.active = False
+        positioning_canvas.active = False
+        write_canvas.active = True
+        write_frame.lift()
         window.current_frame = name
 
 def smart_place(widget,pos_windows:tuple,pos_mac:tuple):
@@ -76,11 +87,20 @@ def config_canvas_unload_letter():
     positioning_canvas.letter = None
     positioning_canvas.update()
 
+def write_canvas_unload_letter():
+    if write_canvas.mode != "normal":
+        for id in write_canvas.selected_ids:
+            write_canvas.root.load_letter_into_slot_with_id(id,None)
+    write_canvas.update()
+
+
 def save_button_func():
     if window.current_frame == "EDITOR":
         save_letter_editor()
     elif window.current_frame == "CONFIG":
         save_positioning_config()
+    elif window.current_frame == "WRITE":
+        pass
 
 def on_zoom_slider_change(event):
     config_canvas_zoom_stringvar.set(str(config_canvas_zoom_intvar.get()/100))
@@ -140,6 +160,9 @@ def delete_group_button():
 def delete_letter_space():
     positioning_canvas.keys_pressed.append("backspace")
 
+def delete_write_letter_space():
+    write_canvas.keys_pressed.append("backspace")
+
 def delete_connector_or_node():
     editor_canvas.keys_pressed.append("backspace")
     editor_canvas.process_key_presses(True)
@@ -180,6 +203,10 @@ def mirror_x():
 def on_toggle_draw_nodes():
     editor_canvas.draw_nodes = show_nodes_var.get()
     editor_canvas.update()
+
+def on_toggle_draw_letter_spaces():
+    write_canvas.draw_slots = show_letter_spaces_var.get()
+    write_canvas.update()
 
 def validate_angle(new_value):
     if new_value == "":
@@ -226,7 +253,7 @@ def on_center_change_y(new_value):
 def open_group_selector():
     #Base written by Copilot
     global group_selector_open
-    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG")):
+    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG") or (write_canvas.saved and window.current_frame == "WRITE")):
         return
     def on_ok():
         selected_index = listbox.curselection()
@@ -341,7 +368,7 @@ def open_group_selector():
 
 def open_language_selector():
     #Base written by Copilot
-    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG")):
+    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG") or (write_canvas.saved and window.current_frame == "WRITE")):
         ask_save("language")
         return
     global language_selector_open
@@ -414,7 +441,7 @@ def open_language_selector():
 
 def open_letter_selector():
     #Partly written by Copilot
-    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG")):
+    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG") or (write_canvas.saved and window.current_frame == "WRITE")):
         ask_save("open")
         return
     if window.language_name == "":
@@ -425,6 +452,9 @@ def open_letter_selector():
     language = window.language_name
 
     if letter_selector_open:
+        return
+    if window.current_frame ==  "WRITE":
+        print("OPEN TEMPLATE/POSITIONING OPENER")
         return
 
     def on_open(selected_letter):
@@ -582,7 +612,7 @@ def open_letter_selector():
     display_letters("All")
 
 def open_positioning_window(use_editor_version:bool = True):
-    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG")):
+    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG") or (write_canvas.saved and window.current_frame == "WRITE")):
         ask_save("open")
         return
     if window.language_name == "":
@@ -926,7 +956,7 @@ def ask_save(action="new"):
     cancel_button.pack(side=LEFT, padx=5)
 
 def create_new_letter():
-    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG")):
+    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG") or (write_canvas.saved and window.current_frame == "WRITE")):
         ask_save("new")
         return
     if window.current_frame == "EDITOR":
@@ -937,6 +967,9 @@ def create_new_letter():
     elif window.current_frame == "CONFIG":
         positioning_canvas.saved = True
         positioning_canvas.load_letter(None,"Unnamed")
+    elif window.current_frame == "WRITE":
+        write_canvas.saved = True
+        write_canvas.load_text(letter.WritingRoot(),"Unnamed")
 
 def process_inspector_menu(event):
     #Check if anything was changed
@@ -1000,7 +1033,7 @@ def process_config_inspector_menu(event):
     change = False
     changed_index = -1
     for i,entry_x,var_x,entry_y,var_y in zip(range(2),config_inspector_entries_x,config_inspector_vars_x,config_inspector_entries_y,config_inspector_vars_y):
-        if i >= window.shown_inspector_entries:
+        if i >= window.shown_config_inspector_entries:
             break
         if entry_x.original_value != var_x.get():
             changed_index = i
@@ -1030,6 +1063,42 @@ def process_config_inspector_menu(event):
         positioning_canvas.saved = False
         positioning_canvas.update()
 
+def process_write_inspector_menu(event):
+    #Check if anything was changed
+    change = False
+    changed_index = -1
+    for i,entry_x,var_x,entry_y,var_y in zip(range(2),write_inspector_entries_x,write_inspector_vars_x,write_inspector_entries_y,write_inspector_vars_y):
+        if i >= window.shown_write_inspector_entries:
+            break
+        if entry_x.original_value != var_x.get():
+            changed_index = i
+            change = True
+            break
+        if entry_y.original_value != var_y.get():
+            changed_index = i
+            change = True
+            break
+    if not change:
+        debug.send("Nothing changed!")
+        return
+    else:
+        #This should work for simple selections and multiple ones
+        dx = float(write_inspector_entries_x[i].get()) - float(write_inspector_entries_x[i].original_value)
+        dy = float(write_inspector_entries_y[i].get()) - float(write_inspector_entries_y[i].original_value)
+        write_inspector_entries_x[i].original_value = write_inspector_entries_x[i].get()
+        write_inspector_entries_y[i].original_value = write_inspector_entries_y[i].get()
+        for id in write_canvas.selected_ids:
+            slot = write_canvas.root.get_letter_space_with_id(id)
+            if changed_index == 0:
+                slot.x += dx
+                slot.y += dy
+            else:
+                slot.width += dx
+                slot.height += dy
+        write_canvas.saved = False
+        write_canvas.update()
+
+
 window = Tk()
 window.language_name = ""
 window.current_frame = "EDITOR" #EDITOR, WRITE, CONFIG
@@ -1038,10 +1107,16 @@ editor_txt_selected_label = StringVar(window)
 editor_txt_selected_label.set("Selected: Placeholder [Placeholder]")
 config_txt_selected_label = StringVar(window)
 config_txt_selected_label.set("Selected: Placeholder [Placeholder]")
+write_txt_selected_label = StringVar(window)
+write_txt_selected_label.set("Selected: Placeholder [Placeholder]")
 
 config_canvas_zoom_stringvar = StringVar(window)
 config_canvas_zoom_stringvar.set("1.0")
 config_canvas_zoom_intvar = IntVar(window)
+
+write_canvas_zoom_stringvar = StringVar(window)
+write_canvas_zoom_stringvar.set("1.0")
+write_canvas_zoom_intvar = IntVar(window)
 #Style
 style = Style(window)
 style.configure("secondary.TFrame", background="#1a1919")
@@ -1334,7 +1409,7 @@ for entry in config_inspector_entries_x + config_inspector_entries_y:
     entry.bind("<Return>", process_config_inspector_menu)
 
 def config_update_inspector_entries(num_pairs):
-    window.shown_inspector_entries = num_pairs
+    window.config_shown_inspector_entries = num_pairs
     for i in range(2):
         if i < num_pairs:
             smart_place(config_inspector_labels_x[i],(30,50+i*30),(30,50+i*30))
@@ -1364,9 +1439,104 @@ config_load_slots_button = Button(config_inspector_frame,text="Load Positioning"
 smart_place(config_turn_into_template_button,(10,200),(10,200))
 smart_place(config_load_slots_button,(100,200),(100,200))
 
+#__________________________________WRITE____________________________________________
+write_frame = Frame(window,height=700,width=1000,style="secondary.TFrame")
+
+write_header_frame = Frame(write_frame,height=40,width=704,style="header.TFrame")
+write_selected_label = Label(write_header_frame,font=('Helvetica',15),background="#9e9d9d",textvariable=write_txt_selected_label)
+write_selected_label.letter = ""
+write_selected_label.language = ""
+write_selected_label.saved = None
+smart_place(write_selected_label,(5,7),(5,7))
+smart_place(write_frame,(0,60),(0,60))
+smart_place(write_header_frame,(5,0),(5,0))
+
+write_canvas = letter.WritingCanvas(Canvas(write_frame,width=700,height=600,background="#525252"))
+smart_place(write_canvas.canvas,(5,45),(5,45))
+
+write_segment_listbox_frame = Frame(write_frame,width=282,height=300,style="header.TFrame")
+smart_place(write_segment_listbox_frame,(715,349),(715,349))
+
+# write_segment_listbox = Listbox(write_segment_listbox_frame,width=43,height=15,bg=style.lookup("header.TFrame","background"),highlightcolor=style.lookup("hightlight.TListbox","background"))
+# write_segment_listbox.bind('<<ListboxSelect>>', on_segment_select)
+# write_segment_listbox.bind('<Double-1>', on_segment_double_click)
+# smart_place(write_segment_listbox,(10,45),(10,45))
+
+write_canvas.canvas.create_image(0,0,image=grid_photo,anchor="nw",tags=["grid","base"])
+write_canvas.canvas.create_line(350-200,300-200,350+200,300-200,fill="gray",tags="grid")
+write_canvas.canvas.create_line(350-200,300+200,350+200,300+200,fill="gray",tags="grid")
+write_canvas.canvas.create_line(350-200,300-200,350-200,300+200,fill="gray",tags="grid")
+write_canvas.canvas.create_line(350+200,300-200,350+200,300+200,fill="gray",tags="grid")
+write_canvas.grid_photo = grid_photo
+
+write_inspector_frame = Frame(write_frame, width=282, height=300, style="header.TFrame")
+smart_place(write_inspector_frame,(715,45),(715,45))
+
+write_inspector_labels_x = [
+    Label(write_inspector_frame, text=f"X:", background=style.lookup("header.TFrame", "background")),
+    Label(write_inspector_frame, text=f"Width:", background=style.lookup("header.TFrame", "background")),
+]
+
+write_inspector_labels_y = [
+    Label(inspector_frame, text=f"Y:", background=style.lookup("header.TFrame", "background")),
+    Label(inspector_frame, text=f"Height:", background=style.lookup("header.TFrame", "background"))
+]
+
+write_inspector_vars_x = [StringVar() for _ in range(2)]
+write_inspector_vars_y = [StringVar() for _ in range(2)]
+
+write_inspector_entries_x = [
+    Entry(write_inspector_frame, width=10, textvariable=write_inspector_vars_x[0],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(write_inspector_frame, width=10, textvariable=write_inspector_vars_x[1],validate="key",validatecommand=validate_is_number_cmd),
+]
+
+write_inspector_entries_y = [
+    Entry(write_inspector_frame, width=10, textvariable=write_inspector_vars_y[0],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(write_inspector_frame, width=10, textvariable=write_inspector_vars_y[1],validate="key",validatecommand=validate_is_number_cmd)
+]
+
+for entry in write_inspector_entries_x + write_inspector_entries_y:
+    entry.bind("<Return>", process_write_inspector_menu)
+
+def write_update_inspector_entries(num_pairs):
+    window.shown_write_inspector_entries = num_pairs
+    for i in range(2):
+        if i < num_pairs:
+            smart_place(write_inspector_labels_x[i],(30,50+i*30),(30,50+i*30))
+            smart_place(write_inspector_entries_x[i],(60,50+i*30),(60,50+i*30))
+            smart_place(write_inspector_labels_y[i],(150,50+i*30),(150,50+i*30))
+            smart_place(write_inspector_entries_y[i],(180,50+i*30),(180,50+i*30))
+        else:
+            write_inspector_labels_x[i].place_forget()
+            write_inspector_entries_x[i].place_forget()
+            write_inspector_labels_y[i].place_forget()
+            write_inspector_entries_y[i].place_forget()
+
+window.write_shown_inspector_entries = 0
+update_inspector_entries(window.write_shown_inspector_entries)
+
+write_inspector_delete_button = Button(write_inspector_frame,image=trash_photo,command=delete_write_letter_space) 
+write_inspector_delete_button.trash_photo = trash_photo
+smart_place(write_inspector_delete_button,(10,10),(10,10))
+
+write_canvas_zoom_slider = Scale(write_inspector_frame,from_=100,to=400,value=100,length=180,variable=write_canvas_zoom_intvar,command=on_zoom_slider_change)
+write_canvas_zoom_entry = Entry(write_inspector_frame,width=10,textvariable=write_canvas_zoom_stringvar,validate="key",validatecommand=validate_is_number_cmd)
+smart_place(write_canvas_zoom_slider,(10,250),(10,250))
+smart_place(write_canvas_zoom_entry,(200,250),(200,250))
+
+write_unload_letter_button = Button(write_inspector_frame,text="Clear Letter",command=write_canvas_unload_letter)
+smart_place(write_unload_letter_button,(10,200),(10,200))
+
+write_extra_options_frame = Frame(write_frame,height=40,width=992,style="header.TFrame")
+smart_place(write_extra_options_frame,(5,655),(5,655))
+
+show_letter_spaces_var = BooleanVar(value=True)
+write_show_letter_spaces_checkbox = Checkbutton(write_extra_options_frame,text="Draw Letter Spaces",variable=show_nodes_var,command=on_toggle_draw_letter_spaces)
+smart_place(write_show_letter_spaces_checkbox,(10,10),(10,10))
 
 editor_frame.lift()
 config_frame.lower()
+write_frame.lower()
 
 def reopen_debug_window_on_close():
     debug.revive()

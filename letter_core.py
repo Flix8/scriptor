@@ -1,5 +1,13 @@
 from math import sqrt, sin, cos, radians
 import debug_console as debug
+
+id_counter = 0
+def get_unique_id() -> int:
+    global id_counter
+    id_counter += 1
+    debug.send(f"Assigned unique id:{id_counter}")
+    return id_counter
+
 class ScriptorCanvas():
     def __init__(self,canvas):
         self.canvas = canvas
@@ -69,7 +77,7 @@ class EditorCanvas(ScriptorCanvas):
         self.num_selected = 0
         self.configuration_data = [0]
         self.center_edits = Node(0,0)
-        if do_reload_segments: self.reload_segments = True
+        self.reload_segments = do_reload_segments
     def on_key(self,history):
         for type,key in history:
             if type == "down" and key not in self.keys_pressed:
@@ -469,10 +477,10 @@ class PositioningCanvas(ScriptorCanvas):
         if reset_slots:
             self.slots = []
         self.update()
-    def load_slots(self,slots:list=[]):
+    def load_slots(self,slots:list):
         self.slots = slots
         self.update()
-    def light_reset(self,do_reload_slots=True):
+    def light_reset(self):
         self.deselect_all_slots()
         #Canvas Interaction Stuff___________
         self.last_slot_created = None
@@ -482,8 +490,6 @@ class PositioningCanvas(ScriptorCanvas):
         self.mode = "normal" #normal/selection_simple/selection_multiple
         self.num_selected = 0
         self.configuration_data = [0]
-        self.center_edits = Node(0,0)
-        if do_reload_slots: self.reload_slots = True
     def on_key(self,history):
         for type,key in history:
             if type == "down" and key not in self.keys_pressed:
@@ -667,6 +673,220 @@ class PositioningCanvas(ScriptorCanvas):
         self.canvas.create_line(350+200/self.zoom,300-200/self.zoom,350+200/self.zoom,300+200/self.zoom,fill="gray",tags="grid")
         self.draw()
 
+class WritingCanvas(ScriptorCanvas):
+    def __init__(self,canvas):
+        super().__init__(canvas)
+        self.canvas.bind("<Button-3>", self.on_right_click)
+
+        self.text_name = "Unnamed"
+        self.keys_pressed = []
+        self.cursor = EditorNode(0,0,5,"green")
+        self.cursor_step_size = 20
+        self.step_size_options = [20,10,5,1] #Needs to be imported from settings
+        self.root = WritingRoot(500,500)
+        self.saved = True
+        self.draw_slots = True
+        self.active = False
+        self.zoom = 1.0
+        self.configuration_data = None
+        self.light_reset()
+    def load_text(self,root,name):
+        self.text_name = name
+        self.light_reset()
+        self.root = root
+        self.update()
+    def light_reset(self,reload_hierarchy=True):
+        self.deselect_all_slots()
+        #Canvas Interaction Stuff___________
+        self.last_slot_created = None
+        self.last_pos = None
+        self.to_deselect = None
+        #____________________
+        self.mode = "normal" #normal/selection_simple/selection_multiple
+        self.selected_ids = []
+        self.num_selected = 0
+        self.configuration_data = [0]
+        self.reload_slots = reload_hierarchy
+    def on_key(self,history):
+        for type,key in history:
+            if type == "down" and key not in self.keys_pressed:
+                self.keys_pressed.append(key)
+            elif type == "up" and key in self.keys_pressed: #This might behave weirdly
+                self.keys_pressed.remove(key)
+        self.update_step_size()
+        self.process_key_presses()
+    def process_key_presses(self,disregard_focus=False):
+        if not disregard_focus and (self.canvas.focus_get() == None or str(self.canvas.focus_get()) != ".!frame4.!canvas") or not self.active:
+            return
+        if "entf" in self.keys_pressed:
+            self.delete_selection()
+            self.keys_pressed.remove("entf")
+        if "backspace" in self.keys_pressed:
+            self.delete_selection()
+            self.keys_pressed.remove("backspace")
+    def on_click(self,event):
+        if not self.active: return
+        
+        self.canvas.focus_set()
+        real_x,real_y = event.x-350,event.y-300
+        real_x *= self.zoom
+        real_y *= self.zoom
+        x,y = self.calculate_snapped_position(event.x-350, event.y-300)
+        x *= self.zoom
+        y *= self.zoom
+        self.last_pos = (x,y)
+        selected = False
+        for id,slot in self.root.letter_spaces.items():
+            if is_inside_slot(real_x,real_y,slot):
+                if id in self.selected_ids:
+                    self.to_deselect = id
+                else:
+                    if self.mode != "normal" and not "shift" in self.keys_pressed:
+                        self.mode = "normal"
+                        self.deselect_all_slots()
+                    self.selected_ids.append(id)
+                    self.mode = "selection_simple" if self.mode == "normal" else "selection_multiple"
+                    if self.mode == "selection_simple":
+                        #Sending to Configuration
+                        self.configuration_data = [2,slot.x,slot.y,slot.width,slot.height]
+                    elif self.mode == "selection_multiple":
+                        #Sending to Configuration
+                        sendx,sendy = 0,0
+                        for sel_id in self.selected_ids:
+                            sendx += self.root.get_letter_space_with_id(sel_id).x
+                            sendy += self.root.get_letter_space_with_id(sel_id).y
+                        self.configuration_data = [1,sendx/len(self.selected_ids),sendy/len(self.selected_ids)]
+                    self.num_selected += 1
+                selected = True
+                break                
+        if not selected:
+            mode = self.mode
+            if mode == "selection_simple":
+                #Create LetterSpace under selected Letterspace
+                self.saved = False
+                new_slot = LetterSpace(x,y)
+                self.last_slot_created = new_slot
+                self.root.load_children_for_id(self.selected_ids[0],[new_slot])
+            elif mode == "normal":
+                #Create LetterSpace at root
+                self.saved = False
+                new_slot = LetterSpace(x,y)
+                self.last_slot_created = new_slot
+                self.root.register([new_slot])
+                self.root.root_ids.append(new_slot.id)
+            else:
+                #Deselect everything
+                self.deselect_all_slots()
+                self.last_pos = None
+                self.configuration_data = [0]
+                self.mode = "normal"
+                self.num_selected = 0
+        self.update()
+    def on_click_release(self, event):
+        if not self.active: return
+        
+        self.last_slot_created = None
+        self.last_pos = None
+        if self.to_deselect is not None:
+            self.selected_ids.remove(self.to_deselect)
+            self.num_selected -= 1
+            self.mode = "selection_simple" if self.num_selected == 1 else "normal" if self.num_selected == 0 else self.mode
+            if self.mode == "normal":
+                self.configuration_data = [0]
+            elif self.mode == "selection_simple":
+                #Sending to Configuration
+                slot = self.root.get_letter_space_with_id(self.selected_ids[0])
+                self.configuration_data = [1,slot.x,slot.y]
+            elif self.mode == "selection_multiple":
+                #Sending to Configuration
+                sendx,sendy = 0,0
+                for slot_id in self.selected_ids:
+                    slot = self.root.get_letter_space_with_id(slot_id)
+                    sendx += slot.x
+                    sendy += slot.y
+                self.configuration_data = [1,sendx/len(self.selected_ids),sendy/len(self.selected_ids)]
+            self.to_deselect = None
+            self.update()
+    def on_move(self,event):
+        if not self.active: return
+        
+        if self.mode == "normal":
+            self.cursor.x, self.cursor.y = self.calculate_snapped_position(event.x-350,event.y-300)
+            self.update()
+            draw_node(self.canvas,350,300,self.cursor,1,"cursor",color=self.cursor.color)
+            self.cursor.x = -10
+            self.cursor.y = -10
+    def on_drag(self,event):
+        if not self.active: return
+        
+        x,y = self.calculate_snapped_position(event.x-350, event.y-300)
+        x *= self.zoom
+        y *= self.zoom
+        if self.last_slot_created is not None:
+            self.last_slot_created.x = x
+            self.last_slot_created.y = y
+            self.update()
+        if self.last_pos is not None:
+            self.saved = False
+            dx = x-self.last_pos[0]
+            dy = y-self.last_pos[1]
+            self.last_pos = (x,y)
+            self.to_deselect = None
+            sendx,sendy = 0,0
+            num = 0
+            for slot_id in self.selected_ids:
+                slot = self.root.get_letter_space_with_id(slot_id)
+                slot.x += dx
+                slot.y += dy
+                sendx += slot.x
+                sendy += slot.y
+                num += 1
+            if num == 0:
+                sendx = x
+                sendy = y
+                num = 1
+            if self.mode == "selection_simple":
+                self.configuration_data = [2,sendx/num,sendy/num,None,None]
+            else:
+                self.configuration_data = [1,sendx/num,sendy/num]
+            self.update()
+    def on_right_click(self,event):
+        if not self.active: return
+        self.configuration_data = [0]
+        self.deselect_all_slots()
+    def draw(self):
+        writing_draw(self.root,self.canvas,self.zoom,self.draw_slots,self.selected_ids)
+    def delete_selection(self) -> None:
+        if self.mode == "normal":
+            return
+        self.saved = False
+        for id in self.selected_ids:
+            self.root.delete_child_with_id(id)
+        self.light_reset(False)
+        self.update()
+    def deselect_all_slots(self):
+        self.selected_ids = []
+    def calculate_snapped_position(self,x,y) -> tuple:
+        x = (x//self.cursor_step_size)*self.cursor_step_size
+        y = (y//self.cursor_step_size)*self.cursor_step_size
+        return x,y
+    def update_step_size(self):
+        if "shift" in self.keys_pressed and "ctrl" in self.keys_pressed:
+            self.cursor_step_size = self.step_size_options[3]
+        elif "ctrl" in self.keys_pressed:
+            self.cursor_step_size = self.step_size_options[2]
+        elif "shift" in self.keys_pressed:
+            self.cursor_step_size = self.step_size_options[1]
+        else:
+            self.cursor_step_size = self.step_size_options[0]
+    def zoom_changed(self):
+        self.clear("base")
+        self.canvas.create_line(350-200/self.zoom,300-200/self.zoom,350+200/self.zoom,300-200/self.zoom,fill="gray",tags="grid")
+        self.canvas.create_line(350-200/self.zoom,300+200/self.zoom,350+200/self.zoom,300+200/self.zoom,fill="gray",tags="grid")
+        self.canvas.create_line(350-200/self.zoom,300-200/self.zoom,350-200/self.zoom,300+200/self.zoom,fill="gray",tags="grid")
+        self.canvas.create_line(350+200/self.zoom,300-200/self.zoom,350+200/self.zoom,300+200/self.zoom,fill="gray",tags="grid")
+        self.draw()
+
 
 
 
@@ -774,79 +994,76 @@ class Group():
         
 
 class LetterSpace():
-    def __init__(self,x:float=0,y:float=0,width:int=100,height:int=100,letter:str|None=None,children:list = []):
+    def __init__(self,x:float=0,y:float=0,width:int=100,height:int=100,letter:Letter|None=None,letter_name:str|None="Unnamed",parent_id:int|None=None,children_ids:list|None = None):
+        self.id = get_unique_id()
+        self.parent_id = parent_id
+        if children_ids is None:
+            self.children_ids = []
+        else:
+            self.children_ids = children_ids
+
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.letter = letter
-        self.children = children
-        self.outline_color_mode = "GLOBAL" #GLOBAL, PARENT, CUSTOM
+        self.letter_name = letter_name
+
+        self.outline_color_mode = "GLOBAL" #GLOBAL, CUSTOM
         self.global_outline_color = ""
-        self.parent_outline_color = ""
         self.custom_outline_color = ""
-    def update_outline_color(self,mode="GLOBAL",color="black",is_parent_outline_color:bool=False):
-        #Recursivly update all the children
-        if mode == "GLOBAL" and self.global_outline_color != color:
+
+    def update_outline_color(self,mode="GLOBAL",color="black"):
+        if mode == "GLOBAL":
             self.global_outline_color = color
-            if is_parent_outline_color:
-                self.parent_outline_color = color
-            for child in self.children:
-                child.update_outline_color(mode,color,self.outline_color_mode=="GLOBAL")
-                if is_parent_outline_color:
-                    child.update_outline_color("PARENT",color)
-        if mode == "PARENT":
-            self.parent_outline_color = color
-            if self.outline_color_mode == "PARENT":
-                for child in self.children:
-                    child.update_outline_color("PARENT",color)
         if mode == "CUSTOM":
             self.custom_outline_color = color
-            if is_parent_outline_color:
-                self.parent_outline_color = color
-            for child in self.children:
-                if self.outline_color_mode == "CUSTOM":
-                    child.update_outline_color("PARENT",color)
-    def load_slots(self,slots:list=[]):
-        self.children += slots
-    def delete_slot(self,index):
-        self.children.pop(index)
+
+    def abandon_child(self,id): # :)
+        self.children_ids.remove(id)
         
 class WritingRoot():
-    def __init__(self,canvas,width:int=600,height:int=600,children:list=[]):
+    def __init__(self,width:int=600,height:int=600,letter_spaces:list|None=None):
         self.width = width
         self.height = height
-        self.canvas = canvas
-        self.children = children
-        self.linear_children = self.make_children_linear(children) #Linear version that can be accessed with an index
+        self.letter_spaces = {}
+        self.register(letter_spaces)
+        self.root_ids = []
+        if letter_spaces is None:
+            letter_spaces = []
+        for letter_space in letter_spaces:
+            self.root_ids.append(letter_space.id)
     
-    def get_child_with_index(self,index:int):
-        return self.linear_children[index]
-    
-    def delete_child_with_index(self,parent_index:int,child_index:int):
-        self.linear_children[parent_index].children.pop(child_index-parent_index)
-        self.linear_children.pop(child_index)
-    
-    def load_letter_into_slot_with_index(self,letter:Letter|None,index:int):
-        self.linear_children[index].letter = letter
-    
-    def load_slots_for_child_with_index(self,index:int,slots:list):
-        cur_index = index
-        for slot in slots:
-            self.linear_children.insert(cur_index,slot)
-            cur_index += 1
-        self.linear_children[index].load_slots(slots)
+    def register(self, letter_spaces:list|None=None):
+        if letter_spaces is None:
+            letter_spaces = []
+        for letter_space in letter_spaces:
+            self.letter_spaces[letter_space.id] = letter_space
 
-    def make_children_linear(self,children:list) -> list:
-        linear_children = []
-        for child in children:
-            self.make_slot_linear(child,linear_children)
-        return linear_children
+    def get_letter_space_with_id(self,id:int) -> LetterSpace:
+        return self.letter_spaces[id]
     
-    def make_slot_linear(self,slot:LetterSpace,linear_children):
-        linear_children.append(slot)
-        for child in slot.children:
-            self.make_slot_linear(child,linear_children)
+    def delete_child_with_id(self,id:int):
+        parent_id = self.get_letter_space_with_id(id).parent_id
+        if parent_id is not None:
+            parent = self.letter_spaces[parent_id]
+            parent.abandon_child(id)
+        else:
+            self.root_ids.remove(id)
+        del self.letter_spaces[id]
+    
+    def load_letter_into_slot_with_id(self,id:int,letter:Letter|None,letter_name:str = "Unnamed"):
+        self.letter_spaces[id].letter = letter
+        self.letter_spaces[id].letter_name = letter_name
+    
+    def load_children_for_id(self,id:int,slots:list):
+        self.register(slots)
+        ids = []
+        for slot in slots:
+            debug.send(f"Adding slot {slot.id} to {id} as a child")
+            slot.parent_id = id
+            ids.append(slot.id)
+        self.get_letter_space_with_id(id).children_ids += ids
     
 
 class EditorLetterSpace():
@@ -923,22 +1140,25 @@ def positioning_draw(letter,canvas,slots,zoom:float=1.0,center:Node=Node(0,0)):
         draw_letter(resized_letter(letter,zoom),canvas,1,Node(350+center.x,300+center.y),False,None,base_color="black")
         
     for slot in slots:
-        draw_slot(canvas,350+center.x,300+center.y,resized_letterspace(slot,zoom),1,slot.selected)
+        draw_slot(canvas,350+center.x,300+center.y,slot,zoom,1,slot.selected)
 
-def writing_draw(writing_root:WritingRoot,canvas,zoom:float=1.0):
-    canvas.create_window(0,0,window=writing_root.canvas)
-    for child in writing_root.children:
-        recursive_slots_draw(writing_root.canvas,child,zoom)
+def writing_draw(writing_root:WritingRoot,canvas,zoom:float=1.0,draw_slots:bool=True,selected_ids:list|None=None):
+    if selected_ids is None:
+        selected_ids = []
+    for child_id in writing_root.root_ids:
+        recursive_slots_draw(canvas,writing_root,writing_root.get_letter_space_with_id(child_id),zoom,Node(0,0),draw_slots,selected_ids)
 
-def recursive_slots_draw(canvas,slot:LetterSpace,zoom:float=1.0,center:Node=Node(0,0)):
+def recursive_slots_draw(canvas,writing_root:WritingRoot,slot:LetterSpace,zoom:float=1.0,center:Node=Node(0,0),draw_slots:bool=True,selected_ids:list|None = None):
+    if selected_ids is None:
+        selected_ids = []
     #Draw self
+    if draw_slots:
+        draw_slot(canvas,350+center.x,300+center.y,slot,zoom,1,slot.id in selected_ids)
     if slot.letter is not None:
         draw_letter(resized_letter(slot.letter,zoom),canvas,1,Node(350+center.x,300+center.y),False,None,base_color="black")
-    else:
-        draw_slot(canvas,350+center.x,300+center.y,resized_letterspace(slot,zoom),1,False)
     #Draw children
-    for child in slot.children:
-        recursive_slots_draw(canvas,child,zoom,Node(slot.x,slot.y))
+    for child_id in slot.children_ids:
+        recursive_slots_draw(canvas,writing_root,writing_root.get_letter_space_with_id(child_id),zoom,Node(slot.x,slot.y),draw_slots)
 
 def draw_node(canvas,x,y,node,size,tag="l_node",sel=True,color="gray"):
     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=color if sel else "gray", tags=tag)
@@ -946,8 +1166,8 @@ def draw_node(canvas,x,y,node,size,tag="l_node",sel=True,color="gray"):
 def draw_line(canvas,x,y,node1,node2,size,color="gray",width=3):
     canvas.create_line(x + node1.x*size, y + node1.y*size, x + node2.x*size, y + node2.y*size, fill=color, width=width, tags="l_line")
 
-def draw_slot(canvas,x,y,slot,size,sel=True):
-    canvas.create_rectangle(x+slot.x-slot.width/2*size,y+slot.y-slot.height/2*size,x+slot.x+slot.width/2*size,y+slot.y+slot.height/2*size,fill="#f7b0a8" if sel else "#bbf9fc",outline="#fc6d5d" if sel else "#8cbffa")
+def draw_slot(canvas,x,y,slot,zoom,size,sel=True):
+    canvas.create_rectangle(x+slot.x/zoom-slot.width/zoom/2*size,y+slot.y/zoom-slot.height/zoom/2*size,x+slot.x/zoom+slot.width/zoom/2*size,y+slot.y/zoom+slot.height/zoom/2*size,fill="#f7b0a8" if sel else "#bbf9fc",outline="#fc6d5d" if sel else "#8cbffa")
 
 def draw_bezier(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2,canvas,width=3,color="black"):
     #Modified code from: https://stackoverflow.com/a/50302363
@@ -1056,17 +1276,4 @@ def resized_letter(letter:Letter,zoom:float) -> Letter:
         resized_segment.connectors = segment.connectors
         resized.segments.append(resized_segment)
     resized.groups = letter.groups[:]
-    return resized
-
-def resized_letterspace(slot:LetterSpace|EditorLetterSpace,zoom:float):
-    if type(slot) == LetterSpace:
-        resized = LetterSpace()
-    else:
-        resized = EditorLetterSpace()
-    resized.x = slot.x/zoom
-    resized.y = slot.y/zoom
-    resized.height = slot.height/zoom
-    resized.width = slot.width/zoom
-    resized.selected = slot.selected
-    #Children not done yet!
     return resized
