@@ -52,6 +52,7 @@ def on_update():
         #Need to send to focused canvas
         manager.editor_canvas.on_key(tracker.keypress_history)
         manager.positioning_canvas.on_key(tracker.keypress_history)
+        manager.write_canvas.on_key(tracker.keypress_history)
     tracker.keypress_history.clear()
     #Executing command in console
     if len(debug.debug_window.to_execute) != 0:
@@ -59,7 +60,10 @@ def on_update():
             for command in debug.debug_window.to_execute:
                 if command.split(" ")[0] == "get":
                     command = f"debug.send({command.split(' ')[1]})"
-                exec(command,globals())
+                if command == "clear":
+                    debug.debug_window.clear()
+                else:
+                    exec(command,globals())
         except Exception as e:
             error_message = traceback.format_exc()
             debug.send(f"Error executing command: {error_message}")
@@ -123,7 +127,7 @@ def on_update():
                     manager.write_selected_label.language = manager.window.language_name
                     manager.write_selected_label.saved = manager.write_canvas.saved
                 if manager.write_canvas.reload_slots:
-                    #Reload slots
+                    manager.load_scene_treeview(manager.write_canvas.root)
                     manager.write_canvas.reload_slots = False
                 if isinstance(manager.write_canvas.configuration_data,list):
                     manager.write_update_inspector_entries(manager.write_canvas.configuration_data[0])

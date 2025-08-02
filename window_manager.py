@@ -13,12 +13,16 @@ import saving_agent as saving
 #________GENERAL FUNCTIONS______________
 on_windows = sys.platform != "darwin"
 registered = {}
+root_id_to_treeview_id = {}
+previous_selection_scene_treeview = []
 group_selector_open = False
 language_selector_open = False
 letter_selector_open = False
+write_letter_selector_open = False
 save_window_open = False
 focused = 0
 def change_tab(name) -> None:
+    global write_letter_selector_open
     if name == window.current_frame:
         return
     if name == "EDITOR":
@@ -29,6 +33,9 @@ def change_tab(name) -> None:
         positioning_canvas.active = False
         write_canvas.active = False
         editor_frame.lift()
+        if write_letter_selector_open:
+            close("write_letter_selector")
+            write_letter_selector_open = False
         window.current_frame = name
     elif name == "CONFIG":
         editor_frame.place_forget()
@@ -38,6 +45,9 @@ def change_tab(name) -> None:
         positioning_canvas.active = True
         write_canvas.active = False
         config_frame.lift()
+        if write_letter_selector_open:
+            close("write_letter_selector")
+            write_letter_selector_open = False
         window.current_frame = name
     elif name == "WRITE":
         editor_frame.place_forget()
@@ -47,6 +57,7 @@ def change_tab(name) -> None:
         positioning_canvas.active = False
         write_canvas.active = True
         write_frame.lift()
+        write_open_letter_selector()
         window.current_frame = name
 
 def smart_place(widget,pos_windows:tuple,pos_mac:tuple):
@@ -83,6 +94,46 @@ def show_frame(frame:Frame):
     frame.tkraise()
 
 #_______BUTTON FUNCTIONS________________
+def on_slot_select(event):
+    global previous_selection_scene_treeview
+    selected = list(write_scene_treeview.selection())
+    #Suggestion by Copilot
+    previous = previous_selection_scene_treeview[:]
+    added = []
+    for item in selected:
+        if item not in previous:
+            added.append(item)
+        else:
+            previous.remove(item)
+    removed = previous
+    for added_treeview_id in added:
+        write_canvas.select_id(int(write_scene_treeview.item(added_treeview_id,"tags")[0]))
+    for removed_treeview_id in removed:
+        write_canvas.deselect_id(int(write_scene_treeview.item(removed_treeview_id,"tags")[0]))
+    previous_selection_scene_treeview = selected
+
+def load_scene_treeview(root:letter.WritingRoot):
+    global root_id_to_treeview_id
+    for id in root_id_to_treeview_id.keys():
+        if id not in root.letter_spaces.keys():
+            write_scene_treeview.delete(root_id_to_treeview_id[id])
+            del root_id_to_treeview_id[id]
+    for id in root.root_ids:
+        recursive_load_scene_treeview(root,root.get_letter_space_with_id(id),"")
+    
+def recursive_load_scene_treeview(root:letter.WritingRoot,letter_space:letter.LetterSpace,parent:str):
+    global root_id_to_treeview_id
+    if letter_space.id not in root_id_to_treeview_id.keys():
+        #Insert self
+        me = write_scene_treeview.insert(parent,"end", text = letter_space.letter_name,tags=str(letter_space.id))
+        root_id_to_treeview_id[letter_space.id] = me
+        for id in letter_space.children_ids:
+            recursive_load_scene_treeview(root,root.get_letter_space_with_id(id),me)
+    else:
+        for id in letter_space.children_ids:
+            recursive_load_scene_treeview(root,root.get_letter_space_with_id(id),root_id_to_treeview_id[letter_space.id])
+
+
 def config_canvas_unload_letter():
     positioning_canvas.letter = None
     positioning_canvas.update()
@@ -106,6 +157,11 @@ def on_zoom_slider_change(event):
     config_canvas_zoom_stringvar.set(str(config_canvas_zoom_intvar.get()/100))
     positioning_canvas.zoom = config_canvas_zoom_intvar.get()/100
     positioning_canvas.zoom_changed()
+
+def on_write_zoom_slider_change(event):
+    write_canvas_zoom_stringvar.set(str(write_canvas_zoom_intvar.get()/100))
+    write_canvas.zoom = write_canvas_zoom_intvar.get()/100
+    write_canvas.zoom_changed()
 
 def on_segment_select(event):
     selected_index = editor_segment_listbox.curselection()
@@ -611,6 +667,169 @@ def open_letter_selector():
 
     display_letters("All")
 
+def write_open_letter_selector():
+    #Partly written by Copilot
+    if window.language_name == "":
+        messagebox.showwarning("No selection", "Please select a language.")
+        return False
+    global write_letter_selector_open
+
+    language = window.language_name
+
+    if write_letter_selector_open:
+        return
+
+    language = window.language_name
+
+    def on_open(selected_letter):
+        if len(write_canvas.selected_ids) == 0:
+            return
+        else:
+            id = write_canvas.selected_ids[0]
+        write_canvas.root.load_letter_into_slot_with_id(id,saving.load_letter(window.language_name, selected_letter, False), selected_letter)
+        if saving.does_positioning_for_letter_exist(window.language_name, selected_letter):
+            write_canvas.root.load_children_for_id(id,saving.load_positioning(window.language_name, selected_letter, False, False),True)
+            write_canvas.reload_slots = True
+        write_canvas.on_right_click(None)
+        #Search for next target
+        # - Has empty children?
+        # - Parent has empty children?
+        # - Parent has parent has empty children?
+        # - And so on...
+        # - If not, do nothing
+
+    def close_letter_selector():
+        global write_letter_selector_open
+        close("write_letter_selector")
+        write_letter_selector_open = False
+    
+
+    def on_letter_rename(letter_name, btn):
+        new_name = simpledialog.askstring("Rename Letter", "Enter new name:", initialvalue=letter_name)
+        if new_name and new_name != letter_name:
+            os.rename(os.path.join(letters_path, letter_name + ".json"), os.path.join(letters_path, new_name + ".json"))
+            btn.config(text=new_name)
+
+    def on_group_filter_change(event=None):
+        selected_group = group_filter_combobox.get()
+        for widget in grid_frame.winfo_children():
+            widget.destroy()
+        display_letters(selected_group)
+    
+    def on_search_change(new_value):
+        on_group_filter_change()
+        return True
+
+    def display_letters(selected_group="All"):
+        col_count = 4
+        row = col = 0
+
+        #Sort the letters here before displaying, because trying to reassign makes python think it's a local variable (?)
+        selected_sorting_type = group_sort_combobox.get()
+        if selected_sorting_type == "Name":
+            #Solution provided by https://stackoverflow.com/a/47017849
+            groups_to_use = dict(sorted(groups.items()))
+        elif selected_sorting_type == "Group":
+            #Solution provided by https://stackoverflow.com/a/613218
+            groups_to_use = dict(sorted(groups.items(), key=lambda item: item[1]))
+
+        for letter_name, letter_groups in groups_to_use.items():
+            if not letter_name.lower().startswith(search_stringvar.get()):
+                continue
+            if selected_group == "All" or selected_group in letter_groups:
+                preview_path = os.path.join("languages", window.language_name, "previews", f"{letter_name}.png")
+                if os.path.exists(preview_path):
+                    img = Image.open(preview_path)
+                    w, h = img.size
+                    if w > h:
+                        left = (w - h) // 2
+                        right = left + h
+                        img = img.crop((left, 0, right, h))
+                    img = img.resize((60, 60), Image.LANCZOS)
+                    photo = ImageTk.PhotoImage(img, master=letter_selector)
+                else:
+                    # fallback image
+                    img = Image.new("RGB", (60, 60), "gray")
+                    photo = ImageTk.PhotoImage(img, master=letter_selector)
+                btn = Button(grid_frame, text=letter_name, image=photo, compound="top",
+                             command=lambda name=letter_name: on_open(name))
+                btn.image = photo  # Prevent garbage collection
+                btn.bind("<Double-Button-1>", lambda e, name=letter_name, b=btn: on_letter_rename(name, b))
+                btn.grid(row=row, column=col, padx=10, pady=10)
+                col += 1
+                if col >= col_count:
+                    col = 0
+                    row += 1
+
+    write_letter_selector_open = True
+    letter_selector = Toplevel(window)
+    register("write_letter_selector", letter_selector)
+    letter_selector.title("Select Letter")
+    letter_selector.geometry("800x500")
+    letter_selector.protocol("WM_DELETE_WINDOW", close_letter_selector)
+
+    # Scrollable grid setup
+    canvas = Canvas(letter_selector)
+    scrollbar = Scrollbar(letter_selector, orient="vertical", command=canvas.yview)
+    canvas.configure(yscrollcommand=scrollbar.set)
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+
+    grid_frame = Frame(canvas)
+    canvas.create_window((0, 0), window=grid_frame, anchor="nw")
+
+    def on_frame_configure(event):
+        canvas.configure(scrollregion=canvas.bbox("all"))
+    grid_frame.bind("<Configure>", on_frame_configure)
+
+    letters_path = os.path.join("languages", language, "letters")
+    letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+
+    groups = {}
+    for let in letters:
+        let = os.path.splitext(let)[0]
+        groups[let] = saving.get_group_of_letter(window.language_name, let)
+
+    group_filter_frame = Frame(letter_selector)
+    group_filter_frame.pack(fill=X, padx=10, pady=5)
+
+    group_filter_label = Label(group_filter_frame, text="Filter by Group:")
+    group_filter_label.pack(side=LEFT, padx=5)
+
+    all_groups = {"All"}
+    for letter_groups in groups.values():
+        all_groups.update(letter_groups)
+
+    group_filter_combobox = Combobox(group_filter_frame, values=list(all_groups), state="readonly")
+    group_filter_combobox.set("All")
+    group_filter_combobox.pack(fill=X, expand=True, padx=5)
+    group_filter_combobox.bind("<<ComboboxSelected>>", on_group_filter_change)
+
+    group_sort_frame = Frame(letter_selector)
+    group_sort_frame.pack(fill=X, padx=10, pady=5)
+
+    group_sort_label = Label(group_sort_frame, text="Sort by:")
+    group_sort_label.pack(side=LEFT, padx=5)
+
+    options = {"Name","Group"}
+    group_sort_combobox = Combobox(group_sort_frame, values=list(options), state="readonly")
+    group_sort_combobox.set("Name")
+    group_sort_combobox.pack(fill=X, expand=True, padx=5)
+    group_sort_combobox.bind("<<ComboboxSelected>>", on_group_filter_change)
+
+    group_search_frame = Frame(letter_selector)
+    group_search_frame.pack(fill=X, padx=10, pady=5)
+
+    group_search_label = Label(group_search_frame, text="Search:")
+    group_search_label.pack(side=LEFT, padx=5)
+
+    search_stringvar = StringVar(letter_selector)
+    search_stringvar.trace_add("write", lambda name, index, mode, sv=search_stringvar: on_search_change(sv))
+    group_search_entry = Entry(group_search_frame,width=20,textvariable=search_stringvar)
+    group_search_entry.pack(fill=X, expand=True, padx=5)
+
+    display_letters("All")
+
 def open_positioning_window(use_editor_version:bool = True):
     if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG") or (write_canvas.saved and window.current_frame == "WRITE")):
         ask_save("open")
@@ -1092,9 +1311,12 @@ def process_write_inspector_menu(event):
             if changed_index == 0:
                 slot.x += dx
                 slot.y += dy
+                slot.global_x += dx
+                slot.global_y += dy
             else:
                 slot.width += dx
                 slot.height += dy
+                slot.letter_size = slot.calculate_letter_size()
         write_canvas.saved = False
         write_canvas.update()
 
@@ -1454,13 +1676,12 @@ smart_place(write_header_frame,(5,0),(5,0))
 write_canvas = letter.WritingCanvas(Canvas(write_frame,width=700,height=600,background="#525252"))
 smart_place(write_canvas.canvas,(5,45),(5,45))
 
-write_segment_listbox_frame = Frame(write_frame,width=282,height=300,style="header.TFrame")
-smart_place(write_segment_listbox_frame,(715,349),(715,349))
+write_scene_frame = Frame(write_frame,width=282,height=300,style="header.TFrame")
+smart_place(write_scene_frame,(715,349),(715,349))
 
-# write_segment_listbox = Listbox(write_segment_listbox_frame,width=43,height=15,bg=style.lookup("header.TFrame","background"),highlightcolor=style.lookup("hightlight.TListbox","background"))
-# write_segment_listbox.bind('<<ListboxSelect>>', on_segment_select)
-# write_segment_listbox.bind('<Double-1>', on_segment_double_click)
-# smart_place(write_segment_listbox,(10,45),(10,45))
+write_scene_treeview = Treeview(write_scene_frame,height=15)
+write_scene_treeview.bind('<<TreeviewSelect>>', on_slot_select)
+smart_place(write_scene_treeview,(10,10),(10,10))
 
 write_canvas.canvas.create_image(0,0,image=grid_photo,anchor="nw",tags=["grid","base"])
 write_canvas.canvas.create_line(350-200,300-200,350+200,300-200,fill="gray",tags="grid")
@@ -1473,13 +1694,13 @@ write_inspector_frame = Frame(write_frame, width=282, height=300, style="header.
 smart_place(write_inspector_frame,(715,45),(715,45))
 
 write_inspector_labels_x = [
-    Label(write_inspector_frame, text=f"X:", background=style.lookup("header.TFrame", "background")),
+    Label(write_inspector_frame, text=f"Global X:", background=style.lookup("header.TFrame", "background")),
     Label(write_inspector_frame, text=f"Width:", background=style.lookup("header.TFrame", "background")),
 ]
 
 write_inspector_labels_y = [
-    Label(inspector_frame, text=f"Y:", background=style.lookup("header.TFrame", "background")),
-    Label(inspector_frame, text=f"Height:", background=style.lookup("header.TFrame", "background"))
+    Label(write_inspector_frame, text=f"Global Y:", background=style.lookup("header.TFrame", "background")),
+    Label(write_inspector_frame, text=f"Height:", background=style.lookup("header.TFrame", "background"))
 ]
 
 write_inspector_vars_x = [StringVar() for _ in range(2)]
@@ -1487,7 +1708,7 @@ write_inspector_vars_y = [StringVar() for _ in range(2)]
 
 write_inspector_entries_x = [
     Entry(write_inspector_frame, width=10, textvariable=write_inspector_vars_x[0],validate="key",validatecommand=validate_is_number_cmd),
-    Entry(write_inspector_frame, width=10, textvariable=write_inspector_vars_x[1],validate="key",validatecommand=validate_is_number_cmd),
+    Entry(write_inspector_frame, width=10, textvariable=write_inspector_vars_x[1],validate="key",validatecommand=validate_is_number_cmd)
 ]
 
 write_inspector_entries_y = [
@@ -1519,7 +1740,7 @@ write_inspector_delete_button = Button(write_inspector_frame,image=trash_photo,c
 write_inspector_delete_button.trash_photo = trash_photo
 smart_place(write_inspector_delete_button,(10,10),(10,10))
 
-write_canvas_zoom_slider = Scale(write_inspector_frame,from_=100,to=400,value=100,length=180,variable=write_canvas_zoom_intvar,command=on_zoom_slider_change)
+write_canvas_zoom_slider = Scale(write_inspector_frame,from_=100,to=400,value=100,length=180,variable=write_canvas_zoom_intvar,command=on_write_zoom_slider_change)
 write_canvas_zoom_entry = Entry(write_inspector_frame,width=10,textvariable=write_canvas_zoom_stringvar,validate="key",validatecommand=validate_is_number_cmd)
 smart_place(write_canvas_zoom_slider,(10,250),(10,250))
 smart_place(write_canvas_zoom_entry,(200,250),(200,250))
@@ -1531,7 +1752,7 @@ write_extra_options_frame = Frame(write_frame,height=40,width=992,style="header.
 smart_place(write_extra_options_frame,(5,655),(5,655))
 
 show_letter_spaces_var = BooleanVar(value=True)
-write_show_letter_spaces_checkbox = Checkbutton(write_extra_options_frame,text="Draw Letter Spaces",variable=show_nodes_var,command=on_toggle_draw_letter_spaces)
+write_show_letter_spaces_checkbox = Checkbutton(write_extra_options_frame,text="Draw Letter Spaces",variable=show_letter_spaces_var,command=on_toggle_draw_letter_spaces)
 smart_place(write_show_letter_spaces_checkbox,(10,10),(10,10))
 
 editor_frame.lift()
