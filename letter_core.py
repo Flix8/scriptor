@@ -499,8 +499,7 @@ class PositioningCanvas(ScriptorCanvas):
         self.update_step_size()
         self.process_key_presses()
     def process_key_presses(self,disregard_focus=False):
-        #str(self.canvas.focus_get()).startswith(".!toplevel") or 
-        if not disregard_focus and (self.canvas.focus_get() == None or str(self.canvas.focus_get()) != ".!frame4.!canvas") or not self.active:
+        if not disregard_focus and (self.canvas.focus_get() == None or str(self.canvas.focus_get()) != ".!frame5.!canvas") or not self.active:
             return
         if "entf" in self.keys_pressed:
             self.delete_selection()
@@ -716,7 +715,7 @@ class WritingCanvas(ScriptorCanvas):
         self.update_step_size()
         self.process_key_presses()
     def process_key_presses(self,disregard_focus=False):
-        if not disregard_focus and (self.canvas.focus_get() == None or str(self.canvas.focus_get()) != ".!frame4.!canvas") or not self.active:
+        if not disregard_focus and (self.canvas.focus_get() == None or str(self.canvas.focus_get()) != ".!frame6.!canvas") or not self.active:
             return
         if "entf" in self.keys_pressed:
             self.delete_selection()
@@ -930,7 +929,7 @@ class WritingCanvas(ScriptorCanvas):
         self.saved = False
         for id in self.selected_ids:
             self.root.delete_child_with_id(id)
-        self.light_reset(False)
+        self.light_reset(True)
         self.update()
     def deselect_all_slots(self):
         self.selected_ids = []
@@ -1162,7 +1161,6 @@ class WritingRoot():
                 slot.width *= size
                 slot.height *= size
         self.get_letter_space_with_id(id).children_ids += ids
-    
 
 class EditorLetterSpace():
     def __init__(self,x:float=0,y:float=0,width:int=100,height:int=100):
@@ -1243,6 +1241,7 @@ def positioning_draw(letter,canvas,slots,zoom:float=1.0,center:Node=Node(0,0)):
 def writing_draw(writing_root:WritingRoot,canvas,zoom:float=1.0,draw_slots:bool=True,selected_ids:list|None=None):
     if selected_ids is None:
         selected_ids = []
+    canvas.create_rectangle(350-writing_root.width/2/zoom,300-writing_root.height/2/zoom,350+writing_root.width/2/zoom,300+writing_root.height/2/zoom,fill="white")
     for child_id in writing_root.root_ids:
         recursive_slots_draw(canvas,writing_root,writing_root.get_letter_space_with_id(child_id),zoom,Node(0,0),draw_slots,selected_ids)
 
@@ -1251,7 +1250,7 @@ def recursive_slots_draw(canvas,writing_root:WritingRoot,slot:LetterSpace,zoom:f
         selected_ids = []
     #Draw self
     if draw_slots:
-        draw_slot(canvas,350+center.x,300+center.y,slot,zoom,1,slot.id in selected_ids)
+        draw_slot(canvas,350+center.x,300+center.y,slot,zoom,1,slot.id in selected_ids,slot.letter is None)
     if slot.letter is not None:
         draw_letter(resized_letter(slot.letter,zoom),canvas,slot.letter_size,Node(350+center.x/zoom+slot.x/zoom,300+center.y/zoom+slot.y/zoom),False,None,base_color="black")
     #Draw children
@@ -1264,14 +1263,17 @@ def draw_node(canvas,x,y,node,size,tag="l_node",sel=True,color="gray"):
 def draw_line(canvas,x,y,node1,node2,size,color="gray",width=3):
     canvas.create_line(x + node1.x*size, y + node1.y*size, x + node2.x*size, y + node2.y*size, fill=color, width=width, tags="l_line")
 
-def draw_slot(canvas,x,y,slot,zoom,size,sel=True):
+def draw_slot(canvas,x,y,slot,zoom,size,sel=True,do_fill=True):
     center_x = (x - 350) / zoom + 350
     center_y = (y - 300) / zoom + 300
     x = slot.x / zoom
     y = slot.y / zoom
     width = slot.width/zoom
     height = slot.height/zoom
-    canvas.create_rectangle(center_x+x-width/2*size,center_y+y-height/2*size,center_x+x+width/2*size,center_y+y+height/2*size,fill="#f7b0a8" if sel else "#bbf9fc",outline="#fc6d5d" if sel else "#8cbffa")
+    if do_fill:
+        canvas.create_rectangle(center_x+x-width/2*size,center_y+y-height/2*size,center_x+x+width/2*size,center_y+y+height/2*size,fill="#f7b0a8" if sel else "#bbf9fc",outline="#fc6d5d" if sel else "#8cbffa")
+    else:
+        canvas.create_rectangle(center_x+x-width/2*size,center_y+y-height/2*size,center_x+x+width/2*size,center_y+y+height/2*size,outline="#fc6d5d" if sel else "#8cbffa")
 
 def draw_bezier(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2,canvas,width=3,color="black"):
     #Modified code from: https://stackoverflow.com/a/50302363

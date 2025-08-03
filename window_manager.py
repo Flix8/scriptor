@@ -113,10 +113,13 @@ def on_slot_select(event):
     previous_selection_scene_treeview = selected
 
 def load_scene_treeview(root:letter.WritingRoot):
-    global root_id_to_treeview_id
-    for id in root_id_to_treeview_id.keys():
+    global root_id_to_treeview_id, previous_selection_scene_treeview
+    #Making it a list: Suggestion by copilot
+    for id in list(root_id_to_treeview_id.keys()):
         if id not in root.letter_spaces.keys():
             write_scene_treeview.delete(root_id_to_treeview_id[id])
+            if root_id_to_treeview_id[id] in previous_selection_scene_treeview:
+                previous_selection_scene_treeview.remove(root_id_to_treeview_id[id])
             del root_id_to_treeview_id[id]
     for id in root.root_ids:
         recursive_load_scene_treeview(root,root.get_letter_space_with_id(id),"")
@@ -560,7 +563,7 @@ def open_letter_selector():
             groups_to_use = dict(sorted(groups.items(), key=lambda item: item[1]))
 
         for letter_name, letter_groups in groups_to_use.items():
-            if not letter_name.lower().startswith(search_stringvar.get()):
+            if not search_stringvar.get().lower() in letter_name.lower():
                 continue
             if selected_group == "All" or selected_group in letter_groups:
                 preview_path = os.path.join("languages", window.language_name, "previews", f"{letter_name}.png")
@@ -690,13 +693,32 @@ def write_open_letter_selector():
         if saving.does_positioning_for_letter_exist(window.language_name, selected_letter):
             write_canvas.root.load_children_for_id(id,saving.load_positioning(window.language_name, selected_letter, False, False),True)
             write_canvas.reload_slots = True
-        write_canvas.on_right_click(None)
         #Search for next target
+        write_canvas.on_right_click(None)
+        cur_slot = write_canvas.root.get_letter_space_with_id(id)
         # - Has empty children?
+        for child_id in cur_slot.children_ids:
+            if write_canvas.root.get_letter_space_with_id(child_id).letter is None:
+                write_canvas.select_id(child_id)
+                return
         # - Parent has empty children?
-        # - Parent has parent has empty children?
-        # - And so on...
-        # - If not, do nothing
+        for child_id in write_canvas.root.get_letter_space_with_id(cur_slot.parent_id).children_ids:
+            if write_canvas.root.get_letter_space_with_id(child_id).letter is None:
+                write_canvas.select_id(child_id)
+                return
+        # - Find closest slot with no letter
+        min_dist = float('inf')
+        selected_id = None
+        for slot_id, slot in write_canvas.root.letter_spaces.items():
+            if slot_id == id or slot.letter is not None:
+                continue
+            length = letter.length(letter.Node(cur_slot.x,cur_slot.y)-letter.Node(slot.x,slot.y))
+            if length < min_dist:
+                min_dist = length
+                selected_id = slot_id
+        if selected_id is not None:
+            write_canvas.select_id(selected_id)
+            return
 
     def close_letter_selector():
         global write_letter_selector_open
@@ -734,7 +756,7 @@ def write_open_letter_selector():
             groups_to_use = dict(sorted(groups.items(), key=lambda item: item[1]))
 
         for letter_name, letter_groups in groups_to_use.items():
-            if not letter_name.lower().startswith(search_stringvar.get()):
+            if not search_stringvar.get().lower() in letter_name.lower():
                 continue
             if selected_group == "All" or selected_group in letter_groups:
                 preview_path = os.path.join("languages", window.language_name, "previews", f"{letter_name}.png")
@@ -765,14 +787,14 @@ def write_open_letter_selector():
     letter_selector = Toplevel(window)
     register("write_letter_selector", letter_selector)
     letter_selector.title("Select Letter")
-    letter_selector.geometry("800x500")
+    letter_selector.geometry("600x500")
     letter_selector.protocol("WM_DELETE_WINDOW", close_letter_selector)
 
     # Scrollable grid setup
     canvas = Canvas(letter_selector)
     scrollbar = Scrollbar(letter_selector, orient="vertical", command=canvas.yview)
     canvas.configure(yscrollcommand=scrollbar.set)
-    canvas.pack(side="left", fill="both", expand=True)
+    canvas.pack(side="top", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
 
     grid_frame = Frame(canvas)
@@ -791,7 +813,7 @@ def write_open_letter_selector():
         groups[let] = saving.get_group_of_letter(window.language_name, let)
 
     group_filter_frame = Frame(letter_selector)
-    group_filter_frame.pack(fill=X, padx=10, pady=5)
+    group_filter_frame.pack(side="top", fill=X, padx=10, pady=5)
 
     group_filter_label = Label(group_filter_frame, text="Filter by Group:")
     group_filter_label.pack(side=LEFT, padx=5)
@@ -806,7 +828,7 @@ def write_open_letter_selector():
     group_filter_combobox.bind("<<ComboboxSelected>>", on_group_filter_change)
 
     group_sort_frame = Frame(letter_selector)
-    group_sort_frame.pack(fill=X, padx=10, pady=5)
+    group_sort_frame.pack(side="top", fill=X, padx=10, pady=5)
 
     group_sort_label = Label(group_sort_frame, text="Sort by:")
     group_sort_label.pack(side=LEFT, padx=5)
@@ -818,7 +840,7 @@ def write_open_letter_selector():
     group_sort_combobox.bind("<<ComboboxSelected>>", on_group_filter_change)
 
     group_search_frame = Frame(letter_selector)
-    group_search_frame.pack(fill=X, padx=10, pady=5)
+    group_search_frame.pack(side="top", fill=X, padx=10, pady=5)
 
     group_search_label = Label(group_search_frame, text="Search:")
     group_search_label.pack(side=LEFT, padx=5)
@@ -839,7 +861,7 @@ def open_positioning_window(use_editor_version:bool = True):
         return
     global letter_selector_open
 
-    language = window.language_name
+    language = window.language_name 
 
     if letter_selector_open:
         return
@@ -1723,10 +1745,10 @@ def write_update_inspector_entries(num_pairs):
     window.shown_write_inspector_entries = num_pairs
     for i in range(2):
         if i < num_pairs:
-            smart_place(write_inspector_labels_x[i],(30,50+i*30),(30,50+i*30))
-            smart_place(write_inspector_entries_x[i],(60,50+i*30),(60,50+i*30))
-            smart_place(write_inspector_labels_y[i],(150,50+i*30),(150,50+i*30))
-            smart_place(write_inspector_entries_y[i],(180,50+i*30),(180,50+i*30))
+            smart_place(write_inspector_labels_x[i],(10,50+i*30),(10,50+i*30))
+            smart_place(write_inspector_entries_x[i],(70,50+i*30),(70,50+i*30))
+            smart_place(write_inspector_labels_y[i],(140,50+i*30),(140,50+i*30))
+            smart_place(write_inspector_entries_y[i],(200,50+i*30),(200,50+i*30))
         else:
             write_inspector_labels_x[i].place_forget()
             write_inspector_entries_x[i].place_forget()

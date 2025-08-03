@@ -6,6 +6,13 @@ Different modes:
 To-Do:
 - Write menu
     - You can choose background color (Color Picker?)
-    - Canvas is not interactive, button to add next letter
-        - Like configure menu -> Overview of all letters, you can choose one and search, the one you are currently selecting is previewed
-        - Set stroke size, size, fill color (custom or background color)
+    - Set stroke size, size, fill color (custom or background color)
+    - Setting width and height
+    - Loading positioning and templates (with a chosen size, show a preview)
+    - Fill function for a segment -> Creates a polygon, maybe rewrite draw functions?
+- Export
+    - Chose Name, export png
+
+Bugs:
+- Weird behaviour when deleting in write -> Not responding?
+- Children in write sometimes move incorrectly
