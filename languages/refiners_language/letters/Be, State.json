@@ -2,6 +2,7 @@
       "segments": [
             {
                   "name": "Circle",
+                  "is_empty": false,
                   "nodes": [
                         {
                               "x": 60,
@@ -27,6 +28,7 @@
             },
             {
                   "name": "Base",
+                  "is_empty": false,
                   "nodes": [
                         {
                               "x": -150,

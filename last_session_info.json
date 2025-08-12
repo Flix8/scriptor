@@ -1,6 +1,6 @@
 {
       "language": "refiners_language",
-      "letter_editor": "Be, State",
-      "letter_config": "Now (Roughly)",
-      "open_frame": "EDITOR"
+      "letter_editor": "Past",
+      "letter_config": "Far Past",
+      "open_frame": "WRITE"
 }

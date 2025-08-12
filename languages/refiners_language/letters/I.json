@@ -2,6 +2,7 @@
       "segments": [
             {
                   "name": "Basis",
+                  "is_empty": false,
                   "nodes": [
                         {
                               "x": 50,
@@ -99,6 +100,7 @@
             },
             {
                   "name": "Half Circle",
+                  "is_empty": true,
                   "nodes": [
                         {
                               "x": 20.0,

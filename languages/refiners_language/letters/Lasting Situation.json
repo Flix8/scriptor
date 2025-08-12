@@ -1,46 +1,8 @@
 {
       "segments": [
             {
-                  "name": "InnerFrame",
-                  "nodes": [
-                        {
-                              "x": -160,
-                              "y": 0
-                        },
-                        {
-                              "x": 0,
-                              "y": -160
-                        },
-                        {
-                              "x": 160,
-                              "y": 0
-                        },
-                        {
-                              "x": 0,
-                              "y": 160
-                        }
-                  ],
-                  "connectors": [
-                        {
-                              "type": "LINE",
-                              "anchors": null
-                        },
-                        {
-                              "type": "LINE",
-                              "anchors": null
-                        },
-                        {
-                              "type": "LINE",
-                              "anchors": null
-                        },
-                        {
-                              "type": "LINE",
-                              "anchors": null
-                        }
-                  ]
-            },
-            {
                   "name": "OuterFrame",
+                  "is_empty": false,
                   "nodes": [
                         {
                               "x": -200,
@@ -62,24 +24,73 @@
                   "connectors": [
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "InnerFrame",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": -160,
+                              "y": 0
+                        },
+                        {
+                              "x": 0,
+                              "y": -160
+                        },
+                        {
+                              "x": 160,
+                              "y": 0
+                        },
+                        {
+                              "x": 0,
+                              "y": 160
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
                         }
                   ]
             },
             {
                   "name": "Arrow",
+                  "is_empty": false,
                   "nodes": [
                         {
                               "x": 30,
@@ -141,59 +152,73 @@
                   "connectors": [
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         }
                   ]
             }

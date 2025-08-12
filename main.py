@@ -87,6 +87,7 @@ def on_update():
                     manager.editor_group_listbox.delete(0,END)
                     for group in manager.editor_canvas.letter.groups:
                         manager.editor_group_listbox.insert(END,group)
+                    manager.is_segment_empty_var.set(manager.editor_canvas.letter.segments[manager.editor_canvas.selected_segment].is_empty)
                     manager.editor_canvas.reload_segments = False
                 if isinstance(manager.editor_canvas.configuration_data,list):
                     if manager.editor_canvas.configuration_data[0] == 5:

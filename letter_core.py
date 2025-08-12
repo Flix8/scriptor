@@ -689,6 +689,7 @@ class WritingCanvas(ScriptorCanvas):
         self.zoom = 1.0
         self.configuration_data = None
         self.light_reset()
+        self.update()
     def load_text(self,root,name):
         self.text_name = name
         self.light_reset()
@@ -933,6 +934,7 @@ class WritingCanvas(ScriptorCanvas):
         self.update()
     def deselect_all_slots(self):
         self.selected_ids = []
+        self.num_selected = 0
     def calculate_snapped_position(self,x,y) -> tuple:
         x = (x//self.cursor_step_size)*self.cursor_step_size
         y = (y//self.cursor_step_size)*self.cursor_step_size
@@ -1014,6 +1016,7 @@ class EditorNode(Node):
 class Segment():
     def __init__(self):
         self.name = "Segment"
+        self.is_empty = False
         self.nodes = []
         self.connectors = []
 
@@ -1080,8 +1083,9 @@ class LetterSpace():
         self.letter_size = self.calculate_letter_size()
 
         self.outline_color_mode = "GLOBAL" #GLOBAL, CUSTOM
-        self.global_outline_color = ""
-        self.custom_outline_color = ""
+        self.fill_color_mode = "GLOBAL" #GLOBAL, CUSTOM
+        self.custom_outline_color = "black"
+        self.custom_fill_color = "black"
     
     def calculate_letter_size(self) -> float:
         #Should be called when height, width or letter changed
@@ -1103,8 +1107,6 @@ class LetterSpace():
         return size
 
     def update_outline_color(self,mode="GLOBAL",color="black"):
-        if mode == "GLOBAL":
-            self.global_outline_color = color
         if mode == "CUSTOM":
             self.custom_outline_color = color
 
@@ -1112,7 +1114,7 @@ class LetterSpace():
         self.children_ids.remove(id)
         
 class WritingRoot():
-    def __init__(self,width:int=600,height:int=600,letter_spaces:list|None=None):
+    def __init__(self,width:int=600,height:int=600,letter_spaces:list|None=None,global_outline_color="white",global_fill_color="white", background_color="WHITE"):
         self.width = width
         self.height = height
         self.letter_spaces = {}
@@ -1122,6 +1124,10 @@ class WritingRoot():
             letter_spaces = []
         for letter_space in letter_spaces:
             self.root_ids.append(letter_space.id)
+        
+        self.global_outline_color = global_outline_color
+        self.global_fill_color = global_fill_color
+        self.background_color = background_color
     
     def register(self, letter_spaces:list|None=None):
         if letter_spaces is None:
@@ -1171,69 +1177,86 @@ class EditorLetterSpace():
         self.selected = False
 
 #Draw functions    
-def draw_letter(letter:Letter,canvas,size:float,center:Node,draw_nodes=True,selected_segment_index:int|None=None,color_letter:str|None=None,width_letter=None,base_color:str|None="black"):
-        x,y = center.x,center.y
-        for segment_index, segment in enumerate(letter.segments):
-            last_node = None
-            sel = (segment_index == selected_segment_index) if selected_segment_index != None else True #Is not selected?
-            for i,node in enumerate(segment.nodes):
-                if len(segment.nodes) == 1:
-                    break
-                if last_node != None:
-                    connector = segment.connectors[i-1]
-                    if isinstance(connector,EditorConnector):
-                        color = connector.color if sel else base_color
-                        width = connector.width
-                    else:
-                        color = color_letter if color_letter != None else base_color
-                        width = width_letter
-                    if connector.type == "LINE":
-                        canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=color, width=width, tags="l_line")
-                    elif connector.type == "BEZIER":
-                        if isinstance(connector,EditorConnector) and connector.selected:
-                            anchor1 = Node(connector.anchors[0].x*size,connector.anchors[0].y*size)
-                            anchor2 = Node(connector.anchors[1].x*size,connector.anchors[1].y*size)
-                            canvas.create_oval(x + node.x + 5*size + anchor2.x, y + node.y + 5*size + anchor2.y, x + node.x - 5*size + anchor2.x, y + node.y - 5*size + anchor2.y, fill="red", tags="l_node")
-                            canvas.create_oval(x + last_node.x + 5*size + anchor1.x, y + last_node.y + 5*size + anchor1.y, x + last_node.x - 5*size + anchor1.x, y + last_node.y - 5*size + anchor1.y, fill="red", tags="l_node")
-                        draw_bezier(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1],canvas,width,color)
-                    else:
-                        draw_half_circle(x,y,last_node,node,size,connector.direction,canvas,width,color)
-                last_node = node
-            if len(segment.nodes) > 1:
-                    node = segment.nodes[0]
-                    connector = segment.connectors[-1]
-                    if isinstance(connector,EditorConnector):
-                        color = connector.color if sel else base_color
-                        width = connector.width
-                    else:
-                        color = color_letter if color_letter != None else base_color
-                        width = width_letter
-                    if connector.type == "LINE":
-                        canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=color, width=width, tags="l_line")
-                    elif connector.type == "BEZIER":
-                        if isinstance(connector,EditorConnector) and connector.selected:
-                            anchor1 = Node(connector.anchors[0].x*size,connector.anchors[0].y*size)
-                            anchor2 = Node(connector.anchors[1].x*size,connector.anchors[1].y*size)
-                            canvas.create_oval(x + node.x + 5*size + anchor2.x, y + node.y + 5*size + anchor2.y, x + node.x - 5*size + anchor2.x, y + node.y - 5*size + anchor2.y, fill="red", tags="l_node")
-                            canvas.create_oval(x + last_node.x + 5*size + anchor1.x, y + last_node.y + 5*size + anchor1.y, x + last_node.x - 5*size + anchor1.x, y + last_node.y - 5*size + anchor1.y, fill="red", tags="l_node")
-                        draw_bezier(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1],canvas,width,color)
-                    else:
-                        draw_half_circle(x,y,last_node,node,size,connector.direction,canvas,width,color)
-            if draw_nodes:
-                for node in segment.nodes:
-                    if isinstance(node,EditorNode):
-                        color = node.color if sel else base_color
-                    else:
-                        color = color_letter if color_letter != None else base_color
-                    draw_node(canvas,x,y,node,size,sel=sel,color=color)
+def editor_draw_letter(letter:Letter,canvas,size:float,center:Node,draw_nodes=True,selected_segment_index:int|None=None,base_color:str|None="black"):
+    x,y = center.x,center.y
+    for segment_index, segment in enumerate(letter.segments):
+        last_node = None
+        sel = (segment_index == selected_segment_index) if selected_segment_index != None else True #Is not selected?
+
+        for i,node in enumerate(segment.nodes):
+            if len(segment.nodes) == 1: break
+            if last_node != None:
+                connector = segment.connectors[i-1]
+                color = connector.color if sel else base_color
+                width = connector.width
+                if connector.type == "LINE":
+                    canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=color, width=width, tags="l_line")
+                elif connector.type == "BEZIER":
+                    if connector.selected:
+                        anchor1 = Node(connector.anchors[0].x*size,connector.anchors[0].y*size)
+                        anchor2 = Node(connector.anchors[1].x*size,connector.anchors[1].y*size)
+                        canvas.create_oval(x + node.x + 5*size + anchor2.x, y + node.y + 5*size + anchor2.y, x + node.x - 5*size + anchor2.x, y + node.y - 5*size + anchor2.y, fill="red", tags="l_node")
+                        canvas.create_oval(x + last_node.x + 5*size + anchor1.x, y + last_node.y + 5*size + anchor1.y, x + last_node.x - 5*size + anchor1.x, y + last_node.y - 5*size + anchor1.y, fill="red", tags="l_node")
+                    draw_bezier(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1],canvas,width,color)
+                else:
+                    draw_half_circle(x,y,last_node,node,size,connector.direction,canvas,width,color)
+            last_node = node
+        if len(segment.nodes) > 1:
+                node = segment.nodes[0]
+                connector = segment.connectors[-1]
+                color = connector.color if sel else base_color
+                width = connector.width
+                if connector.type == "LINE":
+                    canvas.create_line(x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size, fill=color, width=width, tags="l_line")
+                elif connector.type == "BEZIER":
+                    if connector.selected:
+                        anchor1 = Node(connector.anchors[0].x*size,connector.anchors[0].y*size)
+                        anchor2 = Node(connector.anchors[1].x*size,connector.anchors[1].y*size)
+                        canvas.create_oval(x + node.x + 5*size + anchor2.x, y + node.y + 5*size + anchor2.y, x + node.x - 5*size + anchor2.x, y + node.y - 5*size + anchor2.y, fill="red", tags="l_node")
+                        canvas.create_oval(x + last_node.x + 5*size + anchor1.x, y + last_node.y + 5*size + anchor1.y, x + last_node.x - 5*size + anchor1.x, y + last_node.y - 5*size + anchor1.y, fill="red", tags="l_node")
+                    draw_bezier(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1],canvas,width,color)
+                else:
+                    draw_half_circle(x,y,last_node,node,size,connector.direction,canvas,width,color)
+        if draw_nodes:
+            for node in segment.nodes:
+                color = node.color if sel else base_color
+                draw_node(canvas,x,y,node,size,sel=sel,color=color)
+
+def draw_letter(letter:Letter,canvas,size:float,center:Node,color_letter:str="black",width_letter:int=1,fill_color:str="white",empty_color:str="#525252"):
+    x,y = center.x,center.y
+    for segment_index, segment in enumerate(letter.segments):
+        polygon_positions = []
+        last_node = None
+
+        for i,node in enumerate(segment.nodes):
+            if len(segment.nodes) == 1: break
+            if last_node != None:
+                connector = segment.connectors[i-1]
+                if connector.type == "BEZIER":
+                    polygon_positions += get_bezier_positions(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1])
+                elif connector.type == "CIRCLE":
+                    polygon_positions += get_half_circle_positions(x,y,last_node,node,size,connector.direction)
+            polygon_positions += [x + node.x*size, y + node.y*size]
+            last_node = node
+        if len(segment.nodes) > 1:
+                node = segment.nodes[0]
+                connector = segment.connectors[-1]
+                if connector.type == "BEZIER":
+                    polygon_positions += get_bezier_positions(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1])
+                elif connector.type == "CIRCLE":
+                    polygon_positions += get_half_circle_positions(x,y,last_node,node,size,connector.direction)
+        if not segment.is_empty:
+            canvas.create_polygon(*polygon_positions,width=width_letter,outline=color_letter,fill=fill_color)
+        else:
+            canvas.create_polygon(*polygon_positions,width=width_letter,outline=color_letter,fill=empty_color)
 
 def editor_draw(letter,canvas,selected_segment_index,draw_nodes=True,center_edits=Node(0,0)):
-    draw_letter(letter,canvas,1,Node(350,300),draw_nodes,selected_segment_index if draw_nodes else None,base_color="gray" if draw_nodes else "black")
+    editor_draw_letter(letter,canvas,1,Node(350,300),draw_nodes,selected_segment_index if draw_nodes else None,"gray" if draw_nodes else "black")
     draw_node(canvas,350,300,EditorNode(center_edits.x,center_edits.y),1,color="purple")
 
 def positioning_draw(letter,canvas,slots,zoom:float=1.0,center:Node=Node(0,0)):
     if letter is not None:
-        draw_letter(resized_letter(letter,zoom),canvas,1,Node(350+center.x,300+center.y),False,None,base_color="black")
+        draw_letter(resized_letter(letter,zoom),canvas,1,Node(350+center.x,300+center.y),"black",1)
         
     for slot in slots:
         draw_slot(canvas,350+center.x,300+center.y,slot,zoom,1,slot.selected)
@@ -1252,7 +1275,7 @@ def recursive_slots_draw(canvas,writing_root:WritingRoot,slot:LetterSpace,zoom:f
     if draw_slots:
         draw_slot(canvas,350+center.x,300+center.y,slot,zoom,1,slot.id in selected_ids,slot.letter is None)
     if slot.letter is not None:
-        draw_letter(resized_letter(slot.letter,zoom),canvas,slot.letter_size,Node(350+center.x/zoom+slot.x/zoom,300+center.y/zoom+slot.y/zoom),False,None,base_color="black")
+        draw_letter(resized_letter(slot.letter,zoom),canvas,slot.letter_size,Node(350+center.x/zoom+slot.x/zoom,300+center.y/zoom+slot.y/zoom),writing_root.global_outline_color if slot.outline_color_mode == "GLOBAL" else slot.custom_outline_color,1,writing_root.global_fill_color if slot.fill_color_mode == "GLOBAL" else slot.custom_fill_color,writing_root.background_color)
     #Draw children
     for child_id in slot.children_ids:
         recursive_slots_draw(canvas,writing_root,writing_root.get_letter_space_with_id(child_id),zoom,Node(slot.global_x,slot.global_y),draw_slots,selected_ids)
@@ -1293,6 +1316,23 @@ def draw_bezier(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2,canva
         x_start = x
         y_start = y
 
+def get_bezier_positions(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2) -> list:
+    #Modified code from: https://stackoverflow.com/a/50302363
+    polygon_positions = []
+
+    node1 = Node(posx + abs_node1.x * size,posy + abs_node1.y * size)
+    node2 = Node(posx + abs_node2.x * size,posy + abs_node2.y * size)
+    anchor1 = Node(rel_anchor1.x * size + node1.x,rel_anchor1.y * size + node1.y)
+    anchor2 = Node(rel_anchor2.x * size + node2.x,rel_anchor2.y * size + node2.y)
+    n = 50
+    for i in range(n):
+        t = i / n
+        x = (node1.x * (1-t)**3 + anchor1.x * 3 * t * (1-t)**2 + anchor2.x * 3 * t**2 * (1-t) + node2.x * t**3)
+        y = (node1.y * (1-t)**3 + anchor1.y * 3 * t * (1-t)**2 + anchor2.y * 3 * t**2 * (1-t) + node2.y * t**3)
+        polygon_positions += [x,y]
+    return polygon_positions
+
+
 def draw_half_circle(posx,posy,abs_node1,abs_node2,size,direction,canvas,width=3,color="black"):
     node1 = Node(abs_node1.x * size,abs_node1.y * size)
     node2 = Node(abs_node2.x * size,abs_node2.y * size)
@@ -1306,6 +1346,22 @@ def draw_half_circle(posx,posy,abs_node1,abs_node2,size,direction,canvas,width=3
         canvas.create_line(x + offset.x + posx, y + offset.y + posy, x_start + offset.x + posx, y_start + offset.y + posy,fill=color, width=width,tags="l_line")
         x_start = x
         y_start = y
+
+def get_half_circle_positions(posx,posy,abs_node1,abs_node2,size,direction) -> list:
+    polygon_positions = []
+    node1 = Node(abs_node1.x * size,abs_node1.y * size)
+    node2 = Node(abs_node2.x * size,abs_node2.y * size)
+    offset = node1 + (node2-node1)/2
+    x_start = node1.x - offset.x
+    y_start = node1.y - offset.y
+    n = 50
+    for i in range(n):
+        x = x_start * cos(radians(180/n*direction)) - y_start * sin(radians(180/n*direction))
+        y = y_start * cos(radians(180/n*direction)) + x_start * sin(radians(180/n*direction))
+        polygon_positions += [x + offset.x + posx,y + offset.y + posy]
+        x_start = x
+        y_start = y
+    return polygon_positions
 
 #Distance calculations
 def distance_to_line_segment(line_p1,line_p2,point) -> float:
@@ -1384,6 +1440,7 @@ def resized_letter(letter:Letter,zoom:float) -> Letter:
                 resized_node = Node(node.x/zoom,node.y/zoom)
             resized_segment.nodes.append(resized_node)
         resized_segment.name = segment.name
+        resized_segment.is_empty = segment.is_empty
         resized_segment.connectors = segment.connectors
         resized.segments.append(resized_segment)
     resized.groups = letter.groups[:]

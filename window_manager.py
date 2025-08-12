@@ -94,6 +94,40 @@ def show_frame(frame:Frame):
     frame.tkraise()
 
 #_______BUTTON FUNCTIONS________________
+def choose_color(index):
+    color = colorchooser.askcolor(title="Choose color")[1]
+    if color:
+        if index == 0:
+            style.configure("Colored1.TButton", background=color, fieldbackground=color)
+        else:
+            style.configure("Colored2.TButton", background=color, fieldbackground=color)
+    
+def move_selected_segment_up():
+    index = editor_canvas.selected_segment
+    if index == 0:
+        return
+    #Swap
+    editor_canvas.letter.segments.insert(index-1,editor_canvas.letter.segments[index])
+    editor_canvas.letter.segments.pop(index + 1)
+    editor_canvas.reload_segments = True
+    editor_canvas.saved = False
+    editor_canvas.selected_segment -= 1
+
+def move_selected_segment_down():
+    index = editor_canvas.selected_segment
+    if index + 1 == len(editor_canvas.letter.segments):
+        return
+    #Swap
+    editor_canvas.letter.segments.insert(index+2,editor_canvas.letter.segments[index])
+    editor_canvas.letter.segments.pop(index)
+    editor_canvas.reload_segments = True
+    editor_canvas.saved = False
+    editor_canvas.selected_segment += 1
+
+def set_segment_to_empty():
+    editor_canvas.letter.segments[editor_canvas.selected_segment].is_empty = is_segment_empty_var.get()
+    editor_canvas.saved = False
+
 def on_slot_select(event):
     global previous_selection_scene_treeview
     selected = list(write_scene_treeview.selection())
@@ -171,6 +205,7 @@ def on_segment_select(event):
     if selected_index:
          editor_canvas.light_reset(False)
          editor_canvas.selected_segment = selected_index[0]
+         is_segment_empty_var.set(editor_canvas.letter.segments[editor_canvas.selected_segment].is_empty)
          editor_canvas.update()
 
 def on_segment_double_click(event):
@@ -281,6 +316,15 @@ def validate_is_number(new_value):
         return True
     try:
         val = float(new_value)
+        return True
+    except ValueError:
+        return False
+
+def validate_int(new_value):
+    if new_value == "" or new_value == "-":
+        return True
+    try:
+        int(new_value)
         return True
     except ValueError:
         return False
@@ -702,10 +746,11 @@ def write_open_letter_selector():
                 write_canvas.select_id(child_id)
                 return
         # - Parent has empty children?
-        for child_id in write_canvas.root.get_letter_space_with_id(cur_slot.parent_id).children_ids:
-            if write_canvas.root.get_letter_space_with_id(child_id).letter is None:
-                write_canvas.select_id(child_id)
-                return
+        if cur_slot.parent_id is not None:
+            for child_id in write_canvas.root.get_letter_space_with_id(cur_slot.parent_id).children_ids:
+                if write_canvas.root.get_letter_space_with_id(child_id).letter is None:
+                    write_canvas.select_id(child_id)
+                    return
         # - Find closest slot with no letter
         min_dist = float('inf')
         selected_id = None
@@ -1368,6 +1413,8 @@ style.configure("toolbar.TFrame", background="#4a4949")
 style.configure("header.TFrame", background="#9e9d9d")
 style.configure("highlight.TListbox", background="#bfbfbf")
 style.configure("Custom.TCombobox", fieldbackground="lightblue", background="white")
+style.configure("Colored1.TButton", background="white")
+style.configure("Colored2.TButton", background="white")
 
 window.geometry("1000x800")
 background = Frame(window,width=1000,height=800,style="secondary.TFrame")
@@ -1435,6 +1482,20 @@ trash_photo = ImageTk.PhotoImage(trash_img,master=editor_segment_listbox_frame)
 editor_delete_segment_button = Button(editor_segment_listbox_frame,image=trash_photo,command=delete_segment_button) 
 editor_delete_segment_button.trash_photo = trash_photo
 smart_place(editor_delete_segment_button,(60,10),(70,10))
+
+up_img = Image.open("images/up.png")
+up_img = up_img.resize((20,20))
+up_photo = ImageTk.PhotoImage(up_img,master=editor_segment_listbox_frame)
+editor_move_segment_up_button = Button(editor_segment_listbox_frame,image=up_photo,command=move_selected_segment_up) 
+editor_move_segment_up_button.up_photo = up_photo
+smart_place(editor_move_segment_up_button,(150,10),(160,10))
+
+down_img = Image.open("images/down.png")
+down_img = down_img.resize((20,20))
+down_photo = ImageTk.PhotoImage(down_img,master=editor_segment_listbox_frame)
+editor_move_segment_down_button = Button(editor_segment_listbox_frame,image=down_photo,command=move_selected_segment_down) 
+editor_move_segment_down_button.down_photo = down_photo
+smart_place(editor_move_segment_down_button,(200,10),(210,10))
 
 grid_img = Image.open("images/grid.png")
 grid_photo = ImageTk.PhotoImage(grid_img,master=window)
@@ -1601,6 +1662,10 @@ editor_mirror_x_axis_button = Button(editor_extra_options_frame,image=mirror_x_p
 editor_mirror_x_axis_button.mirror_x_photo = mirror_x_photo
 smart_place(editor_mirror_x_axis_button,(640,5),(770,5))
 
+is_segment_empty_var = BooleanVar(value=False)
+editor_is_segment_empty_checkbox = Checkbutton(editor_extra_options_frame,text="Empty Segment",variable=is_segment_empty_var,command=set_segment_to_empty)
+smart_place(editor_is_segment_empty_checkbox,(700,5),(820,5))
+
 #__________________________________CONFIG____________________________________________
 config_frame = Frame(window,height=700,width=1000,style="secondary.TFrame")
 
@@ -1728,6 +1793,8 @@ write_inspector_labels_y = [
 write_inspector_vars_x = [StringVar() for _ in range(2)]
 write_inspector_vars_y = [StringVar() for _ in range(2)]
 
+validate_is_int_cmd = (write_inspector_frame.register(validate_int),"%P")
+
 write_inspector_entries_x = [
     Entry(write_inspector_frame, width=10, textvariable=write_inspector_vars_x[0],validate="key",validatecommand=validate_is_number_cmd),
     Entry(write_inspector_frame, width=10, textvariable=write_inspector_vars_x[1],validate="key",validatecommand=validate_is_number_cmd)
@@ -1736,6 +1803,22 @@ write_inspector_entries_x = [
 write_inspector_entries_y = [
     Entry(write_inspector_frame, width=10, textvariable=write_inspector_vars_y[0],validate="key",validatecommand=validate_is_number_cmd),
     Entry(write_inspector_frame, width=10, textvariable=write_inspector_vars_y[1],validate="key",validatecommand=validate_is_number_cmd)
+]
+
+use_custom_fill_bool_var = BooleanVar(write_inspector_frame)
+use_custom_outline_bool_var = BooleanVar(write_inspector_frame)
+
+write_inspector_additional = [
+    Label(write_inspector_frame, text=f"Width:", background=style.lookup("header.TFrame", "background")),
+    Label(write_inspector_frame, text=f"Custom Fill:", background=style.lookup("header.TFrame", "background")),
+    Label(write_inspector_frame, text=f"Use Custom:", background=style.lookup("header.TFrame", "background")),
+    Label(write_inspector_frame, text=f"Custom Outline:", background=style.lookup("header.TFrame", "background")),
+    Label(write_inspector_frame, text=f"Use Custom:", background=style.lookup("header.TFrame", "background")),
+    Entry(write_inspector_frame, validate="key", validatecommand=validate_is_int_cmd),
+    Button(write_inspector_frame, width=4, style="Colored1.TButton", command=lambda:choose_color(0)),
+    Checkbutton(write_inspector_frame, variable=use_custom_fill_bool_var),
+    Button(write_inspector_frame, width=4, style="Colored2.TButton", command=lambda:choose_color(1)),
+    Checkbutton(write_inspector_frame, variable=use_custom_outline_bool_var)
 ]
 
 for entry in write_inspector_entries_x + write_inspector_entries_y:
@@ -1749,11 +1832,27 @@ def write_update_inspector_entries(num_pairs):
             smart_place(write_inspector_entries_x[i],(70,50+i*30),(70,50+i*30))
             smart_place(write_inspector_labels_y[i],(140,50+i*30),(140,50+i*30))
             smart_place(write_inspector_entries_y[i],(200,50+i*30),(200,50+i*30))
+            if i == 1:
+                #Too tired to name them, this is not elegant :(
+                smart_place(write_inspector_additional[0],(10,50+2*30),(10,50+2*30))
+                smart_place(write_inspector_additional[1],(10,50+3*30),(10,50+3*30))
+                smart_place(write_inspector_additional[2],(160,50+3*30),(160,50+3*30))
+                smart_place(write_inspector_additional[3],(10,50+4*30),(10,50+4*30))
+                smart_place(write_inspector_additional[4],(160,50+4*30),(160,50+4*30))
+                smart_place(write_inspector_additional[5],(70,50+2*30),(70,50+2*30))
+                smart_place(write_inspector_additional[6],(100,50+3*30),(100,50+3*30))
+                smart_place(write_inspector_additional[7],(240,50+3*30),(240,50+3*30))
+                smart_place(write_inspector_additional[8],(100,50+4*30),(100,50+4*30))
+                smart_place(write_inspector_additional[9],(240,50+4*30),(240,50+4*30))
+            #When i == 1 -> show two tickboxes (custom color?) and color pickers
         else:
             write_inspector_labels_x[i].place_forget()
             write_inspector_entries_x[i].place_forget()
             write_inspector_labels_y[i].place_forget()
             write_inspector_entries_y[i].place_forget()
+            if i == 1:
+                for label in write_inspector_additional:
+                    label.place_forget()
 
 window.write_shown_inspector_entries = 0
 update_inspector_entries(window.write_shown_inspector_entries)

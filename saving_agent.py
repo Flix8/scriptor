@@ -30,6 +30,7 @@ def to_plain_letter(letter: l.Letter) -> l.Letter:
     for segment in letter.segments:
         plain_segment = l.Segment()
         plain_segment.name = segment.name
+        plain_segment.is_empty = segment.is_empty
         for node in segment.nodes:
             plain_node = l.Node(node.x, node.y)
             plain_segment.nodes.append(plain_node)
@@ -163,6 +164,8 @@ def load_letter(language: str, name_letter: str, use_editor_versions: bool = Fal
     for segment_data in data['segments']:
         segment = l.Segment()
         segment.name = segment_data['name']
+        if 'is_empty' in segment_data:
+            segment.is_empty = segment_data['is_empty']
         for node_data in segment_data['nodes']:
             if use_editor_versions:
                 node = l.EditorNode(node_data['x'], node_data['y'])
