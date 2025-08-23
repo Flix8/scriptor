@@ -148,6 +148,9 @@ def create_config_file(language:str):
     directory = f"languages/{language}/previews"
     if not os.path.exists(directory):
         os.makedirs(directory)
+    directory = f"languages/{language}/exports"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 def load_letter(language: str, name_letter: str, use_editor_versions: bool = False) -> l.Letter:
     global new_language

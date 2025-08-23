@@ -1,8 +1,6 @@
 THIS LOG IS FOR DEBUGGING PURPOSES. THANK YOU.
-[Tue Aug 12 21:51:53 2025]: Assigned unique id:1
-[Tue Aug 12 21:52:48 2025]: Trying to execute command: manager.style.configure("Colored1.TButton",foreground="black")
-[Tue Aug 12 21:53:20 2025]: Trying to execute command: manager.style.configure("Colored1.TButton",background="black")
-[Tue Aug 12 21:55:31 2025]: Trying to execute command: manager.style.configure("Colored1.TButton",fieldbackground="black")
-[Tue Aug 12 21:56:03 2025]: Trying to execute command: manager.style.theme_use("clam")
-[Tue Aug 12 21:56:15 2025]: Trying to execute command: manager.style.theme_use("xpnative")
-[Tue Aug 12 21:56:22 2025]: Trying to execute command: manager.style.theme_use("vista")
+[Sun Aug 17 18:35:02 2025]: Assigned unique id:1
+[Sun Aug 17 18:35:04 2025]: Assigned unique id:2
+[Sun Aug 17 18:35:04 2025]: Assigned unique id:3
+[Sun Aug 17 18:35:04 2025]: Adding slot 2 to 1 as a child
+[Sun Aug 17 18:35:04 2025]: Adding slot 3 to 1 as a child

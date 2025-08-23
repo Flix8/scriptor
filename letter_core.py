@@ -1086,6 +1086,7 @@ class LetterSpace():
         self.fill_color_mode = "GLOBAL" #GLOBAL, CUSTOM
         self.custom_outline_color = "black"
         self.custom_fill_color = "black"
+        self.letter_width = 1
     
     def calculate_letter_size(self) -> float:
         #Should be called when height, width or letter changed
@@ -1114,7 +1115,7 @@ class LetterSpace():
         self.children_ids.remove(id)
         
 class WritingRoot():
-    def __init__(self,width:int=600,height:int=600,letter_spaces:list|None=None,global_outline_color="white",global_fill_color="white", background_color="WHITE"):
+    def __init__(self,width:int=600,height:int=600,letter_spaces:list|None=None,global_outline_color="black",global_fill_color="black", background_color="WHITE"):
         self.width = width
         self.height = height
         self.letter_spaces = {}
@@ -1222,7 +1223,7 @@ def editor_draw_letter(letter:Letter,canvas,size:float,center:Node,draw_nodes=Tr
                 color = node.color if sel else base_color
                 draw_node(canvas,x,y,node,size,sel=sel,color=color)
 
-def draw_letter(letter:Letter,canvas,size:float,center:Node,color_letter:str="black",width_letter:int=1,fill_color:str="white",empty_color:str="#525252"):
+def draw_letter(letter:Letter,canvas,size:float,center:Node,color_letter:str="black",width_letter:int=1,fill_color:str="white",empty_color:str="#525252",zoom=1):
     x,y = center.x,center.y
     for segment_index, segment in enumerate(letter.segments):
         polygon_positions = []
@@ -1246,9 +1247,9 @@ def draw_letter(letter:Letter,canvas,size:float,center:Node,color_letter:str="bl
                 elif connector.type == "CIRCLE":
                     polygon_positions += get_half_circle_positions(x,y,last_node,node,size,connector.direction)
         if not segment.is_empty:
-            canvas.create_polygon(*polygon_positions,width=width_letter,outline=color_letter,fill=fill_color)
+            canvas.create_polygon(*polygon_positions,width=max(width_letter//zoom,1),outline=color_letter,fill=fill_color)
         else:
-            canvas.create_polygon(*polygon_positions,width=width_letter,outline=color_letter,fill=empty_color)
+            canvas.create_polygon(*polygon_positions,width=max(width_letter//zoom,1),outline=color_letter,fill=empty_color)
 
 def editor_draw(letter,canvas,selected_segment_index,draw_nodes=True,center_edits=Node(0,0)):
     editor_draw_letter(letter,canvas,1,Node(350,300),draw_nodes,selected_segment_index if draw_nodes else None,"gray" if draw_nodes else "black")
@@ -1275,7 +1276,7 @@ def recursive_slots_draw(canvas,writing_root:WritingRoot,slot:LetterSpace,zoom:f
     if draw_slots:
         draw_slot(canvas,350+center.x,300+center.y,slot,zoom,1,slot.id in selected_ids,slot.letter is None)
     if slot.letter is not None:
-        draw_letter(resized_letter(slot.letter,zoom),canvas,slot.letter_size,Node(350+center.x/zoom+slot.x/zoom,300+center.y/zoom+slot.y/zoom),writing_root.global_outline_color if slot.outline_color_mode == "GLOBAL" else slot.custom_outline_color,1,writing_root.global_fill_color if slot.fill_color_mode == "GLOBAL" else slot.custom_fill_color,writing_root.background_color)
+        draw_letter(resized_letter(slot.letter,zoom),canvas,slot.letter_size,Node(350+center.x/zoom+slot.x/zoom,300+center.y/zoom+slot.y/zoom),writing_root.global_outline_color if slot.outline_color_mode == "GLOBAL" else slot.custom_outline_color,slot.letter_width,writing_root.global_fill_color if slot.fill_color_mode == "GLOBAL" else slot.custom_fill_color,writing_root.background_color,zoom)
     #Draw children
     for child_id in slot.children_ids:
         recursive_slots_draw(canvas,writing_root,writing_root.get_letter_space_with_id(child_id),zoom,Node(slot.global_x,slot.global_y),draw_slots,selected_ids)

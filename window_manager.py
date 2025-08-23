@@ -98,10 +98,20 @@ def choose_color(index):
     color = colorchooser.askcolor(title="Choose color")[1]
     if color:
         if index == 0:
-            style.configure("Colored1.TButton", background=color, fieldbackground=color)
+            write_inspector_additional[2].configure(background = color)
+            write_canvas.root.get_letter_space_with_id(write_canvas.selected_ids[0]).custom_fill_color = color
         else:
-            style.configure("Colored2.TButton", background=color, fieldbackground=color)
-    
+            write_inspector_additional[5].configure(background = color)
+            write_canvas.root.get_letter_space_with_id(write_canvas.selected_ids[0]).custom_outline_color = color
+        write_canvas.update()
+
+def on_toggle_use_custom_fill_color():
+    write_canvas.root.get_letter_space_with_id(write_canvas.selected_ids[0]).fill_color_mode = "CUSTOM" if use_custom_fill_bool_var.get() else "GLOBAL"
+    write_canvas.update()
+def on_toggle_use_custom_outline_color():
+    write_canvas.root.get_letter_space_with_id(write_canvas.selected_ids[0]).outline_color_mode = "CUSTOM" if use_custom_outline_bool_var.get() else "GLOBAL"
+    write_canvas.update()
+        
 def move_selected_segment_up():
     index = editor_canvas.selected_segment
     if index == 0:
@@ -146,6 +156,12 @@ def on_slot_select(event):
         write_canvas.deselect_id(int(write_scene_treeview.item(removed_treeview_id,"tags")[0]))
     previous_selection_scene_treeview = selected
 
+def rename_slot_in_treeview(id,new_name):
+    if id not in root_id_to_treeview_id.keys():
+        debug.send(f"ERROR: Id {id} is not registered in the treeview")
+        return
+    write_scene_treeview.item(root_id_to_treeview_id[id], text=new_name)
+
 def load_scene_treeview(root:letter.WritingRoot):
     global root_id_to_treeview_id, previous_selection_scene_treeview
     #Making it a list: Suggestion by copilot
@@ -179,6 +195,7 @@ def write_canvas_unload_letter():
     if write_canvas.mode != "normal":
         for id in write_canvas.selected_ids:
             write_canvas.root.load_letter_into_slot_with_id(id,None)
+            rename_slot_in_treeview(id,"Unnamed")
     write_canvas.update()
 
 
@@ -320,11 +337,14 @@ def validate_is_number(new_value):
     except ValueError:
         return False
 
-def validate_int(new_value):
-    if new_value == "" or new_value == "-":
+def validate_int_and_set_width(new_value):
+    if new_value == "":
         return True
     try:
-        int(new_value)
+        if int(new_value) <= 0:
+            return False
+        write_canvas.root.get_letter_space_with_id(write_canvas.selected_ids[0]).letter_width = int(new_value)
+        write_canvas.update()
         return True
     except ValueError:
         return False
@@ -734,6 +754,7 @@ def write_open_letter_selector():
         else:
             id = write_canvas.selected_ids[0]
         write_canvas.root.load_letter_into_slot_with_id(id,saving.load_letter(window.language_name, selected_letter, False), selected_letter)
+        rename_slot_in_treeview(id,selected_letter)
         if saving.does_positioning_for_letter_exist(window.language_name, selected_letter):
             write_canvas.root.load_children_for_id(id,saving.load_positioning(window.language_name, selected_letter, False, False),True)
             write_canvas.reload_slots = True
@@ -1413,8 +1434,7 @@ style.configure("toolbar.TFrame", background="#4a4949")
 style.configure("header.TFrame", background="#9e9d9d")
 style.configure("highlight.TListbox", background="#bfbfbf")
 style.configure("Custom.TCombobox", fieldbackground="lightblue", background="white")
-style.configure("Colored1.TButton", background="white")
-style.configure("Colored2.TButton", background="white")
+
 
 window.geometry("1000x800")
 background = Frame(window,width=1000,height=800,style="secondary.TFrame")
@@ -1793,7 +1813,7 @@ write_inspector_labels_y = [
 write_inspector_vars_x = [StringVar() for _ in range(2)]
 write_inspector_vars_y = [StringVar() for _ in range(2)]
 
-validate_is_int_cmd = (write_inspector_frame.register(validate_int),"%P")
+set_width_cmd = (write_inspector_frame.register(validate_int_and_set_width),"%P")
 
 write_inspector_entries_x = [
     Entry(write_inspector_frame, width=10, textvariable=write_inspector_vars_x[0],validate="key",validatecommand=validate_is_number_cmd),
@@ -1809,16 +1829,16 @@ use_custom_fill_bool_var = BooleanVar(write_inspector_frame)
 use_custom_outline_bool_var = BooleanVar(write_inspector_frame)
 
 write_inspector_additional = [
-    Label(write_inspector_frame, text=f"Width:", background=style.lookup("header.TFrame", "background")),
-    Label(write_inspector_frame, text=f"Custom Fill:", background=style.lookup("header.TFrame", "background")),
+    Label(write_inspector_frame, text=f"Let Width:", background=style.lookup("header.TFrame", "background")),
+    Button(write_inspector_frame, text=f"Custom Fill:", width=14, command=lambda:choose_color(0)),
+    Label(write_inspector_frame, width=6, background="white",anchor="w"),
     Label(write_inspector_frame, text=f"Use Custom:", background=style.lookup("header.TFrame", "background")),
-    Label(write_inspector_frame, text=f"Custom Outline:", background=style.lookup("header.TFrame", "background")),
+    Button(write_inspector_frame, text=f"Custom Outline:",width=14, command=lambda:choose_color(1)),
+    Label(write_inspector_frame, width=6, background="white"),
     Label(write_inspector_frame, text=f"Use Custom:", background=style.lookup("header.TFrame", "background")),
-    Entry(write_inspector_frame, validate="key", validatecommand=validate_is_int_cmd),
-    Button(write_inspector_frame, width=4, style="Colored1.TButton", command=lambda:choose_color(0)),
-    Checkbutton(write_inspector_frame, variable=use_custom_fill_bool_var),
-    Button(write_inspector_frame, width=4, style="Colored2.TButton", command=lambda:choose_color(1)),
-    Checkbutton(write_inspector_frame, variable=use_custom_outline_bool_var)
+    Entry(write_inspector_frame, validate="key", validatecommand=set_width_cmd),
+    Checkbutton(write_inspector_frame, variable=use_custom_fill_bool_var,command=on_toggle_use_custom_fill_color),
+    Checkbutton(write_inspector_frame, variable=use_custom_outline_bool_var,command=on_toggle_use_custom_outline_color)
 ]
 
 for entry in write_inspector_entries_x + write_inspector_entries_y:
@@ -1836,13 +1856,13 @@ def write_update_inspector_entries(num_pairs):
                 #Too tired to name them, this is not elegant :(
                 smart_place(write_inspector_additional[0],(10,50+2*30),(10,50+2*30))
                 smart_place(write_inspector_additional[1],(10,50+3*30),(10,50+3*30))
-                smart_place(write_inspector_additional[2],(160,50+3*30),(160,50+3*30))
-                smart_place(write_inspector_additional[3],(10,50+4*30),(10,50+4*30))
-                smart_place(write_inspector_additional[4],(160,50+4*30),(160,50+4*30))
-                smart_place(write_inspector_additional[5],(70,50+2*30),(70,50+2*30))
-                smart_place(write_inspector_additional[6],(100,50+3*30),(100,50+3*30))
-                smart_place(write_inspector_additional[7],(240,50+3*30),(240,50+3*30))
-                smart_place(write_inspector_additional[8],(100,50+4*30),(100,50+4*30))
+                smart_place(write_inspector_additional[2],(110,143),(110,143))
+                smart_place(write_inspector_additional[3],(160,50+3*30),(160,50+3*30))
+                smart_place(write_inspector_additional[4],(10,50+4*30),(10,50+4*30))
+                smart_place(write_inspector_additional[5],(110,173),(10,173))
+                smart_place(write_inspector_additional[6],(160,50+4*30),(160,50+4*30))
+                smart_place(write_inspector_additional[7],(70,50+2*30),(70,50+2*30))
+                smart_place(write_inspector_additional[8],(240,50+3*30),(240,50+3*30))
                 smart_place(write_inspector_additional[9],(240,50+4*30),(240,50+4*30))
             #When i == 1 -> show two tickboxes (custom color?) and color pickers
         else:
