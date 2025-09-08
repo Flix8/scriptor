@@ -6,35 +6,23 @@
                   "nodes": [
                         {
                               "x": 20,
-                              "y": -30
+                              "y": -40
                         },
                         {
                               "x": 20,
-                              "y": 120
-                        },
-                        {
-                              "x": 50,
-                              "y": 120
-                        },
-                        {
-                              "x": 0,
-                              "y": 170
-                        },
-                        {
-                              "x": -50,
-                              "y": 120
+                              "y": 160
                         },
                         {
                               "x": -20,
-                              "y": 120
+                              "y": 160
                         },
                         {
                               "x": -20,
-                              "y": -30
+                              "y": -40
                         },
                         {
                               "x": -140,
-                              "y": -30
+                              "y": -40
                         },
                         {
                               "x": -140,
@@ -49,12 +37,24 @@
                               "y": -70
                         },
                         {
-                              "x": 140,
+                              "x": 120,
                               "y": -70
                         },
                         {
-                              "x": 140,
-                              "y": -30
+                              "x": 120,
+                              "y": -100
+                        },
+                        {
+                              "x": 175,
+                              "y": -55
+                        },
+                        {
+                              "x": 120,
+                              "y": -10
+                        },
+                        {
+                              "x": 120,
+                              "y": -40
                         }
                   ],
                   "connectors": [
@@ -89,24 +89,24 @@
                               "direction": null
                         },
                         {
-                              "type": "LINE",
-                              "anchors": null,
-                              "direction": null
-                        },
-                        {
-                              "type": "LINE",
-                              "anchors": null,
-                              "direction": null
-                        },
-                        {
-                              "type": "LINE",
-                              "anchors": null,
-                              "direction": null
-                        },
-                        {
                               "type": "CIRCLE",
                               "anchors": null,
                               "direction": 1
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",

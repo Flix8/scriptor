@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter import simpledialog
 from tkinter import colorchooser
+from tkinter import filedialog
 from tkinter.ttk import *
 import tkinter.font as font
 from PIL import Image, ImageTk
@@ -10,6 +11,7 @@ from PIL import Image, ImageTk
 import debug_console as debug
 import letter_core as letter
 import saving_agent as saving
+import exporter as export
 #________GENERAL FUNCTIONS______________
 on_windows = sys.platform != "darwin"
 registered = {}
@@ -21,6 +23,7 @@ letter_selector_open = False
 write_letter_selector_open = False
 save_window_open = False
 focused = 0
+
 def change_tab(name) -> None:
     global write_letter_selector_open
     if name == window.current_frame:
@@ -100,9 +103,18 @@ def choose_color(index):
         if index == 0:
             write_inspector_additional[2].configure(background = color)
             write_canvas.root.get_letter_space_with_id(write_canvas.selected_ids[0]).custom_fill_color = color
-        else:
+        elif index == 1:
             write_inspector_additional[5].configure(background = color)
             write_canvas.root.get_letter_space_with_id(write_canvas.selected_ids[0]).custom_outline_color = color
+        elif index == 2:
+            write_global_fill_label.configure(background = color)
+            write_canvas.root.global_fill_color = color
+        elif index == 3:
+            write_global_outline_label.configure(background = color)
+            write_canvas.root.global_outline_color = color
+        else:
+            write_background_label.configure(background = color)
+            write_canvas.root.background_color = color
         write_canvas.update()
 
 def on_toggle_use_custom_fill_color():
@@ -167,6 +179,7 @@ def load_scene_treeview(root:letter.WritingRoot):
     #Making it a list: Suggestion by copilot
     for id in list(root_id_to_treeview_id.keys()):
         if id not in root.letter_spaces.keys():
+            print(id,root_id_to_treeview_id[id])
             write_scene_treeview.delete(root_id_to_treeview_id[id])
             if root_id_to_treeview_id[id] in previous_selection_scene_treeview:
                 previous_selection_scene_treeview.remove(root_id_to_treeview_id[id])
@@ -205,7 +218,12 @@ def save_button_func():
     elif window.current_frame == "CONFIG":
         save_positioning_config()
     elif window.current_frame == "WRITE":
-        pass
+        save_writing()
+def open_button_func():
+    if window.current_frame in ["EDITOR","CONFIG"]:
+        open_letter_selector()
+    else:
+        open_writing_window()
 
 def on_zoom_slider_change(event):
     config_canvas_zoom_stringvar.set(str(config_canvas_zoom_intvar.get()/100))
@@ -319,6 +337,9 @@ def on_toggle_draw_letter_spaces():
     write_canvas.draw_slots = show_letter_spaces_var.get()
     write_canvas.update()
 
+def on_toggle_background_transparent():
+    write_canvas.root.transparent_background = export_background_transparent_var.get()
+
 def validate_angle(new_value):
     if new_value == "":
         return True
@@ -345,6 +366,16 @@ def validate_int_and_set_width(new_value):
             return False
         write_canvas.root.get_letter_space_with_id(write_canvas.selected_ids[0]).letter_width = int(new_value)
         write_canvas.update()
+        return True
+    except ValueError:
+        return False
+
+def validate_int(new_value):
+    if new_value == "":
+        return True
+    try:
+        if int(new_value) <= 0:
+            return False
         return True
     except ValueError:
         return False
@@ -575,9 +606,6 @@ def open_letter_selector():
     language = window.language_name
 
     if letter_selector_open:
-        return
-    if window.current_frame ==  "WRITE":
-        print("OPEN TEMPLATE/POSITIONING OPENER")
         return
 
     def on_open(selected_letter):
@@ -1021,6 +1049,175 @@ def open_positioning_window(use_editor_version:bool = True):
     close_button = Button(button_frame, text="Close", command=on_close)
     close_button.pack(side=LEFT, padx=5)
 
+def open_positioning_window_write():
+    if window.language_name == "":
+        messagebox.showwarning("No selection", "Please select a language.")
+        return
+    global letter_selector_open
+
+    language = window.language_name 
+
+    if letter_selector_open:
+        return
+
+    def on_open():
+        selected_index = listbox.curselection()
+        if selected_index:
+            selected_letter = listbox.get(selected_index)
+            write_canvas.load_slots(saving.load_positioning(window.language_name,selected_letter,positioning_selector.open_tab == "TEMPLATE"))
+            write_canvas.saved = False
+            close_letter_selector()
+        else:
+            messagebox.showwarning("No selection", "Please select a letter.")
+
+    def on_close():
+        close_letter_selector()
+
+    def close_letter_selector():
+        global letter_selector_open
+        close("write_pos_selector")
+        letter_selector_open = False
+
+    def on_letter_double_click(event):
+        selected_index = listbox.curselection()
+        if selected_index:
+            letter_name = listbox.get(selected_index)
+            new_name = simpledialog.askstring("Rename Positioning/Template", "Enter new name:", initialvalue=letter_name)
+            letters_path = os.path.join("languages", language, "positioning","templates" if positioning_canvas.letter is None else "letters")
+            if new_name and new_name != letter_name:
+                os.rename(os.path.join(letters_path, letter_name + ".json"), os.path.join(letters_path, new_name + ".json"))
+                listbox.delete(selected_index)
+                listbox.insert(selected_index,new_name)
+    
+    def change_tab(new_tab:str):
+        if new_tab == "TEMPLATE" and positioning_selector.open_tab != "TEMPLATE":
+            positioning_selector.title("Select Template")
+            positioning_selector.open_tab = "TEMPLATE"
+
+            letters_path = os.path.join("languages", language, "positioning","templates")
+            letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+            listbox.delete(0,END)
+            for let in letters:
+                listbox.insert(END, os.path.splitext(let)[0])
+        elif new_tab == "LETTER" and positioning_selector.open_tab != "LETTER":
+            positioning_selector.title("Select Letter Positioning")
+            positioning_selector.open_tab = "LETTER"
+
+            letters_path = os.path.join("languages", language, "positioning","letters")
+            letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+            listbox.delete(0,END)
+            for let in letters:
+                listbox.insert(END, os.path.splitext(let)[0])
+
+    style.configure("Custom.TCombobox", fieldbackground="white")
+    letter_selector_open = True
+    positioning_selector = Toplevel(window)
+    register("write_pos_selector", positioning_selector)
+    positioning_selector.geometry("300x500")
+    positioning_selector.protocol("WM_DELETE_WINDOW", close_letter_selector)
+
+    letters_button = Button(positioning_selector,text="Letters",command=lambda:change_tab("LETTER"))
+    letters_button.pack(padx=10, pady=10)
+
+    template_button = Button(positioning_selector,text="Templates",command=lambda:change_tab("TEMPLATE"))
+    template_button.pack(padx=10, pady=10)
+
+    listbox = Listbox(positioning_selector)
+    listbox.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    listbox.bind("<Double-1>", on_letter_double_click)
+
+    if write_canvas.mode == "normal":
+        positioning_selector.title("Select Template")
+        letters_path = os.path.join("languages", language, "positioning","templates")
+        positioning_selector.open_tab = "TEMPLATE"
+    else:
+        positioning_selector.title("Select Letter Positioning")
+        letters_path = os.path.join("languages", language, "positioning","letters")
+        positioning_selector.open_tab = "LETTER"
+
+    letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+
+    for let in letters:
+        listbox.insert(END, os.path.splitext(let)[0])
+
+    button_frame = Frame(positioning_selector)
+    button_frame.pack(fill=X, padx=10, pady=10)
+
+    open_button = Button(button_frame, text="Open", command=on_open)
+    open_button.pack(side=LEFT, padx=5)
+
+    close_button = Button(button_frame, text="Close", command=on_close)
+    close_button.pack(side=LEFT, padx=5)
+
+def open_writing_window():
+    if window.language_name == "":
+        messagebox.showwarning("No selection", "Please select a language.")
+        return
+    global letter_selector_open
+
+    language = window.language_name 
+
+    if letter_selector_open:
+        return
+
+    def on_open():
+        selected_index = listbox.curselection()
+        if selected_index:
+            selected_letter = listbox.get(selected_index)
+            write_canvas.load_text(saving.load_writing(window.language_name,selected_letter),selected_letter)
+            write_canvas.saved = True
+            close_letter_selector()
+        else:
+            messagebox.showwarning("No selection", "Please select a letter.")
+
+    def on_close():
+        close_letter_selector()
+
+    def close_letter_selector():
+        global letter_selector_open
+        close("writing_selector")
+        letter_selector_open = False
+
+    def on_letter_double_click(event):
+        selected_index = listbox.curselection()
+        if selected_index:
+            letter_name = listbox.get(selected_index)
+            new_name = simpledialog.askstring("Rename Positioning/Template", "Enter new name:", initialvalue=letter_name)
+            letters_path = os.path.join("languages", language, "texts")
+            if new_name and new_name != letter_name:
+                os.rename(os.path.join(letters_path, letter_name + ".json"), os.path.join(letters_path, new_name + ".json"))
+                listbox.delete(selected_index)
+                listbox.insert(selected_index,new_name)
+
+    style.configure("Custom.TCombobox", fieldbackground="white")
+    letter_selector_open = True
+    writing_selector = Toplevel(window)
+    register("writing_selector", writing_selector)
+    writing_selector.geometry("300x500")
+    writing_selector.protocol("WM_DELETE_WINDOW", close_letter_selector)
+
+    listbox = Listbox(writing_selector)
+    listbox.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    listbox.bind("<Double-1>", on_letter_double_click)
+
+    writing_selector.title("Select Writing")
+    letters_path = os.path.join("languages", language, "texts")
+
+    letters = [f for f in os.listdir(letters_path) if os.path.isfile(os.path.join(letters_path, f))]
+
+    for let in letters:
+        listbox.insert(END, os.path.splitext(let)[0])
+
+    button_frame = Frame(writing_selector)
+    button_frame.pack(fill=X, padx=10, pady=10)
+
+    open_button = Button(button_frame, text="Open", command=on_open)
+    open_button.pack(side=LEFT, padx=5)
+
+    close_button = Button(button_frame, text="Close", command=on_close)
+    close_button.pack(side=LEFT, padx=5)
+
+
 def save_letter_editor():
     global letter_selector_open
 
@@ -1211,6 +1408,90 @@ def save_positioning_config():
 
     cancel_button = Button(button_frame, text="Cancel", command=on_cancel)
     cancel_button.pack(side=LEFT, padx=5)
+    
+def save_writing():
+    global letter_selector_open
+
+    language = window.language_name
+
+    if letter_selector_open:
+        return
+
+    def on_save():
+        selected_index = listbox.curselection()
+        if selected_index:
+            selected_writing = listbox.get(selected_index)
+            debug.send(f"Saving Writing {selected_writing}[{window.language_name}]")
+            saving.save_writing(window.language_name,selected_writing,write_canvas.root)
+            write_canvas.text_name = selected_writing
+            write_canvas.saved = True
+            close_write_save_selector()
+        else:
+            entered_name = entry.get()
+            if entered_name:
+                debug.send(f"Saving {entered_name}[{window.language_name}]")
+                saving.save_writing(window.language_name,entered_name,write_canvas.root)
+                write_canvas.text_name = entered_name
+                editor_canvas.saved = True
+                close_write_save_selector()
+            else:
+                messagebox.showwarning("No name", "Please enter a name or select a letter.")
+    
+    def on_cancel():
+        close_write_save_selector()
+
+    def close_write_save_selector():
+        global letter_selector_open
+        close("save_letter_write")
+        letter_selector_open = False
+
+    def on_write_select(event):
+        selected_index = listbox.curselection()
+        if selected_index:
+            selected_writing = listbox.get(selected_index)
+            entry.delete(0, END)
+            entry.insert(0, selected_writing)
+
+    letter_selector_open = True
+    save_window = Toplevel(window)
+    register("save_letter_write",save_window)
+    save_window.title("Save Writing (NOT EXPORTING!)")
+    save_window.geometry("300x400")
+    save_window.protocol("WM_DELETE_WINDOW", close_write_save_selector)
+
+    listbox = Listbox(save_window)
+    listbox.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    listbox.bind('<<ListboxSelect>>', on_write_select)
+
+    writings_path = os.path.join("languages", language, "texts")
+    writings = [f for f in os.listdir(writings_path) if os.path.isfile(os.path.join(writings_path, f))]
+    for writing in writings:
+        listbox.insert(END, os.path.splitext(writing)[0])
+
+    entry_frame = Frame(save_window)
+    entry_frame.pack(fill=X, padx=10, pady=10)
+
+    entry_label = Label(entry_frame, text="Enter name:")
+    entry_label.pack(side=LEFT, padx=5)
+
+    txt_var = StringVar(entry_frame,write_canvas.text_name)
+    entry = Entry(entry_frame,textvariable=txt_var)
+    entry.txt_var = txt_var
+    entry.pack(fill=X, expand=True, padx=5)
+
+    button_frame = Frame(save_window)
+    button_frame.pack(fill=X, padx=10, pady=10)
+
+    save_button = Button(button_frame, text="Save", command=on_save)
+    save_button.pack(side=LEFT, padx=5)
+
+    cancel_button = Button(button_frame, text="Cancel", command=on_cancel)
+    cancel_button.pack(side=LEFT, padx=5)
+
+def export_writing():
+    path = filedialog.asksaveasfilename(defaultextension="png",initialfile=write_canvas.text_name,filetypes=[('Picture', '*.png')])
+    if path:
+        export.export_write(path,write_canvas.root)
 
 def ask_save(action="new"):
     global save_window_open
@@ -1340,7 +1621,7 @@ def process_config_inspector_menu(event):
     change = False
     changed_index = -1
     for i,entry_x,var_x,entry_y,var_y in zip(range(2),config_inspector_entries_x,config_inspector_vars_x,config_inspector_entries_y,config_inspector_vars_y):
-        if i >= window.shown_config_inspector_entries:
+        if i >= window.config_shown_inspector_entries:
             break
         if entry_x.original_value != var_x.get():
             changed_index = i
@@ -1408,6 +1689,10 @@ def process_write_inspector_menu(event):
         write_canvas.saved = False
         write_canvas.update()
 
+def process_write_new_height_or_size(event):
+    write_canvas.root.width = int(write_width_image_string_var.get())
+    write_canvas.root.height = int(write_height_image_string_var.get())
+    write_canvas.update()
 
 window = Tk()
 window.language_name = ""
@@ -1447,14 +1732,12 @@ window.title("Scriptor - Letter Editor")
 toolbar_frame = Frame(window,height=40,width=600,style="toolbar.TFrame")
 new_button = Button(toolbar_frame, text="New",width=10 if on_windows else 7,command=lambda: create_new_letter())
 save_button = Button(toolbar_frame, text="Save",width=10 if on_windows else 7,command=save_button_func)
-open_button = Button(toolbar_frame, text="Open",width=10 if on_windows else 7,command=open_letter_selector)
-settings_button = Button(toolbar_frame, text="Settings",width=10 if on_windows else 7,command=lambda: print("SETTINGS"))
+open_button = Button(toolbar_frame, text="Open",width=10 if on_windows else 7,command=open_button_func)
 language_button = Button(toolbar_frame, text="Language",width=10 if on_windows else 7,command=open_language_selector)
 smart_place(new_button,(20,7),(20,7))
 smart_place(save_button,(100,7),(130,7))
 smart_place(open_button,(180,7),(240,7))
-smart_place(settings_button,(260,7),(350,7))
-smart_place(language_button,(340,7),(460,7))
+smart_place(language_button,(260,7),(350,7))
 smart_place(toolbar_frame,(20,0),(20,0))
 
 navigation_frame = Frame(window,height=50,width=300,style="toolbar.TFrame")
@@ -1769,7 +2052,7 @@ smart_place(config_turn_into_template_button,(10,200),(10,200))
 smart_place(config_load_slots_button,(100,200),(100,200))
 
 #__________________________________WRITE____________________________________________
-write_frame = Frame(window,height=700,width=1000,style="secondary.TFrame")
+write_frame = Frame(window,height=800,width=1000,style="secondary.TFrame")
 
 write_header_frame = Frame(write_frame,height=40,width=704,style="header.TFrame")
 write_selected_label = Label(write_header_frame,font=('Helvetica',15),background="#9e9d9d",textvariable=write_txt_selected_label)
@@ -1827,6 +2110,7 @@ write_inspector_entries_y = [
 
 use_custom_fill_bool_var = BooleanVar(write_inspector_frame)
 use_custom_outline_bool_var = BooleanVar(write_inspector_frame)
+write_width_entry_string_var = StringVar(write_inspector_frame)
 
 write_inspector_additional = [
     Label(write_inspector_frame, text=f"Let Width:", background=style.lookup("header.TFrame", "background")),
@@ -1836,7 +2120,7 @@ write_inspector_additional = [
     Button(write_inspector_frame, text=f"Custom Outline:",width=14, command=lambda:choose_color(1)),
     Label(write_inspector_frame, width=6, background="white"),
     Label(write_inspector_frame, text=f"Use Custom:", background=style.lookup("header.TFrame", "background")),
-    Entry(write_inspector_frame, validate="key", validatecommand=set_width_cmd),
+    Entry(write_inspector_frame, validate="key", validatecommand=set_width_cmd, textvariable=write_width_entry_string_var),
     Checkbutton(write_inspector_frame, variable=use_custom_fill_bool_var,command=on_toggle_use_custom_fill_color),
     Checkbutton(write_inspector_frame, variable=use_custom_outline_bool_var,command=on_toggle_use_custom_outline_color)
 ]
@@ -1864,7 +2148,6 @@ def write_update_inspector_entries(num_pairs):
                 smart_place(write_inspector_additional[7],(70,50+2*30),(70,50+2*30))
                 smart_place(write_inspector_additional[8],(240,50+3*30),(240,50+3*30))
                 smart_place(write_inspector_additional[9],(240,50+4*30),(240,50+4*30))
-            #When i == 1 -> show two tickboxes (custom color?) and color pickers
         else:
             write_inspector_labels_x[i].place_forget()
             write_inspector_entries_x[i].place_forget()
@@ -1881,20 +2164,69 @@ write_inspector_delete_button = Button(write_inspector_frame,image=trash_photo,c
 write_inspector_delete_button.trash_photo = trash_photo
 smart_place(write_inspector_delete_button,(10,10),(10,10))
 
-write_canvas_zoom_slider = Scale(write_inspector_frame,from_=100,to=400,value=100,length=180,variable=write_canvas_zoom_intvar,command=on_write_zoom_slider_change)
+write_canvas_zoom_slider = Scale(write_inspector_frame,from_=100,to=800,value=100,length=180,variable=write_canvas_zoom_intvar,command=on_write_zoom_slider_change)
 write_canvas_zoom_entry = Entry(write_inspector_frame,width=10,textvariable=write_canvas_zoom_stringvar,validate="key",validatecommand=validate_is_number_cmd)
 smart_place(write_canvas_zoom_slider,(10,250),(10,250))
 smart_place(write_canvas_zoom_entry,(200,250),(200,250))
 
 write_unload_letter_button = Button(write_inspector_frame,text="Clear Letter",command=write_canvas_unload_letter)
+write_load_slots_button = Button(write_inspector_frame,text="Load Positioning",command=open_positioning_window_write)
 smart_place(write_unload_letter_button,(10,200),(10,200))
+smart_place(write_load_slots_button,(100,200),(100,200))
 
-write_extra_options_frame = Frame(write_frame,height=40,width=992,style="header.TFrame")
+write_extra_options_frame = Frame(write_frame,height=80,width=992,style="header.TFrame")
 smart_place(write_extra_options_frame,(5,655),(5,655))
 
 show_letter_spaces_var = BooleanVar(value=True)
 write_show_letter_spaces_checkbox = Checkbutton(write_extra_options_frame,text="Draw Letter Spaces",variable=show_letter_spaces_var,command=on_toggle_draw_letter_spaces)
 smart_place(write_show_letter_spaces_checkbox,(10,10),(10,10))
+
+write_export_button = Button(write_extra_options_frame,text="Export PNG",command=export_writing)
+smart_place(write_export_button,(200,10),(200,10))
+
+is_int_cmd = (write_extra_options_frame.register(validate_int),"%P")
+
+write_width_image_string_var = StringVar(write_extra_options_frame)
+write_height_image_string_var = StringVar(write_extra_options_frame)
+
+write_global_fill_button = Button(write_extra_options_frame, text=f"Global Fill:", width=14, command=lambda:choose_color(2))
+write_global_fill_label = Label(write_extra_options_frame, width=6, background="white",anchor="w")
+
+write_global_outline_button = Button(write_extra_options_frame, text=f"Global Outline:", width=14, command=lambda:choose_color(3))
+write_global_outline_label = Label(write_extra_options_frame, width=6, background="white",anchor="w")
+
+write_background_button = Button(write_extra_options_frame, text=f"Background", width=14, command=lambda:choose_color(4))
+write_background_label = Label(write_extra_options_frame, width=6, background="white",anchor="w")
+
+export_background_transparent_var = BooleanVar(value=False)
+write_background_transparent_checkbox = Checkbutton(write_extra_options_frame,text="Transparent Background",variable=export_background_transparent_var,command=on_toggle_background_transparent)
+
+write_image_width_entry = Entry(write_extra_options_frame, validate="key", validatecommand=is_int_cmd, textvariable=write_width_image_string_var)
+write_image_width_label = Label(write_extra_options_frame, text=f"Width:", background=style.lookup("header.TFrame", "background"))
+
+write_image_height_entry = Entry(write_extra_options_frame, validate="key", validatecommand=is_int_cmd, textvariable=write_height_image_string_var)
+write_image_height_label = Label(write_extra_options_frame, text=f"Height:", background=style.lookup("header.TFrame", "background"))
+
+
+write_image_width_entry.bind("<Return>", process_write_new_height_or_size)
+write_image_height_entry.bind("<Return>", process_write_new_height_or_size)
+
+smart_place(write_global_fill_button,(800,10),(800,10))
+smart_place(write_global_fill_label,(905,13),(905,13))
+
+smart_place(write_global_outline_button,(800,45),(800,45))
+smart_place(write_global_outline_label,(905,48),(905,48))
+
+smart_place(write_background_button,(600,10),(600,10))
+smart_place(write_background_label,(705,13),(705,13))
+
+smart_place(write_background_transparent_checkbox,(600,45),(600,45))
+
+smart_place(write_image_width_entry,(450,13),(450,13))
+smart_place(write_image_width_label,(400,13),(400,13))
+
+smart_place(write_image_height_entry,(450,45),(450,45))
+smart_place(write_image_height_label,(400,45),(400,45))
 
 editor_frame.lift()
 config_frame.lower()

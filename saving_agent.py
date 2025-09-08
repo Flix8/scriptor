@@ -9,18 +9,55 @@ def get_group_obj(name) -> l.Group:
         if group.name == name:
             return group
 
-class ReducedLetterSpace():
+class VeryReducedLetterSpace():
     def __init__(self,x:float=0,y:float=0,width:int=100,height:int=100):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
 
+class ReducedLetterSpace():
+    def __init__(self,slot:l.LetterSpace,language):
+        self.id = slot.id
+        self.parent_id = slot.parent_id
+        self.children_ids = slot.children_ids #This is not a copy, but it doesn't matter
+
+        self.x = slot.x
+        self.y = slot.y 
+        self.global_x = slot.global_x
+        self.global_y = slot.global_y
+        self.width = slot.width
+        self.height = slot.height
+        self.has_a_letter = slot.letter is not None
+        self.letter_name = slot.letter_name
+        self.language = language
+        self.letter_size = slot.letter_size
+
+        self.outline_color_mode = slot.outline_color_mode
+        self.fill_color_mode = slot.fill_color_mode
+        self.custom_outline_color = slot.custom_outline_color
+        self.custom_fill_color = slot.custom_fill_color
+        self.letter_width = slot.letter_width
+
+class ReducedWritingRoot():
+    def __init__(self,width:int,height:int,letter_spaces:dict,root_ids:list,global_outline_color:str,global_fill_color:str, background_color:str,language_name:str):
+        self.width = width
+        self.height = height
+        self.letter_spaces = {}
+        for key, letter_space in letter_spaces.items():
+            self.letter_spaces[key] = ReducedLetterSpace(letter_space,language_name)
+
+        self.root_ids = root_ids
+        self.global_outline_color = global_outline_color
+        self.global_fill_color = global_fill_color
+        self.background_color = background_color
+
 class SessionData():
-    def __init__(self,language,letter_editor=None,letter_config=None,open_frame="EDITOR"):
+    def __init__(self,language,letter_editor=None,letter_config=None,text_name=None,open_frame="EDITOR"):
         self.language = language if language != "" else None
         self.letter_editor = letter_editor if letter_editor != "Unnamed" else None
         self.letter_config = letter_config if letter_config != "Unnamed" else None
+        self.text_name = text_name if text_name != "Unnamed" else None
         self.open_frame = open_frame
 
 def to_plain_letter(letter: l.Letter) -> l.Letter:
@@ -45,8 +82,10 @@ def to_plain_letter(letter: l.Letter) -> l.Letter:
         plain_letter.segments.append(plain_segment)
     return plain_letter
 
-def to_reduced_letter_space(letter_space: l.LetterSpace|l.EditorLetterSpace) -> ReducedLetterSpace:
-    return ReducedLetterSpace(letter_space.x,letter_space.y,letter_space.width,letter_space.height)
+def to_reduced_letter_space(letter_space: l.LetterSpace|l.EditorLetterSpace) -> VeryReducedLetterSpace:
+    return VeryReducedLetterSpace(letter_space.x,letter_space.y,letter_space.width,letter_space.height)
+def to_reduced_writing_root(root: l.WritingRoot,language_name:str)-> ReducedWritingRoot:
+    return ReducedWritingRoot(root.width,root.height,root.letter_spaces,root.root_ids,root.global_outline_color,root.global_fill_color,root.background_color,language_name)
 
 def save_letter(language: str, name_letter: str, letter: l.Letter) -> None:
     letter = to_plain_letter(letter)
@@ -71,6 +110,16 @@ def save_positioning(language: str, name_letter_space: str, letter_spaces: list,
     file_path = f"{directory}/{name_letter_space}.json"
     with open(file_path, 'w') as file:
         json.dump(reduced_letter_spaces, file, default=lambda o: o.__dict__, indent=6)
+
+def save_writing(language: str, name_writing: str, writing_root: l.WritingRoot) -> None:
+    reduced_writing_root = to_reduced_writing_root(writing_root,language)
+
+    directory = f"languages/{language}/texts"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    file_path = f"{directory}/{name_writing}.json"
+    with open(file_path, 'w') as file:
+        json.dump(reduced_writing_root, file, default=lambda o: o.__dict__, indent=6)
 
 def load_groups(language:str) -> None:
     global all_groups
@@ -148,7 +197,7 @@ def create_config_file(language:str):
     directory = f"languages/{language}/previews"
     if not os.path.exists(directory):
         os.makedirs(directory)
-    directory = f"languages/{language}/exports"
+    directory = f"languages/{language}/texts"
     if not os.path.exists(directory):
         os.makedirs(directory)
 
@@ -219,6 +268,47 @@ def load_positioning(language: str, name_positioning: str, is_template:bool = Tr
         slots.append(slot)
     
     return slots
+
+def load_writing(language: str, name_writing: str) -> l.WritingRoot:
+    global new_language
+    file_path = f"languages/{language}/texts/{name_writing}.json"
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"No such file: '{file_path}'")
+    new_language = language
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    
+    root = l.WritingRoot()
+    root.width = data['width']
+    root.height = data['height']
+    root.letter_spaces = {}
+    for key,reduced_letter_spaace in data['letter_spaces'].items():
+        new = l.LetterSpace()
+        new.id = data['letter_spaces'][key]['id']
+        new.parent_id = data['letter_spaces'][key]['parent_id']
+        new.children_ids = data['letter_spaces'][key]['children_ids']
+        new.x = data['letter_spaces'][key]['x']
+        new.y = data['letter_spaces'][key]['y']
+        new.global_x = data['letter_spaces'][key]['global_x']
+        new.global_y = data['letter_spaces'][key]['global_y']
+        new.width = data['letter_spaces'][key]['width']
+        new.height = data['letter_spaces'][key]['height']
+        if data['letter_spaces'][key]['has_a_letter']:
+            new.letter = load_letter(data['letter_spaces'][key]['language'],data['letter_spaces'][key]['letter_name'])
+        new.letter_name = data['letter_spaces'][key]['letter_name']
+        new.letter_size = data['letter_spaces'][key]['letter_size']
+        new.outline_color_mode = data['letter_spaces'][key]['outline_color_mode']
+        new.fill_color_mode = data['letter_spaces'][key]['fill_color_mode']
+        new.custom_outline_color = data['letter_spaces'][key]['custom_outline_color']
+        new.custom_fill_color = data['letter_spaces'][key]['custom_fill_color']
+        new.letter_width = data['letter_spaces'][key]['letter_width']
+        root.letter_spaces[int(key)] = new
+    root.root_ids = data['root_ids']
+    root.global_outline_color = data['global_outline_color']
+    root.global_fill_color = data['global_fill_color']
+    root.background_color = data['background_color']
+    
+    return root
 
 
 def get_group_of_letter(language:str, name_letter: str) -> list:

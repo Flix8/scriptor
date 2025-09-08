@@ -1,0 +1,131 @@
+{
+      "segments": [
+            {
+                  "name": "Line1",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": -50,
+                              "y": -160
+                        },
+                        {
+                              "x": -10,
+                              "y": -160
+                        },
+                        {
+                              "x": -90,
+                              "y": 160
+                        },
+                        {
+                              "x": -130,
+                              "y": 160
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": 40,
+                                          "y": 180
+                                    },
+                                    {
+                                          "x": -40,
+                                          "y": -140
+                                    }
+                              ],
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": -40,
+                                          "y": -160
+                                    },
+                                    {
+                                          "x": 40,
+                                          "y": 160
+                                    }
+                              ],
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Line2",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 90.0,
+                              "y": -160.0
+                        },
+                        {
+                              "x": 130,
+                              "y": -160
+                        },
+                        {
+                              "x": 50,
+                              "y": 160
+                        },
+                        {
+                              "x": 10.0,
+                              "y": 160.0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": 40,
+                                          "y": 180
+                                    },
+                                    {
+                                          "x": -40,
+                                          "y": -140
+                                    }
+                              ],
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": -40.0,
+                                          "y": -160.0
+                                    },
+                                    {
+                                          "x": 40.0,
+                                          "y": 160.0
+                                    }
+                              ],
+                              "direction": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Verb"
+      ]
+}

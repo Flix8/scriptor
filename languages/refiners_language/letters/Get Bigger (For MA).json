@@ -1,0 +1,130 @@
+{
+      "segments": [
+            {
+                  "name": "Circle1",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": -100,
+                              "y": 0
+                        },
+                        {
+                              "x": -160,
+                              "y": 0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            },
+            {
+                  "name": "Arrow",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 0,
+                              "y": -10
+                        },
+                        {
+                              "x": 0,
+                              "y": -35
+                        },
+                        {
+                              "x": 40,
+                              "y": 0
+                        },
+                        {
+                              "x": 0,
+                              "y": 35
+                        },
+                        {
+                              "x": 0,
+                              "y": 10
+                        },
+                        {
+                              "x": -70,
+                              "y": 10
+                        },
+                        {
+                              "x": -70,
+                              "y": -10
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Circle2",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 200,
+                              "y": 0
+                        },
+                        {
+                              "x": 60,
+                              "y": 0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Matura"
+      ]
+}

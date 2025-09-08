@@ -129,6 +129,11 @@ def on_update():
                     manager.write_selected_label.saved = manager.write_canvas.saved
                 if manager.write_canvas.reload_slots:
                     manager.load_scene_treeview(manager.write_canvas.root)
+                    manager.write_global_fill_label.configure(background = manager.write_canvas.root.global_fill_color)
+                    manager.write_global_outline_label.configure(background = manager.write_canvas.root.global_outline_color)
+                    manager.write_background_label.configure(background = manager.write_canvas.root.background_color)
+                    manager.write_width_image_string_var.set(str(manager.write_canvas.root.width))
+                    manager.write_height_image_string_var.set(str(manager.write_canvas.root.height))
                     manager.write_canvas.reload_slots = False
                 if isinstance(manager.write_canvas.configuration_data,list):
                     manager.write_update_inspector_entries(manager.write_canvas.configuration_data[0])
@@ -139,6 +144,14 @@ def on_update():
                         if not manager.write_canvas.configuration_data[(i+1)*2] is None:
                             manager.write_inspector_vars_y[i].set(manager.write_canvas.configuration_data[(i+1)*2])
                             manager.write_inspector_entries_y[i].original_value = str(manager.write_canvas.configuration_data[(i+1)*2])
+                        if i == 1:
+                            manager.write_inspector_additional[2].configure(background = manager.write_canvas.root.get_letter_space_with_id(manager.write_canvas.selected_ids[0]).custom_fill_color)
+                            manager.write_inspector_additional[5].configure(background = manager.write_canvas.root.get_letter_space_with_id(manager.write_canvas.selected_ids[0]).custom_outline_color)
+
+                            manager.write_width_entry_string_var.set(str(manager.write_canvas.root.get_letter_space_with_id(manager.write_canvas.selected_ids[0]).letter_width))
+
+                            manager.use_custom_fill_bool_var.set(manager.write_canvas.root.get_letter_space_with_id(manager.write_canvas.selected_ids[0]).fill_color_mode == "CUSTOM")
+                            manager.use_custom_outline_bool_var.set(manager.write_canvas.root.get_letter_space_with_id(manager.write_canvas.selected_ids[0]).outline_color_mode == "CUSTOM")
                     manager.write_canvas.configuration_data = None
     manager.get("main").after(100,on_update)
 
@@ -147,7 +160,7 @@ def on_exit():
     json.dump(debug.debug_window.command_log,cmd_log_file,indent=6)
     cmd_log_file.close()
     session_save = open("last_session_info.json","w")
-    json.dump(saving.SessionData(manager.get("main").language_name,manager.editor_canvas.letter_name,manager.positioning_canvas.letter_name,manager.window.current_frame),session_save,default=lambda o: o.__dict__,indent=6)
+    json.dump(saving.SessionData(manager.get("main").language_name,manager.editor_canvas.letter_name,manager.positioning_canvas.letter_name,manager.write_canvas.text_name,manager.window.current_frame),session_save,default=lambda o: o.__dict__,indent=6)
     session_save.close()
     for window_name in manager.registered:
         if window_name == "main": continue
@@ -194,5 +207,13 @@ if last_session_data["language"] != None:
                 if saving.does_positioning_for_letter_exist(manager.window.language_name,last_session_data["letter_config"]):
                     manager.positioning_canvas.load_slots(saving.load_positioning(manager.window.language_name,last_session_data["letter_config"],False,True))
                 manager.positioning_canvas.saved = True
+        if last_session_data["text_name"] != None:
+            writings_path = manager.os.path.join("languages", manager.get("main").language_name, "texts")
+            writings = [f for f in manager.os.listdir(writings_path) if manager.os.path.isfile(manager.os.path.join(writings_path, f))]
+            if last_session_data["text_name"] + ".json" not in writings:
+                messagebox.showwarning("Error Loading","Could not load letter from last session - Missing")
+            else:
+                manager.write_canvas.load_text(saving.load_writing(manager.get("main").language_name,last_session_data["text_name"]),last_session_data["text_name"])
+                manager.write_canvas.saved = True
 session_save.close()
 manager.get("main").mainloop()

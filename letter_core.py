@@ -645,7 +645,7 @@ class PositioningCanvas(ScriptorCanvas):
             if slot.selected:
                 slots_copy.remove(slot)
         self.slots = slots_copy
-        self.light_reset(False)
+        self.light_reset()
         self.update()
     def deselect_all_slots(self):
         for slot in self.slots:
@@ -695,6 +695,18 @@ class WritingCanvas(ScriptorCanvas):
         self.light_reset()
         self.root = root
         self.update()
+    def load_slots(self,slots):
+        ids = []
+        for slot in slots:
+            ids.append(slot.id)
+        if self.mode == "normal":
+            self.root.register(slots)
+            self.root.root_ids += ids
+            self.reload_slots = True
+        else:
+            self.root.load_children_for_id(self.selected_ids[0],slots,True)
+            self.reload_slots = True
+        self.update()
     def light_reset(self,reload_hierarchy=True):
         self.deselect_all_slots()
         #Canvas Interaction Stuff___________
@@ -738,6 +750,7 @@ class WritingCanvas(ScriptorCanvas):
         selected = False
         for id,slot in self.root.letter_spaces.items():
             if is_inside_slot(real_x,real_y,slot):
+                debug.send(real_x,real_y,slot.id)
                 if id in self.selected_ids:
                     self.to_deselect = id
                 else:
@@ -765,7 +778,7 @@ class WritingCanvas(ScriptorCanvas):
                 #Create LetterSpace under selected Letterspace
                 self.saved = False
                 parent_global_pos = Node(self.root.get_letter_space_with_id(self.selected_ids[0]).global_x,self.root.get_letter_space_with_id(self.selected_ids[0]).global_y)
-                new_slot = LetterSpace(x-parent_global_pos.x,y-parent_global_pos.y,x,y)
+                new_slot = LetterSpace(x-parent_global_pos.x,y-parent_global_pos.y,x,y,100*((self.root.height+self.root.width)/2/500),100*((self.root.height+self.root.width)/2/500))
                 debug.send(f"Slot {new_slot.id} created with relative pos {x-parent_global_pos.x,y-parent_global_pos.y} and global pos {x,y}")
                 self.last_slot_created = new_slot
                 self.root.load_children_for_id(self.selected_ids[0],[new_slot])
@@ -773,7 +786,7 @@ class WritingCanvas(ScriptorCanvas):
             elif mode == "normal":
                 #Create LetterSpace at root
                 self.saved = False
-                new_slot = LetterSpace(x,y,x,y)
+                new_slot = LetterSpace(x,y,x,y,100*((self.root.height+self.root.width)/2/500),100*((self.root.height+self.root.width)/2/500))
                 self.last_slot_created = new_slot
                 self.root.register([new_slot])
                 self.reload_slots = True
@@ -1092,19 +1105,22 @@ class LetterSpace():
         #Should be called when height, width or letter changed
         if self.letter is None:
             return 1.0
-        largest_found_diff = 0
+        
+        #Diff is positive inside and negative outside
+        smallest_found_diff = float('INF')
         size = 1.0
 
         max_allowed_x = self.width/2
         max_allowed_y = self.height/2
         for segment in self.letter.segments:
             for node in segment.nodes:
-                if abs(node.x) - max_allowed_x > largest_found_diff:
-                    largest_found_diff = abs(node.x) - max_allowed_x
-                    size = max_allowed_x/ abs(node.x)
-                if abs(node.y) - max_allowed_y > largest_found_diff:
-                    largest_found_diff = abs(node.y) - max_allowed_y
-                    size = max_allowed_y/ abs(node.y)
+                if max_allowed_x - abs(node.x) < smallest_found_diff:
+                    smallest_found_diff = max_allowed_x - abs(node.x)
+                    size = max_allowed_x / abs(node.x)
+                if max_allowed_y - abs(node.y) < smallest_found_diff:
+                    smallest_found_diff = max_allowed_y - abs(node.y)
+                    size = max_allowed_y / abs(node.y)
+        debug.send("Resized to ",size, smallest_found_diff)
         return size
 
     def update_outline_color(self,mode="GLOBAL",color="black"):
@@ -1115,7 +1131,7 @@ class LetterSpace():
         self.children_ids.remove(id)
         
 class WritingRoot():
-    def __init__(self,width:int=600,height:int=600,letter_spaces:list|None=None,global_outline_color="black",global_fill_color="black", background_color="WHITE"):
+    def __init__(self,width:int=600,height:int=600,letter_spaces:list|None=None,global_outline_color="black",global_fill_color="black", background_color="WHITE",transparent_background:bool=False):
         self.width = width
         self.height = height
         self.letter_spaces = {}
@@ -1129,6 +1145,8 @@ class WritingRoot():
         self.global_outline_color = global_outline_color
         self.global_fill_color = global_fill_color
         self.background_color = background_color
+
+        self.transparent_background = transparent_background
     
     def register(self, letter_spaces:list|None=None):
         if letter_spaces is None:
@@ -1162,7 +1180,11 @@ class WritingRoot():
             slot.parent_id = id
             ids.append(slot.id)
             if resize:
-                size = self.get_letter_space_with_id(id).letter_size
+                parent = self.get_letter_space_with_id(id)
+                if parent.letter is not None:
+                    size = parent.letter_size
+                else:
+                    size = (parent.width + parent.height) / 2 / 200
                 slot.x *= size
                 slot.y *= size
                 slot.width *= size
@@ -1265,7 +1287,7 @@ def positioning_draw(letter,canvas,slots,zoom:float=1.0,center:Node=Node(0,0)):
 def writing_draw(writing_root:WritingRoot,canvas,zoom:float=1.0,draw_slots:bool=True,selected_ids:list|None=None):
     if selected_ids is None:
         selected_ids = []
-    canvas.create_rectangle(350-writing_root.width/2/zoom,300-writing_root.height/2/zoom,350+writing_root.width/2/zoom,300+writing_root.height/2/zoom,fill="white")
+    canvas.create_rectangle(350-writing_root.width/2/zoom,300-writing_root.height/2/zoom,350+writing_root.width/2/zoom,300+writing_root.height/2/zoom,fill=writing_root.background_color)
     for child_id in writing_root.root_ids:
         recursive_slots_draw(canvas,writing_root,writing_root.get_letter_space_with_id(child_id),zoom,Node(0,0),draw_slots,selected_ids)
 
@@ -1442,7 +1464,20 @@ def resized_letter(letter:Letter,zoom:float) -> Letter:
             resized_segment.nodes.append(resized_node)
         resized_segment.name = segment.name
         resized_segment.is_empty = segment.is_empty
-        resized_segment.connectors = segment.connectors
+        for connector in segment.connectors:
+            if isinstance(connector,EditorConnector):
+                resized_connector = EditorConnector(connector.type,connector.width,connector.color)
+                if resized_connector.selected:
+                    resized_connector.select()
+                else:
+                    resized_connector.deselect()
+            else:
+                resized_connector = Connector(connector.type)
+            if connector.type == "BEZIER":
+                resized_connector.anchors = [Node(connector.anchors[0].x/zoom,connector.anchors[0].y/zoom),Node(connector.anchors[1].x/zoom,connector.anchors[1].y/zoom)]
+            if connector.type == "CIRCLE":
+                resized_connector.direction = connector.direction
+            resized_segment.connectors.append(resized_connector)
         resized.segments.append(resized_segment)
     resized.groups = letter.groups[:]
     return resized

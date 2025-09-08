@@ -2,43 +2,50 @@
       "segments": [
             {
                   "name": "Segment",
+                  "is_empty": false,
                   "nodes": [
                         {
-                              "x": -120,
-                              "y": -140
+                              "x": -200,
+                              "y": 200
                         },
                         {
-                              "x": 120,
-                              "y": -140
+                              "x": 200,
+                              "y": 200
                         },
                         {
-                              "x": 120,
-                              "y": 100
+                              "x": 200,
+                              "y": -200
                         },
                         {
-                              "x": -120,
-                              "y": 100
+                              "x": -200,
+                              "y": -200
                         }
                   ],
                   "connectors": [
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         },
                         {
                               "type": "LINE",
-                              "anchors": null
+                              "anchors": null,
+                              "direction": null
                         }
                   ]
             }
       ],
-      "groups": []
+      "groups": [
+            "Matura"
+      ]
 }

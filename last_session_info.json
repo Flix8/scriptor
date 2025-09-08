@@ -1,6 +1,7 @@
 {
       "language": "refiners_language",
-      "letter_editor": "Past",
-      "letter_config": "Far Past",
+      "letter_editor": "Adjective Constructor",
+      "letter_config": "Write",
+      "text_name": "AbbildungVerben",
       "open_frame": "WRITE"
 }

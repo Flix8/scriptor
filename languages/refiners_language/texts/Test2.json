@@ -1,0 +1,75 @@
+{
+      "width": 500,
+      "height": 500,
+      "letter_spaces": {
+            "1": {
+                  "id": 1,
+                  "parent_id": null,
+                  "children_ids": [
+                        2,
+                        3
+                  ],
+                  "x": 0.0,
+                  "y": -40.0,
+                  "global_x": 0.0,
+                  "global_y": -40.0,
+                  "width": 200.0,
+                  "height": 150.0,
+                  "has_a_letter": true,
+                  "letter_name": "I",
+                  "language": "refiners_language",
+                  "letter_size": 0.5,
+                  "outline_color_mode": "CUSTOM",
+                  "fill_color_mode": "GLOBAL",
+                  "custom_outline_color": "#ee53bf",
+                  "custom_fill_color": "black",
+                  "letter_width": 1
+            },
+            "2": {
+                  "id": 2,
+                  "parent_id": 1,
+                  "children_ids": [],
+                  "x": 140.0,
+                  "y": -120.0,
+                  "global_x": 140.0,
+                  "global_y": -160.0,
+                  "width": 100.0,
+                  "height": 100.0,
+                  "has_a_letter": true,
+                  "letter_name": "Lasting Situation",
+                  "language": "refiners_language",
+                  "letter_size": 0.25,
+                  "outline_color_mode": "GLOBAL",
+                  "fill_color_mode": "CUSTOM",
+                  "custom_outline_color": "black",
+                  "custom_fill_color": "#6660e1",
+                  "letter_width": 1
+            },
+            "3": {
+                  "id": 3,
+                  "parent_id": 1,
+                  "children_ids": [],
+                  "x": 120.0,
+                  "y": 180.0,
+                  "global_x": 120.0,
+                  "global_y": 140.0,
+                  "width": 100.0,
+                  "height": 100.0,
+                  "has_a_letter": false,
+                  "letter_name": "Unnamed",
+                  "language": "refiners_language",
+                  "letter_size": 1.0,
+                  "outline_color_mode": "GLOBAL",
+                  "fill_color_mode": "GLOBAL",
+                  "custom_outline_color": "black",
+                  "custom_fill_color": "black",
+                  "letter_width": 1
+            }
+      },
+      "root_ids": [
+            1
+      ],
+      "global_outline_color": "black",
+      "global_fill_color": "black",
+      "background_color": "#f34e4e"
+}

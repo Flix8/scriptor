@@ -1,0 +1,192 @@
+{
+      "segments": [
+            {
+                  "name": "Main",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 60,
+                              "y": -160
+                        },
+                        {
+                              "x": 140,
+                              "y": 40
+                        },
+                        {
+                              "x": -100,
+                              "y": 20
+                        },
+                        {
+                              "x": -160,
+                              "y": -60
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "MainInner",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": 120.0,
+                              "y": -10.0
+                        },
+                        {
+                              "x": 80.0,
+                              "y": -110.0
+                        },
+                        {
+                              "x": -80,
+                              "y": -50
+                        },
+                        {
+                              "x": -60,
+                              "y": -20
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": -1
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Bezier",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 0,
+                              "y": 60
+                        },
+                        {
+                              "x": 100,
+                              "y": 180
+                        },
+                        {
+                              "x": -100,
+                              "y": 180
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": 80,
+                                          "y": 20
+                                    },
+                                    {
+                                          "x": 40,
+                                          "y": -80
+                                    }
+                              ],
+                              "direction": null
+                        },
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": -60,
+                                          "y": 80
+                                    },
+                                    {
+                                          "x": 100,
+                                          "y": -60
+                                    }
+                              ],
+                              "direction": null
+                        },
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": 0,
+                                          "y": 0
+                                    },
+                                    {
+                                          "x": -40,
+                                          "y": -20
+                                    }
+                              ],
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "BezierInner",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 70,
+                              "y": 160
+                        },
+                        {
+                              "x": 0,
+                              "y": 90
+                        },
+                        {
+                              "x": -30,
+                              "y": 130
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Matura"
+      ]
+}

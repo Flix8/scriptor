@@ -1,0 +1,167 @@
+{
+      "segments": [
+            {
+                  "name": "Segment",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 65,
+                              "y": -5
+                        },
+                        {
+                              "x": 65,
+                              "y": 80
+                        },
+                        {
+                              "x": 25,
+                              "y": 80
+                        },
+                        {
+                              "x": 25.0,
+                              "y": -5.0
+                        },
+                        {
+                              "x": -95,
+                              "y": 5
+                        },
+                        {
+                              "x": -95.0,
+                              "y": 80.0
+                        },
+                        {
+                              "x": -135,
+                              "y": 80
+                        },
+                        {
+                              "x": -135,
+                              "y": 5
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": -1
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            },
+            {
+                  "name": "Segment",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 120,
+                              "y": 0
+                        },
+                        {
+                              "x": 50,
+                              "y": -50
+                        },
+                        {
+                              "x": 30,
+                              "y": -80
+                        },
+                        {
+                              "x": 160,
+                              "y": 0
+                        },
+                        {
+                              "x": 160,
+                              "y": 80
+                        },
+                        {
+                              "x": 120,
+                              "y": 80
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": 0,
+                                          "y": -45
+                                    },
+                                    {
+                                          "x": 45,
+                                          "y": -20
+                                    }
+                              ],
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": 55,
+                                          "y": -40
+                                    },
+                                    {
+                                          "x": 5,
+                                          "y": -90
+                                    }
+                              ],
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Number"
+      ]
+}

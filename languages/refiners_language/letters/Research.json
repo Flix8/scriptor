@@ -1,0 +1,345 @@
+{
+      "segments": [
+            {
+                  "name": "Basis",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 15,
+                              "y": -70
+                        },
+                        {
+                              "x": 15,
+                              "y": 50
+                        },
+                        {
+                              "x": 70,
+                              "y": 50
+                        },
+                        {
+                              "x": 70,
+                              "y": 5
+                        },
+                        {
+                              "x": 95,
+                              "y": 5
+                        },
+                        {
+                              "x": 95,
+                              "y": 75
+                        },
+                        {
+                              "x": 15,
+                              "y": 75
+                        },
+                        {
+                              "x": 15,
+                              "y": 160
+                        },
+                        {
+                              "x": -15,
+                              "y": 160
+                        },
+                        {
+                              "x": -15,
+                              "y": 75
+                        },
+                        {
+                              "x": -95,
+                              "y": 75
+                        },
+                        {
+                              "x": -95,
+                              "y": 5
+                        },
+                        {
+                              "x": -70,
+                              "y": 5
+                        },
+                        {
+                              "x": -70,
+                              "y": 50
+                        },
+                        {
+                              "x": -15,
+                              "y": 50
+                        },
+                        {
+                              "x": -15,
+                              "y": -70
+                        },
+                        {
+                              "x": -120,
+                              "y": -70
+                        },
+                        {
+                              "x": -120,
+                              "y": -40
+                        },
+                        {
+                              "x": -175,
+                              "y": -85
+                        },
+                        {
+                              "x": -120,
+                              "y": -130
+                        },
+                        {
+                              "x": -120,
+                              "y": -100
+                        },
+                        {
+                              "x": -80.0,
+                              "y": -100.0
+                        },
+                        {
+                              "x": 80.0,
+                              "y": -100.0
+                        },
+                        {
+                              "x": 120,
+                              "y": -100
+                        },
+                        {
+                              "x": 120,
+                              "y": -130
+                        },
+                        {
+                              "x": 175,
+                              "y": -85
+                        },
+                        {
+                              "x": 120,
+                              "y": -40
+                        },
+                        {
+                              "x": 120,
+                              "y": -70
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Half Circle",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": 50.0,
+                              "y": -100.0
+                        },
+                        {
+                              "x": -50.0,
+                              "y": -100.0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": -1
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Circle",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 60,
+                              "y": 60
+                        },
+                        {
+                              "x": -60,
+                              "y": 60
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            },
+            {
+                  "name": "CircleInner",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": 30,
+                              "y": 60
+                        },
+                        {
+                              "x": -30,
+                              "y": 60
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Pronoun"
+      ]
+}

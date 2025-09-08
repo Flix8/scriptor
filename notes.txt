@@ -5,14 +5,20 @@ Different modes:
 
 To-Do:
 - Write menu
-    - You can choose background color (Color Picker?)
-    - Set stroke size, size, fill color (custom or background color)
-    - Setting width and height
-    - Loading positioning and templates (with a chosen size, show a preview)
-    - Fill function for a segment -> Creates a polygon, maybe rewrite draw functions?
-- Export
-    - Chose Name, export png
+    - Loading texts
+- Excluding Groups in open
+    - Saving these settings per session
+Setting fill and outline of multiple letters in write
 
 Bugs:
-- Weird behaviour when deleting in write -> Not responding?
-- Children in write sometimes move incorrectly
+When pressing new in write, there is an error about not being able to delete an item in the treeview. Part of the code stops working after that.
+
+Open windows don't close when loading a new letter, they can't be closed afterwards
+
+There is sometimes a mismatch between relative position and global position
+
+The group button only works when having saved (why?)
+
+Deleting a group doesn't set saved to false
+
+saving in write doesn't put save to true

@@ -8,12 +8,15 @@ def export_preview_img(language,letter_name,letter):
     draw_letter_pil(letter,draw,1,(360,310),"black",4)
     img.save(f"languages/{language}/previews/{letter_name}.png")
 
-def export_write(language,file_name,writing_root:letter.WritingRoot):
-    img = Image.new("RGB", (writing_root.width,writing_root.height),writing_root.background_color)
+def export_write(path,writing_root:letter.WritingRoot):
+    if not writing_root.transparent_background:
+        img = Image.new("RGB", (writing_root.width,writing_root.height),writing_root.background_color)
+    else:
+        img = Image.new("RGBA", (writing_root.width,writing_root.height),(0,0,0,0))
     draw = ImageDraw.Draw(img)
     for child_id in writing_root.root_ids:
-        recursive_slots_draw(draw,writing_root,writing_root.get_letter_space_with_id(child_id),letter.Node(0,0))
-    img.save(f"languages/{language}/exports/{file_name}.png")
+        recursive_slots_draw(draw,writing_root,writing_root.get_letter_space_with_id(child_id),letter.Node(writing_root.width//2,writing_root.height//2))
+    img.save(path)
 
 def draw_letter_pil(letter:letter.Letter,image,size,pos,color=None,width_letter=None):
         x,y = pos
@@ -40,7 +43,7 @@ def draw_letter_pil(letter:letter.Letter,image,size,pos,color=None,width_letter=
                         draw_bezier(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1],image,width_letter,color)
                     else:
                         draw_half_circle(x,y,last_node,node,size,connector.direction,image,width_letter,color)
-def draw_letter_polygon_pil(let:letter.Letter,image,size:float,center:letter.Node,color_letter:str="black",width_letter:int=1,fill_color:str="white",empty_color:str="#525252"):
+def draw_letter_polygon_pil(let:letter.Letter,image,size:float,center:letter.Node,color_letter:str="black",width_letter:int=1,fill_color:str="white",empty_color:str="#525252",transparent_background:bool=False):
     x,y = center.x,center.y
     for segment_index, segment in enumerate(let.segments):
         polygon_positions = []
@@ -65,15 +68,17 @@ def draw_letter_polygon_pil(let:letter.Letter,image,size:float,center:letter.Nod
                     polygon_positions += letter.get_half_circle_positions(x,y,last_node,node,size,connector.direction)
         if not segment.is_empty:
             image.polygon(polygon_positions,width=width_letter,outline=color_letter,fill=fill_color)
-        else:
+        elif not transparent_background:
             image.polygon(polygon_positions,width=width_letter,outline=color_letter,fill=empty_color)
+        else:
+            image.polygon(polygon_positions,width=width_letter,outline=color_letter,fill=(0,0,0,0))
 def recursive_slots_draw(image,writing_root:letter.WritingRoot,slot:letter.LetterSpace,center:letter.Node=letter.Node(0,0)):
     #Draw self
     if slot.letter is not None:
-        draw_letter_polygon_pil(slot.letter,image,slot.letter_size,letter.Node(350+center.x+slot.x,300+center.y+slot.y),writing_root.global_outline_color if slot.outline_color_mode == "GLOBAL" else slot.custom_outline_color,slot.letter_width,writing_root.global_fill_color if slot.fill_color_mode == "GLOBAL" else slot.custom_fill_color,writing_root.background_color)
+        draw_letter_polygon_pil(slot.letter,image,slot.letter_size,letter.Node(center.x+slot.x,center.y+slot.y),writing_root.global_outline_color if slot.outline_color_mode == "GLOBAL" else slot.custom_outline_color,slot.letter_width,writing_root.global_fill_color if slot.fill_color_mode == "GLOBAL" else slot.custom_fill_color,writing_root.background_color,writing_root.transparent_background)
     #Draw children
     for child_id in slot.children_ids:
-        recursive_slots_draw(image,writing_root,writing_root.get_letter_space_with_id(child_id),letter.Node(slot.global_x,slot.global_y))
+        recursive_slots_draw(image,writing_root,writing_root.get_letter_space_with_id(child_id),letter.Node(center.x+slot.x,center.y+slot.y))
 
 def draw_bezier(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2,image,width=3,color="black"):
     #Modified code from: https://stackoverflow.com/a/50302363

@@ -1,0 +1,371 @@
+{
+      "segments": [
+            {
+                  "name": "Circle",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 80,
+                              "y": 120
+                        },
+                        {
+                              "x": -80,
+                              "y": 120
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            },
+            {
+                  "name": "CircleInner",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": 40,
+                              "y": 120
+                        },
+                        {
+                              "x": -40,
+                              "y": 120
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            },
+            {
+                  "name": "CircleTop",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 40,
+                              "y": -180
+                        },
+                        {
+                              "x": -40,
+                              "y": -180
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            },
+            {
+                  "name": "CircleTopInner",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": 20,
+                              "y": -180
+                        },
+                        {
+                              "x": -20,
+                              "y": -180
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            },
+            {
+                  "name": "Base",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": -15,
+                              "y": -140
+                        },
+                        {
+                              "x": 15,
+                              "y": -140
+                        },
+                        {
+                              "x": 15,
+                              "y": -110
+                        },
+                        {
+                              "x": 75,
+                              "y": -110
+                        },
+                        {
+                              "x": 75,
+                              "y": -140
+                        },
+                        {
+                              "x": 100,
+                              "y": -140
+                        },
+                        {
+                              "x": 100,
+                              "y": -80
+                        },
+                        {
+                              "x": 15,
+                              "y": -80
+                        },
+                        {
+                              "x": 15,
+                              "y": -35
+                        },
+                        {
+                              "x": 140,
+                              "y": -35
+                        },
+                        {
+                              "x": 140,
+                              "y": 40
+                        },
+                        {
+                              "x": 115,
+                              "y": 40
+                        },
+                        {
+                              "x": 115,
+                              "y": -5
+                        },
+                        {
+                              "x": 15,
+                              "y": -5
+                        },
+                        {
+                              "x": 15,
+                              "y": 40
+                        },
+                        {
+                              "x": -15,
+                              "y": 40
+                        },
+                        {
+                              "x": -15,
+                              "y": -5
+                        },
+                        {
+                              "x": -115,
+                              "y": -5
+                        },
+                        {
+                              "x": -115,
+                              "y": 40
+                        },
+                        {
+                              "x": -140,
+                              "y": 40
+                        },
+                        {
+                              "x": -140,
+                              "y": -35
+                        },
+                        {
+                              "x": -15,
+                              "y": -35
+                        },
+                        {
+                              "x": -15,
+                              "y": -80
+                        },
+                        {
+                              "x": -100,
+                              "y": -80
+                        },
+                        {
+                              "x": -100,
+                              "y": -140
+                        },
+                        {
+                              "x": -75,
+                              "y": -140
+                        },
+                        {
+                              "x": -75,
+                              "y": -110
+                        },
+                        {
+                              "x": -15,
+                              "y": -110
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Verb"
+      ]
+}

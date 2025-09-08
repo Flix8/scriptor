@@ -3,4 +3,6 @@ Grammar:#c2d8fc:None
 Time:#ffbfbf:Grammar
 Pronoun:#baf5be:Grammar
 Verb:#d9fddf:None
+Matura:#b8dc65:None
+Number::Grammar
 end_groups

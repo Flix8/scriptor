@@ -1,0 +1,353 @@
+{
+      "segments": [
+            {
+                  "name": "Basis",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 15,
+                              "y": -85
+                        },
+                        {
+                              "x": 15,
+                              "y": 50
+                        },
+                        {
+                              "x": 90,
+                              "y": 50
+                        },
+                        {
+                              "x": 90,
+                              "y": -85
+                        },
+                        {
+                              "x": 115,
+                              "y": -85
+                        },
+                        {
+                              "x": 115,
+                              "y": 75
+                        },
+                        {
+                              "x": 15,
+                              "y": 75
+                        },
+                        {
+                              "x": 15,
+                              "y": 160
+                        },
+                        {
+                              "x": -15,
+                              "y": 160
+                        },
+                        {
+                              "x": -15,
+                              "y": 75
+                        },
+                        {
+                              "x": -115,
+                              "y": 75
+                        },
+                        {
+                              "x": -115,
+                              "y": -85
+                        },
+                        {
+                              "x": -90,
+                              "y": -85
+                        },
+                        {
+                              "x": -90,
+                              "y": 50
+                        },
+                        {
+                              "x": -15,
+                              "y": 50
+                        },
+                        {
+                              "x": -15,
+                              "y": -85
+                        },
+                        {
+                              "x": -140,
+                              "y": -85
+                        },
+                        {
+                              "x": -140,
+                              "y": -55
+                        },
+                        {
+                              "x": -195,
+                              "y": -100
+                        },
+                        {
+                              "x": -140,
+                              "y": -145
+                        },
+                        {
+                              "x": -140,
+                              "y": -115
+                        },
+                        {
+                              "x": 140,
+                              "y": -115
+                        },
+                        {
+                              "x": 140,
+                              "y": -145
+                        },
+                        {
+                              "x": 195,
+                              "y": -100
+                        },
+                        {
+                              "x": 140,
+                              "y": -55
+                        },
+                        {
+                              "x": 140,
+                              "y": -85
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Circle2",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 80,
+                              "y": -100
+                        },
+                        {
+                              "x": -80,
+                              "y": -100
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            },
+            {
+                  "name": "CircleInner2",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": 50.0,
+                              "y": -100.0
+                        },
+                        {
+                              "x": -50.0,
+                              "y": -100.0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            },
+            {
+                  "name": "Circle",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 50,
+                              "y": 60
+                        },
+                        {
+                              "x": -50,
+                              "y": 60
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            },
+            {
+                  "name": "CircleInner",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": 20,
+                              "y": 60
+                        },
+                        {
+                              "x": -20,
+                              "y": 60
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Pronoun"
+      ]
+}
