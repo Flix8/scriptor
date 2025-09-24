@@ -1,0 +1,122 @@
+{
+      "segments": [
+            {
+                  "name": "Segment",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 40,
+                              "y": -280
+                        },
+                        {
+                              "x": -40,
+                              "y": -280
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            },
+            {
+                  "name": "Arrow",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": -250.0,
+                              "y": 155.0
+                        },
+                        {
+                              "x": -275,
+                              "y": 170
+                        },
+                        {
+                              "x": -260,
+                              "y": 105
+                        },
+                        {
+                              "x": -205,
+                              "y": 125
+                        },
+                        {
+                              "x": -225.0,
+                              "y": 140.0
+                        },
+                        {
+                              "x": 0.0,
+                              "y": 265.0
+                        },
+                        {
+                              "x": 0.0,
+                              "y": 295.0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": 35.0,
+                                          "y": 65.0
+                                    },
+                                    {
+                                          "x": -80.0,
+                                          "y": 0.0
+                                    }
+                              ],
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": -160.0,
+                                          "y": 0.0
+                                    },
+                                    {
+                                          "x": 0.0,
+                                          "y": 20.0
+                                    }
+                              ],
+                              "direction": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Grammar"
+      ]
+}

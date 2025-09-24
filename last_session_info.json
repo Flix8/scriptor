@@ -1,7 +1,7 @@
 {
       "language": "refiners_language",
-      "letter_editor": "Adjective Constructor",
-      "letter_config": "Write",
-      "text_name": "AbbildungVerben",
+      "letter_editor": "Create",
+      "letter_config": "Clarification",
+      "text_name": "AbbildungOrt",
       "open_frame": "WRITE"
 }

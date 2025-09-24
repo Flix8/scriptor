@@ -1,0 +1,131 @@
+{
+      "segments": [
+            {
+                  "name": "Corner1",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": -170,
+                              "y": -90
+                        },
+                        {
+                              "x": -170,
+                              "y": -170
+                        },
+                        {
+                              "x": -90,
+                              "y": -170
+                        },
+                        {
+                              "x": -90,
+                              "y": -200
+                        },
+                        {
+                              "x": -200,
+                              "y": -200
+                        },
+                        {
+                              "x": -200,
+                              "y": -90
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Corner2",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 90,
+                              "y": 200
+                        },
+                        {
+                              "x": 90,
+                              "y": 170
+                        },
+                        {
+                              "x": 170,
+                              "y": 170
+                        },
+                        {
+                              "x": 170,
+                              "y": 90
+                        },
+                        {
+                              "x": 200,
+                              "y": 90
+                        },
+                        {
+                              "x": 200,
+                              "y": 200
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Grammar"
+      ]
+}

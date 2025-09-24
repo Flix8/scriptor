@@ -1,0 +1,173 @@
+{
+      "segments": [
+            {
+                  "name": "Base",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 1.0,
+                              "y": 160.0
+                        },
+                        {
+                              "x": 190.0,
+                              "y": 1.0
+                        },
+                        {
+                              "x": 1.0,
+                              "y": -160.0
+                        },
+                        {
+                              "x": -190.0,
+                              "y": 1.0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "BaseInner",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": 1.0,
+                              "y": -120.0
+                        },
+                        {
+                              "x": -125,
+                              "y": -15
+                        },
+                        {
+                              "x": 125.0,
+                              "y": -15.0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "BaseInner2",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": 1.0,
+                              "y": 120.0
+                        },
+                        {
+                              "x": 125,
+                              "y": 15
+                        },
+                        {
+                              "x": -125,
+                              "y": 15
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Circle",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": -80.0,
+                              "y": -132.0
+                        },
+                        {
+                              "x": 80.0,
+                              "y": -132.0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            },
+            {
+                  "name": "CircleInner",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": 45.0,
+                              "y": -132.0
+                        },
+                        {
+                              "x": -45.0,
+                              "y": -132.0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Verb"
+      ]
+}

@@ -1,49 +1,29 @@
 THIS LOG IS FOR DEBUGGING PURPOSES. THANK YOU.
-[Sun Sep  7 19:39:54 2025]: Assigned unique id:1
-[Sun Sep  7 19:39:54 2025]: Assigned unique id:2
-[Sun Sep  7 19:39:54 2025]: Assigned unique id:3
-[Sun Sep  7 19:39:54 2025]: Assigned unique id:4
-[Sun Sep  7 19:39:54 2025]: Assigned unique id:5
-[Sun Sep  7 19:39:54 2025]: Assigned unique id:6
-[Sun Sep  7 19:39:54 2025]: Assigned unique id:7
-[Sun Sep  7 19:39:54 2025]: Assigned unique id:8
-[Sun Sep  7 19:40:08 2025]: 385.82;-947.36;9
-[Sun Sep  7 19:40:12 2025]: 343.8;-912.98;9
-[Sun Sep  7 19:40:13 2025]: 412.56;-916.8;9
-[Sun Sep  7 19:40:35 2025]: 3.82;267.4;7
-[Sun Sep  7 19:41:40 2025]: 416.38;-886.24;9
-[Sun Sep  7 19:42:24 2025]: 145.16;783.1;12
-[Sun Sep  7 19:42:30 2025]: 104.2;922.17;8
-[Sun Sep  7 19:42:35 2025]: -67.73;1047.21;8
-[Sun Sep  7 19:42:49 2025]: Saving AbbildungVerben[refiners_language]
-[Sun Sep  7 19:43:18 2025]: Assigned unique id:9
-[Sun Sep  7 19:43:18 2025]: Slot 9 created with relative pos (-1146.2, -998.3) and global pos (-1146.2, 104.2)
-[Sun Sep  7 19:43:18 2025]: Adding slot 9 to 8 as a child
-[Sun Sep  7 19:43:28 2025]: Assigned unique id:10
-[Sun Sep  7 19:43:28 2025]: Assigned unique id:11
-[Sun Sep  7 19:43:28 2025]: Assigned unique id:12
-[Sun Sep  7 19:43:28 2025]: Assigned unique id:13
-[Sun Sep  7 19:43:28 2025]: Assigned unique id:14
-[Sun Sep  7 19:43:28 2025]: Assigned unique id:15
-[Sun Sep  7 19:43:28 2025]: Assigned unique id:16
-[Sun Sep  7 19:43:28 2025]: Assigned unique id:17
-[Sun Sep  7 19:43:53 2025]: 349.07;-922.17;9
-[Sun Sep  7 19:43:54 2025]: -62.519999999999996;-974.27;5
-[Sun Sep  7 19:43:57 2025]: 369.91;-943.01;9
-[Sun Sep  7 19:44:37 2025]: 448.06;-896.12;9
-[Sun Sep  7 19:44:39 2025]: 375.12;-932.59;9
-[Sun Sep  7 19:45:14 2025]: -161.51;1099.31;8
-[Sun Sep  7 19:45:19 2025]: Assigned unique id:18
-[Sun Sep  7 19:45:19 2025]: Slot 18 created with relative pos (833.6, -373.1) and global pos (833.6, 729.4)
-[Sun Sep  7 19:45:19 2025]: Adding slot 18 to 8 as a child
-[Sun Sep  7 19:45:20 2025]: 739.82;797.13;18
-[Sun Sep  7 19:45:20 2025]: Deleted Letterspace with id 18
-[Sun Sep  7 19:45:21 2025]: -98.99;937.8;8
-[Sun Sep  7 19:45:30 2025]: Assigned unique id:19
-[Sun Sep  7 19:45:30 2025]: Slot 19 created with relative pos (729.4, -321.0000000000001) and global pos (729.4, 729.4)
-[Sun Sep  7 19:45:30 2025]: Adding slot 19 to 8 as a child
-[Sun Sep  7 19:45:38 2025]: Assigned unique id:20
-[Sun Sep  7 19:45:38 2025]: 677.3;1547.37;20
-[Sun Sep  7 19:45:39 2025]: Deleted Letterspace with id 20
-[Sun Sep  7 19:45:41 2025]: 826.56;1718.7199999999998;19
-[Sun Sep  7 19:45:41 2025]: Deleted Letterspace with id 19
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:1
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:2
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:3
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:4
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:5
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:6
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:7
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:8
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:9
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:10
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:11
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:12
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:13
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:14
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:15
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:16
+[Wed Sep 24 10:58:44 2025]: Assigned unique id:17
+[Wed Sep 24 10:58:52 2025]: -1977.3600000000001;-951.23;4
+[Wed Sep 24 10:58:55 2025]: Resized to ;1.5;100.0
+[Wed Sep 24 10:59:05 2025]: Resized to ;1.5;100.0
+[Wed Sep 24 10:59:11 2025]: Resized to ;1.2;50.0
+[Wed Sep 24 10:59:17 2025]: Resized to ;1.5;100.0
+[Wed Sep 24 10:59:21 2025]: Resized to ;1.5;100.0
+[Wed Sep 24 10:59:26 2025]: Resized to ;1.5;100.0
+[Wed Sep 24 10:59:31 2025]: Resized to ;1.5;100.0
+[Wed Sep 24 10:59:34 2025]: Resized to ;1.5;100.0
+[Wed Sep 24 10:59:41 2025]: Resized to ;1.5;100.0
+[Wed Sep 24 11:00:00 2025]: Saving AbbildungOrt[refiners_language]

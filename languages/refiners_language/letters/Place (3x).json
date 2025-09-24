@@ -1,0 +1,95 @@
+{
+      "segments": [
+            {
+                  "name": "Segment",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": -200.0,
+                              "y": 1000.0
+                        },
+                        {
+                              "x": 200.0,
+                              "y": 1000.0
+                        },
+                        {
+                              "x": 200,
+                              "y": -200
+                        },
+                        {
+                              "x": -200,
+                              "y": -200
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Inner",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": -170.0,
+                              "y": 970.0
+                        },
+                        {
+                              "x": 170.0,
+                              "y": 970.0
+                        },
+                        {
+                              "x": 170,
+                              "y": -170
+                        },
+                        {
+                              "x": -170,
+                              "y": -170
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Place"
+      ]
+}

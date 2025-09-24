@@ -1,0 +1,97 @@
+{
+      "width": 2000,
+      "height": 1000,
+      "letter_spaces": {
+            "3": {
+                  "id": 3,
+                  "parent_id": null,
+                  "children_ids": [
+                        5
+                  ],
+                  "x": -363.20000000000005,
+                  "y": 0.0,
+                  "global_x": -363.20000000000005,
+                  "global_y": 0.0,
+                  "width": 400.0,
+                  "height": 400.0,
+                  "has_a_letter": true,
+                  "letter_name": "Family Member",
+                  "language": "refiners_language",
+                  "letter_size": 0.8,
+                  "outline_color_mode": "GLOBAL",
+                  "fill_color_mode": "CUSTOM",
+                  "custom_outline_color": "black",
+                  "custom_fill_color": "#afd7f3",
+                  "letter_width": 1
+            },
+            "4": {
+                  "id": 4,
+                  "parent_id": null,
+                  "children_ids": [
+                        6
+                  ],
+                  "x": 363.19999999999993,
+                  "y": 0.0,
+                  "global_x": 363.19999999999993,
+                  "global_y": 0.0,
+                  "width": 400.0,
+                  "height": 400.0,
+                  "has_a_letter": true,
+                  "letter_name": "Friend",
+                  "language": "refiners_language",
+                  "letter_size": 0.8,
+                  "outline_color_mode": "GLOBAL",
+                  "fill_color_mode": "CUSTOM",
+                  "custom_outline_color": "black",
+                  "custom_fill_color": "#afd7f3",
+                  "letter_width": 1
+            },
+            "5": {
+                  "id": 5,
+                  "parent_id": 3,
+                  "children_ids": [],
+                  "x": 0.0,
+                  "y": 0.0,
+                  "global_x": -363.20000000000005,
+                  "global_y": 0.0,
+                  "width": 320.0,
+                  "height": 320.0,
+                  "has_a_letter": true,
+                  "letter_name": "Person",
+                  "language": "refiners_language",
+                  "letter_size": 0.8,
+                  "outline_color_mode": "GLOBAL",
+                  "fill_color_mode": "GLOBAL",
+                  "custom_outline_color": "black",
+                  "custom_fill_color": "#afd7f3",
+                  "letter_width": 1
+            },
+            "6": {
+                  "id": 6,
+                  "parent_id": 4,
+                  "children_ids": [],
+                  "x": 0.0,
+                  "y": 0.0,
+                  "global_x": 363.19999999999993,
+                  "global_y": 0.0,
+                  "width": 320.0,
+                  "height": 320.0,
+                  "has_a_letter": true,
+                  "letter_name": "Person",
+                  "language": "refiners_language",
+                  "letter_size": 0.8,
+                  "outline_color_mode": "GLOBAL",
+                  "fill_color_mode": "GLOBAL",
+                  "custom_outline_color": "black",
+                  "custom_fill_color": "black",
+                  "letter_width": 1
+            }
+      },
+      "root_ids": [
+            3,
+            4
+      ],
+      "global_outline_color": "black",
+      "global_fill_color": "#a0a0a0",
+      "background_color": "WHITE"
+}

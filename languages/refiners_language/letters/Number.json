@@ -1,0 +1,51 @@
+{
+      "segments": [
+            {
+                  "name": "Segment",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": -180,
+                              "y": 160
+                        },
+                        {
+                              "x": 160,
+                              "y": -180
+                        },
+                        {
+                              "x": 180,
+                              "y": -160
+                        },
+                        {
+                              "x": -160,
+                              "y": 180
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Number"
+      ]
+}

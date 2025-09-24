@@ -1,0 +1,121 @@
+{
+      "segments": [
+            {
+                  "name": "Base",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 0,
+                              "y": 190
+                        },
+                        {
+                              "x": 190,
+                              "y": 0
+                        },
+                        {
+                              "x": 0,
+                              "y": -190
+                        },
+                        {
+                              "x": -190,
+                              "y": 0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Inner1",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": -20,
+                              "y": 120
+                        },
+                        {
+                              "x": -20,
+                              "y": -120
+                        },
+                        {
+                              "x": -140,
+                              "y": 0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Inner2",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": 140,
+                              "y": 0
+                        },
+                        {
+                              "x": 20,
+                              "y": -120
+                        },
+                        {
+                              "x": 20,
+                              "y": 120
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Grammar"
+      ]
+}

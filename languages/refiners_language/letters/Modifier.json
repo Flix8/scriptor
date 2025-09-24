@@ -1,0 +1,103 @@
+{
+      "segments": [
+            {
+                  "name": "Segment",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": -30,
+                              "y": -300
+                        },
+                        {
+                              "x": 30,
+                              "y": -300
+                        },
+                        {
+                              "x": 30,
+                              "y": -225
+                        },
+                        {
+                              "x": -30,
+                              "y": -225
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Circle",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 240,
+                              "y": 0
+                        },
+                        {
+                              "x": -240,
+                              "y": 0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            },
+            {
+                  "name": "CircleInner",
+                  "is_empty": true,
+                  "nodes": [
+                        {
+                              "x": 200,
+                              "y": 0
+                        },
+                        {
+                              "x": -200,
+                              "y": 0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        },
+                        {
+                              "type": "CIRCLE",
+                              "anchors": null,
+                              "direction": 1
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Modifier"
+      ]
+}

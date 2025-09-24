@@ -1,0 +1,131 @@
+{
+      "segments": [
+            {
+                  "name": "Segment",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 50,
+                              "y": -110
+                        },
+                        {
+                              "x": 170,
+                              "y": 70
+                        },
+                        {
+                              "x": 120,
+                              "y": 70
+                        },
+                        {
+                              "x": 50,
+                              "y": -40
+                        },
+                        {
+                              "x": -20.0,
+                              "y": 70.0
+                        },
+                        {
+                              "x": -70,
+                              "y": 70
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Segment",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": -50,
+                              "y": -40
+                        },
+                        {
+                              "x": -120,
+                              "y": 70
+                        },
+                        {
+                              "x": -170,
+                              "y": 70
+                        },
+                        {
+                              "x": -50.0,
+                              "y": -110.0
+                        },
+                        {
+                              "x": 0,
+                              "y": -35
+                        },
+                        {
+                              "x": -24.0,
+                              "y": 0.0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Number"
+      ]
+}

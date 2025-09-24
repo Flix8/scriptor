@@ -1,0 +1,139 @@
+{
+      "segments": [
+            {
+                  "name": "Segment",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 200,
+                              "y": -200
+                        },
+                        {
+                              "x": 200,
+                              "y": -180
+                        },
+                        {
+                              "x": -200,
+                              "y": -180
+                        },
+                        {
+                              "x": -200,
+                              "y": -200
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Segment",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 200,
+                              "y": 200
+                        },
+                        {
+                              "x": 200,
+                              "y": 180
+                        },
+                        {
+                              "x": -200,
+                              "y": 180
+                        },
+                        {
+                              "x": -200,
+                              "y": 200
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Main",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 200.0,
+                              "y": -112.5
+                        },
+                        {
+                              "x": 200.0,
+                              "y": -167.5
+                        },
+                        {
+                              "x": -200.0,
+                              "y": -167.5
+                        },
+                        {
+                              "x": -200.0,
+                              "y": -112.5
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Place"
+      ]
+}

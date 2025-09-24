@@ -5,12 +5,12 @@
                   "is_empty": false,
                   "nodes": [
                         {
-                              "x": 0,
-                              "y": -80
+                              "x": 1.0,
+                              "y": -80.0
                         },
                         {
-                              "x": 0,
-                              "y": 80
+                              "x": 1.0,
+                              "y": 80.0
                         }
                   ],
                   "connectors": [
@@ -28,7 +28,7 @@
             },
             {
                   "name": "Segment",
-                  "is_empty": false,
+                  "is_empty": true,
                   "nodes": [
                         {
                               "x": 40,

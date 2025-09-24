@@ -1,0 +1,96 @@
+{
+      "segments": [
+            {
+                  "name": "Arrow",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": -115.0,
+                              "y": -270.0
+                        },
+                        {
+                              "x": -125,
+                              "y": -290
+                        },
+                        {
+                              "x": -70,
+                              "y": -275
+                        },
+                        {
+                              "x": -95,
+                              "y": -225
+                        },
+                        {
+                              "x": -105,
+                              "y": -245
+                        },
+                        {
+                              "x": 0,
+                              "y": 265
+                        },
+                        {
+                              "x": 0.0,
+                              "y": 295.0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": -245,
+                                          "y": 80
+                                    },
+                                    {
+                                          "x": -340,
+                                          "y": 0
+                                    }
+                              ],
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "BEZIER",
+                              "anchors": [
+                                    {
+                                          "x": -420.0,
+                                          "y": -20.0
+                                    },
+                                    {
+                                          "x": -240.0,
+                                          "y": 40.0
+                                    }
+                              ],
+                              "direction": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Grammar"
+      ]
+}

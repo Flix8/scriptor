@@ -1,0 +1,95 @@
+{
+      "segments": [
+            {
+                  "name": "Segment",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": 220,
+                              "y": 125
+                        },
+                        {
+                              "x": 250,
+                              "y": 125
+                        },
+                        {
+                              "x": 250,
+                              "y": -125
+                        },
+                        {
+                              "x": 220,
+                              "y": -125
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            },
+            {
+                  "name": "Segment",
+                  "is_empty": false,
+                  "nodes": [
+                        {
+                              "x": -125.00000000000001,
+                              "y": -250.0
+                        },
+                        {
+                              "x": -125.00000000000001,
+                              "y": -220.0
+                        },
+                        {
+                              "x": 124.99999999999999,
+                              "y": -220.0
+                        },
+                        {
+                              "x": 124.99999999999999,
+                              "y": -250.0
+                        }
+                  ],
+                  "connectors": [
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        },
+                        {
+                              "type": "LINE",
+                              "anchors": null,
+                              "direction": null
+                        }
+                  ]
+            }
+      ],
+      "groups": [
+            "Relation"
+      ]
+}

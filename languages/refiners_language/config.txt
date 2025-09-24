@@ -5,4 +5,9 @@ Pronoun:#baf5be:Grammar
 Verb:#d9fddf:None
 Matura:#b8dc65:None
 Number::Grammar
+Modifier::Grammar
+Place::Grammar
+QUESTION::Verb
+Relation::Grammar
+Connector::Grammar
 end_groups
