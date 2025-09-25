@@ -12,13 +12,13 @@ import letter_core as letter
 import saving_agent as saving
 import exporter as export
 
-def custom_handler(exc_type, exc_value, exc_traceback):
+def custom_handler(exc_type, exc_value, exc_traceback): #Not written by myself
     on_exit()
     if exc_type != KeyboardInterrupt:
         messagebox.showerror("ERROR",f"A fatal error occured: {exc_type,exc_value}")
     sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
-#DEBUG
+#DEBUG WINDOW
 debug_mode = False
 def flick_debug():
     global debug_mode
@@ -33,6 +33,7 @@ def manual_exit():
     if debug_mode:
         on_exit()
 
+#Update Function. Gets called every 100ms
 def on_update():
     #Process keys
     if ('down','f8') in tracker.keypress_history:
@@ -41,6 +42,7 @@ def on_update():
         manual_exit()
     if ('down','alt') in tracker.keypress_history and ('down','v') in tracker.keypress_history:
         try:
+            #Executing copied commands
             clipboard = manager.get('main').clipboard_get()
             if clipboard:
                 debug.send(f"Executing from clipboard:\n{clipboard}")
@@ -49,13 +51,12 @@ def on_update():
         except TclError:
             debug.send("Clipboard empty!")
     if len(tracker.keypress_history) != 0:
-        #Need to send to focused canvas
         manager.editor_canvas.on_key(tracker.keypress_history)
         manager.positioning_canvas.on_key(tracker.keypress_history)
         manager.write_canvas.on_key(tracker.keypress_history)
     tracker.keypress_history.clear()
     #Executing command in console
-    if len(debug.debug_window.to_execute) != 0:
+    if len(debug.debug_window.to_execute) != 0: #Partly written by AI
         try:
             for command in debug.debug_window.to_execute:
                 if command.split(" ")[0] == "get":
@@ -74,6 +75,7 @@ def on_update():
             if saving.new_language != None:
                 manager.window.language_name = saving.new_language
                 saving.new_language = None
+            #__________________________EDITOR____________________________
             if manager.window.current_frame == "EDITOR":
                 if manager.editor_selected_label.letter != manager.editor_canvas.letter_name or manager.editor_selected_label.language != manager.window.language_name or manager.editor_selected_label.saved != manager.editor_canvas.saved:
                     manager.editor_txt_selected_label.set(f"Selected: {manager.editor_canvas.letter_name} [{manager.window.language_name}] {'*' if not manager.editor_canvas.saved else ''}")
@@ -105,6 +107,7 @@ def on_update():
                             manager.inspector_vars_y[i].set(manager.editor_canvas.configuration_data[(i+1)*2])
                             manager.inspector_entries_y[i].original_value = str(manager.editor_canvas.configuration_data[(i+1)*2])
                     manager.editor_canvas.configuration_data = None
+            #__________________________POSITIONING____________________________
             elif manager.window.current_frame == "CONFIG":
                 if manager.config_selected_label.letter != manager.positioning_canvas.letter_name or manager.config_selected_label.language != manager.window.language_name or manager.config_selected_label.saved != manager.positioning_canvas.saved:
                     manager.config_txt_selected_label.set(f"Selected: {manager.positioning_canvas.letter_name} [{manager.window.language_name}] {'*' if not manager.positioning_canvas.saved else ''}")
@@ -121,6 +124,7 @@ def on_update():
                             manager.config_inspector_vars_y[i].set(manager.positioning_canvas.configuration_data[(i+1)*2])
                             manager.config_inspector_entries_y[i].original_value = str(manager.positioning_canvas.configuration_data[(i+1)*2])
                     manager.positioning_canvas.configuration_data = None
+            #__________________________WRITING____________________________
             elif manager.window.current_frame == "WRITE":
                 if manager.write_selected_label.letter != manager.write_canvas.text_name or manager.write_selected_label.language != manager.window.language_name or manager.write_selected_label.saved != manager.write_canvas.saved:
                     manager.write_txt_selected_label.set(f"Selected: {manager.write_canvas.text_name} [{manager.window.language_name}] {'*' if not manager.write_canvas.saved else ''}")
@@ -158,6 +162,7 @@ def on_update():
                     manager.write_canvas.configuration_data = None
     manager.get("main").after(100,on_update)
 
+#Exit function. Gets called when program is closed.
 def on_exit():
     cmd_log_file = open("debug_cmd_log.json","w")
     json.dump(debug.debug_window.command_log,cmd_log_file,indent=6)
@@ -179,10 +184,12 @@ manager.get("main").after(0,on_update)
 # Set the custom hook
 sys.excepthook = custom_handler
 
+#Loading commands from previous session
 cmd_log_file = open("debug_cmd_log.json","r")
 debug.debug_window.command_log=json.load(cmd_log_file)
 cmd_log_file.close()
 
+#Loading info from previous sessions
 session_save = open("last_session_info.json","r")
 last_session_data = json.load(session_save)
 if last_session_data["language"] != None:
@@ -219,4 +226,5 @@ if last_session_data["language"] != None:
                 manager.write_canvas.load_text(saving.load_writing(manager.get("main").language_name,last_session_data["text_name"]),last_session_data["text_name"])
                 manager.write_canvas.saved = True
 session_save.close()
+#Starting the program!
 manager.get("main").mainloop()

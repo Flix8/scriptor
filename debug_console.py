@@ -2,6 +2,9 @@ import tkinter as tk
 from time import time, ctime
 from tkinter.scrolledtext import ScrolledText
 
+#BASE WRITTEN BY AI. Implemented debug log and revive myself.
+#What this does: An debug window that can be opened with F8. Outputs information, but also has a command line
+#                where you can execute commands and get data. Useful for debugging.
 
 class DebugWindow:
     def __init__(self, root: tk.Tk):

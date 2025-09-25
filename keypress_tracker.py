@@ -1,6 +1,9 @@
 import sys
 from collections import deque
 
+#COMPLETELY WRITTEN BY AI
+#What this does: Tracking any keyboard input and sending it back to the rest of the program.
+
 MAX_KEYS_TO_TRACK = 10
 keypress_history = deque(maxlen=MAX_KEYS_TO_TRACK)
 

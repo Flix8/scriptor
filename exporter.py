@@ -1,6 +1,8 @@
 import letter_core as letter
 from PIL import Image, ImageDraw
 from math import sin,cos,radians
+#MOSTLY WRITTEN BY MYSELF. ONLY SINGLE LINES THAT WERE SUGGESTED BY AI.
+#What this does: Exporting letters and texts as pngs with Pillow.
 
 def export_preview_img(language,letter_name,letter):
     img = Image.new("RGB", (720,620),"white")
@@ -18,7 +20,17 @@ def export_write(path,writing_root:letter.WritingRoot):
         recursive_slots_draw(draw,writing_root,writing_root.get_letter_space_with_id(child_id),letter.Node(writing_root.width//2,writing_root.height//2))
     img.save(path)
 
+def recursive_slots_draw(image,writing_root:letter.WritingRoot,slot:letter.LetterSpace,center:letter.Node=letter.Node(0,0)):
+    #Draw self
+    if slot.letter is not None:
+        draw_letter_polygon_pil(slot.letter,image,slot.letter_size,letter.Node(center.x+slot.x,center.y+slot.y),writing_root.global_outline_color if slot.outline_color_mode == "GLOBAL" else slot.custom_outline_color,slot.letter_width,writing_root.global_fill_color if slot.fill_color_mode == "GLOBAL" else slot.custom_fill_color,writing_root.background_color,writing_root.transparent_background)
+    #Draw children
+    for child_id in slot.children_ids:
+        recursive_slots_draw(image,writing_root,writing_root.get_letter_space_with_id(child_id),letter.Node(center.x+slot.x,center.y+slot.y))
+
+#_______________Drawing Functions with Pillow_________________________
 def draw_letter_pil(letter:letter.Letter,image,size,pos,color=None,width_letter=None):
+        #Only explanation, what functions there are in Pillow. Written myself.
         x,y = pos
         for segment in letter.segments:
             last_node = None
@@ -30,9 +42,9 @@ def draw_letter_pil(letter:letter.Letter,image,size,pos,color=None,width_letter=
                     if connector.type == "LINE":
                         image.line((x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size), fill=color, width=width_letter)
                     elif connector.type == "BEZIER":
-                        draw_bezier(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1],image,width_letter,color)
+                        draw_bezier_pil(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1],image,width_letter,color)
                     else:
-                        draw_half_circle(x,y,last_node,node,size,connector.direction,image,width_letter,color)
+                        draw_half_circle_pil(x,y,last_node,node,size,connector.direction,image,width_letter,color)
                 last_node = node
             if len(segment.nodes) > 1:
                     node = segment.nodes[0]
@@ -40,9 +52,10 @@ def draw_letter_pil(letter:letter.Letter,image,size,pos,color=None,width_letter=
                     if connector.type == "LINE":
                         image.line((x + last_node.x*size, y + last_node.y*size, x + node.x*size, y + node.y*size), fill=color, width=width_letter)
                     elif connector.type == "BEZIER":
-                        draw_bezier(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1],image,width_letter,color)
+                        draw_bezier_pil(x,y,last_node,node,size,connector.anchors[0],connector.anchors[1],image,width_letter,color)
                     else:
-                        draw_half_circle(x,y,last_node,node,size,connector.direction,image,width_letter,color)
+                        draw_half_circle_pil(x,y,last_node,node,size,connector.direction,image,width_letter,color)
+
 def draw_letter_polygon_pil(let:letter.Letter,image,size:float,center:letter.Node,color_letter:str="black",width_letter:int=1,fill_color:str="white",empty_color:str="#525252",transparent_background:bool=False):
     x,y = center.x,center.y
     for segment_index, segment in enumerate(let.segments):
@@ -72,15 +85,9 @@ def draw_letter_polygon_pil(let:letter.Letter,image,size:float,center:letter.Nod
             image.polygon(polygon_positions,width=width_letter,outline=color_letter,fill=empty_color)
         else:
             image.polygon(polygon_positions,width=width_letter,outline=color_letter,fill=(0,0,0,0))
-def recursive_slots_draw(image,writing_root:letter.WritingRoot,slot:letter.LetterSpace,center:letter.Node=letter.Node(0,0)):
-    #Draw self
-    if slot.letter is not None:
-        draw_letter_polygon_pil(slot.letter,image,slot.letter_size,letter.Node(center.x+slot.x,center.y+slot.y),writing_root.global_outline_color if slot.outline_color_mode == "GLOBAL" else slot.custom_outline_color,slot.letter_width,writing_root.global_fill_color if slot.fill_color_mode == "GLOBAL" else slot.custom_fill_color,writing_root.background_color,writing_root.transparent_background)
-    #Draw children
-    for child_id in slot.children_ids:
-        recursive_slots_draw(image,writing_root,writing_root.get_letter_space_with_id(child_id),letter.Node(center.x+slot.x,center.y+slot.y))
 
-def draw_bezier(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2,image,width=3,color="black"):
+
+def draw_bezier_pil(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2,image,width=3,color="black"):
     #Modified code from: https://stackoverflow.com/a/50302363
     node1 = letter.Node(posx + abs_node1.x * size,posy + abs_node1.y * size)
     node2 = letter.Node(posx + abs_node2.x * size,posy + abs_node2.y * size)
@@ -98,7 +105,7 @@ def draw_bezier(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2,image
         x_start = x
         y_start = y
 
-def draw_half_circle(posx,posy,abs_node1,abs_node2,size,direction,image,width=3,color="black"):
+def draw_half_circle_pil(posx,posy,abs_node1,abs_node2,size,direction,image,width=3,color="black"):
     node1 = letter.Node(abs_node1.x * size,abs_node1.y * size)
     node2 = letter.Node(abs_node2.x * size,abs_node2.y * size)
     offset = node1 + (node2-node1)/2

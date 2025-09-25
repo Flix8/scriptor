@@ -1,6 +1,10 @@
 from math import sqrt, sin, cos, radians
 import debug_console as debug
 
+#MOSTLY WRITTEN BY ME.
+#What this does: Everything around the canvases and letters. Interactions, data structures, ....
+
+#__________________ID COUNTER (SLOTS)_____________
 id_counter = 0
 def get_unique_id() -> int:
     global id_counter
@@ -8,7 +12,9 @@ def get_unique_id() -> int:
     debug.send(f"Assigned unique id:{id_counter}")
     return id_counter
 
-class ScriptorCanvas():
+#_________________CANVASES___________________
+
+class ScriptorCanvas(): #Master-Class
     def __init__(self,canvas):
         self.canvas = canvas
         self.canvas.bind("<Button-1>", self.on_click)
@@ -38,7 +44,7 @@ class ScriptorCanvas():
     def draw(self):
         pass
 
-class EditorCanvas(ScriptorCanvas):
+class EditorCanvas(ScriptorCanvas): #Canvas in the editor tab
     def __init__(self,canvas):
         super().__init__(canvas)
         self.selected_segment = 0
@@ -455,7 +461,7 @@ class EditorCanvas(ScriptorCanvas):
     def set_draw_nodes(self,value:bool):
         self.draw_nodes = value
 
-class PositioningCanvas(ScriptorCanvas):
+class PositioningCanvas(ScriptorCanvas): #Canvas in the positioning tab
     def __init__(self,canvas):
         super().__init__(canvas)
         self.letter_name = "Unnamed"
@@ -672,7 +678,7 @@ class PositioningCanvas(ScriptorCanvas):
         self.canvas.create_line(350+200/self.zoom,300-200/self.zoom,350+200/self.zoom,300+200/self.zoom,fill="gray",tags="grid")
         self.draw()
 
-class WritingCanvas(ScriptorCanvas):
+class WritingCanvas(ScriptorCanvas): #Canvas in the writing tab
     def __init__(self,canvas):
         super().__init__(canvas)
         self.canvas.bind("<Button-3>", self.on_right_click)
@@ -974,14 +980,17 @@ class WritingCanvas(ScriptorCanvas):
         self.canvas.create_line(350+200/self.zoom,300-200/self.zoom,350+200/self.zoom,300+200/self.zoom,fill="gray",tags="grid")
         self.draw()
 
-
-
+#___________________CLASSES FOR CANVASES__________________________
+class Letter():
+    def __init__(self):
+        self.segments = []
+        self.groups = []
 
 class Node():
     def __init__(self,x,y):
         self.x = x
         self.y = y
-    def __add__(self, value):
+    def __add__(self, value): #These operations were written by AI
         if isinstance(value, Node):
             return Node(self.x + value.x, self.y + value.y)
         else:
@@ -1013,6 +1022,7 @@ class Node():
 
     def __repr__(self):
         return f"Node({self.x}, {self.y})"
+
 class EditorNode(Node):
     def __init__(self,x,y,size=5,color="black"):
         self.x = x
@@ -1030,13 +1040,6 @@ class EditorNode(Node):
         self.size = self.start_size + 1
         self.color = "#156185"
         self.selected = True
-
-class Segment():
-    def __init__(self):
-        self.name = "Segment"
-        self.is_empty = False
-        self.nodes = []
-        self.connectors = []
 
 class Connector():
     def __init__(self,type="LINE"):
@@ -1065,21 +1068,6 @@ class EditorConnector(Connector):
         self.width = self.start_width + 1
         self.color = "#707070"
         self.selected = True
-
-class Letter():
-    def __init__(self):
-        self.segments = []
-        self.groups = []
-
-class Group():
-    def __init__(self,name,color="blue",parent="None"):
-        self.name = name
-        self.color = color
-        self.parent = parent if parent != "None" else None
-    def __str__(self):
-        return f"{self.name}:{self.color}:{self.parent if self.parent != None else 'None'}"
-
-        
 
 class LetterSpace():
     def __init__(self,x:float=0,y:float=0,global_x:float=0,global_y:float=0,width:int=100,height:int=100,letter:Letter|None=None,letter_name:str|None="Unnamed",parent_id:int|None=None,children_ids:list|None = None):
@@ -1134,6 +1122,29 @@ class LetterSpace():
 
     def abandon_child(self,id): # :)
         self.children_ids.remove(id)
+
+class EditorLetterSpace():
+    def __init__(self,x:float=0,y:float=0,width:int=100,height:int=100):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.selected = False
+
+class Segment():
+    def __init__(self):
+        self.name = "Segment"
+        self.is_empty = False
+        self.nodes = []
+        self.connectors = []        
+
+class Group():
+    def __init__(self,name,color="blue",parent="None"):
+        self.name = name
+        self.color = color
+        self.parent = parent if parent != "None" else None
+    def __str__(self):
+        return f"{self.name}:{self.color}:{self.parent if self.parent != None else 'None'}"      
         
 class WritingRoot():
     def __init__(self,width:int=600,height:int=600,letter_spaces:list|None=None,global_outline_color="black",global_fill_color="black", background_color="WHITE",transparent_background:bool=False):
@@ -1155,7 +1166,7 @@ class WritingRoot():
     
     def register(self, letter_spaces:list|None=None):
         if letter_spaces is None:
-            letter_spaces = []
+            letter_spaces = [] #This was suggested by Copilot, because the default value is shared by all instances.
         for letter_space in letter_spaces:
             self.letter_spaces[letter_space.id] = letter_space
 
@@ -1196,15 +1207,26 @@ class WritingRoot():
                 slot.height *= size
         self.get_letter_space_with_id(id).children_ids += ids
 
-class EditorLetterSpace():
-    def __init__(self,x:float=0,y:float=0,width:int=100,height:int=100):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.selected = False
 
-#Draw functions    
+#______________DRAW FUNCTIONS BIG______________________ 
+def editor_draw(letter,canvas,selected_segment_index,draw_nodes=True,center_edits=Node(0,0)):
+    editor_draw_letter(letter,canvas,1,Node(350,300),draw_nodes,selected_segment_index if draw_nodes else None,"gray" if draw_nodes else "black")
+    draw_node(canvas,350,300,EditorNode(center_edits.x,center_edits.y),1,color="purple")
+
+def positioning_draw(letter,canvas,slots,zoom:float=1.0,center:Node=Node(0,0)):
+    if letter is not None:
+        draw_letter(resized_letter(letter,zoom),canvas,1,Node(350+center.x,300+center.y),"black",1)
+        
+    for slot in slots:
+        draw_slot(canvas,350+center.x,300+center.y,slot,zoom,1,slot.selected)
+
+def writing_draw(writing_root:WritingRoot,canvas,zoom:float=1.0,draw_slots:bool=True,selected_ids:list|None=None):
+    if selected_ids is None:
+        selected_ids = []
+    canvas.create_rectangle(350-writing_root.width/2/zoom,300-writing_root.height/2/zoom,350+writing_root.width/2/zoom,300+writing_root.height/2/zoom,fill=writing_root.background_color)
+    for child_id in writing_root.root_ids:
+        recursive_slots_draw(canvas,writing_root,writing_root.get_letter_space_with_id(child_id),zoom,Node(0,0),draw_slots,selected_ids)
+
 def editor_draw_letter(letter:Letter,canvas,size:float,center:Node,draw_nodes=True,selected_segment_index:int|None=None,base_color:str|None="black"):
     x,y = center.x,center.y
     for segment_index, segment in enumerate(letter.segments):
@@ -1250,6 +1272,19 @@ def editor_draw_letter(letter:Letter,canvas,size:float,center:Node,draw_nodes=Tr
                 color = node.color if sel else base_color
                 draw_node(canvas,x,y,node,size,sel=sel,color=color)
 
+def recursive_slots_draw(canvas,writing_root:WritingRoot,slot:LetterSpace,zoom:float=1.0,center:Node=Node(0,0),draw_slots:bool=True,selected_ids:list|None = None):
+    if selected_ids is None:
+        selected_ids = []
+    #Draw self
+    if draw_slots:
+        draw_slot(canvas,350+center.x,300+center.y,slot,zoom,1,slot.id in selected_ids,slot.letter is None)
+    if slot.letter is not None:
+        draw_letter(resized_letter(slot.letter,zoom),canvas,slot.letter_size,Node(350+center.x/zoom+slot.x/zoom,300+center.y/zoom+slot.y/zoom),writing_root.global_outline_color if slot.outline_color_mode == "GLOBAL" else slot.custom_outline_color,slot.letter_width,writing_root.global_fill_color if slot.fill_color_mode == "GLOBAL" else slot.custom_fill_color,writing_root.background_color,zoom)
+    #Draw children
+    for child_id in slot.children_ids:
+        recursive_slots_draw(canvas,writing_root,writing_root.get_letter_space_with_id(child_id),zoom,Node(slot.global_x,slot.global_y),draw_slots,selected_ids)
+
+#______________DRAW FUNCTIONS INDIVIDUAL ELEMENTS________________
 def draw_letter(letter:Letter,canvas,size:float,center:Node,color_letter:str="black",width_letter:int=1,fill_color:str="white",empty_color:str="#525252",zoom=1):
     x,y = center.x,center.y
     for segment_index, segment in enumerate(letter.segments):
@@ -1278,35 +1313,6 @@ def draw_letter(letter:Letter,canvas,size:float,center:Node,color_letter:str="bl
         else:
             canvas.create_polygon(*polygon_positions,width=max(width_letter//zoom,1),outline=color_letter,fill=empty_color)
 
-def editor_draw(letter,canvas,selected_segment_index,draw_nodes=True,center_edits=Node(0,0)):
-    editor_draw_letter(letter,canvas,1,Node(350,300),draw_nodes,selected_segment_index if draw_nodes else None,"gray" if draw_nodes else "black")
-    draw_node(canvas,350,300,EditorNode(center_edits.x,center_edits.y),1,color="purple")
-
-def positioning_draw(letter,canvas,slots,zoom:float=1.0,center:Node=Node(0,0)):
-    if letter is not None:
-        draw_letter(resized_letter(letter,zoom),canvas,1,Node(350+center.x,300+center.y),"black",1)
-        
-    for slot in slots:
-        draw_slot(canvas,350+center.x,300+center.y,slot,zoom,1,slot.selected)
-
-def writing_draw(writing_root:WritingRoot,canvas,zoom:float=1.0,draw_slots:bool=True,selected_ids:list|None=None):
-    if selected_ids is None:
-        selected_ids = []
-    canvas.create_rectangle(350-writing_root.width/2/zoom,300-writing_root.height/2/zoom,350+writing_root.width/2/zoom,300+writing_root.height/2/zoom,fill=writing_root.background_color)
-    for child_id in writing_root.root_ids:
-        recursive_slots_draw(canvas,writing_root,writing_root.get_letter_space_with_id(child_id),zoom,Node(0,0),draw_slots,selected_ids)
-
-def recursive_slots_draw(canvas,writing_root:WritingRoot,slot:LetterSpace,zoom:float=1.0,center:Node=Node(0,0),draw_slots:bool=True,selected_ids:list|None = None):
-    if selected_ids is None:
-        selected_ids = []
-    #Draw self
-    if draw_slots:
-        draw_slot(canvas,350+center.x,300+center.y,slot,zoom,1,slot.id in selected_ids,slot.letter is None)
-    if slot.letter is not None:
-        draw_letter(resized_letter(slot.letter,zoom),canvas,slot.letter_size,Node(350+center.x/zoom+slot.x/zoom,300+center.y/zoom+slot.y/zoom),writing_root.global_outline_color if slot.outline_color_mode == "GLOBAL" else slot.custom_outline_color,slot.letter_width,writing_root.global_fill_color if slot.fill_color_mode == "GLOBAL" else slot.custom_fill_color,writing_root.background_color,zoom)
-    #Draw children
-    for child_id in slot.children_ids:
-        recursive_slots_draw(canvas,writing_root,writing_root.get_letter_space_with_id(child_id),zoom,Node(slot.global_x,slot.global_y),draw_slots,selected_ids)
 
 def draw_node(canvas,x,y,node,size,tag="l_node",sel=True,color="gray"):
     canvas.create_oval(x + node.x*size - node.size, y + node.y*size - node.size, x + node.x*size + node.size, y + node.y*size + node.size, fill=color if sel else "gray", tags=tag)
@@ -1344,6 +1350,22 @@ def draw_bezier(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2,canva
         x_start = x
         y_start = y
 
+def draw_half_circle(posx,posy,abs_node1,abs_node2,size,direction,canvas,width=3,color="black"):
+    #Inspired by draw_bezier above, but written by me
+    node1 = Node(abs_node1.x * size,abs_node1.y * size)
+    node2 = Node(abs_node2.x * size,abs_node2.y * size)
+    offset = node1 + (node2-node1)/2
+    x_start = node1.x - offset.x
+    y_start = node1.y - offset.y
+    n = 50
+    for i in range(n):
+        x = x_start * cos(radians(180/n*direction)) - y_start * sin(radians(180/n*direction))
+        y = y_start * cos(radians(180/n*direction)) + x_start * sin(radians(180/n*direction))
+        canvas.create_line(x + offset.x + posx, y + offset.y + posy, x_start + offset.x + posx, y_start + offset.y + posy,fill=color, width=width,tags="l_line")
+        x_start = x
+        y_start = y
+
+#_________________FUNCTIONS FOR CONSTRUCTING POLYGONS___________________
 def get_bezier_positions(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anchor2) -> list:
     #Modified code from: https://stackoverflow.com/a/50302363
     polygon_positions = []
@@ -1359,21 +1381,6 @@ def get_bezier_positions(posx,posy,abs_node1,abs_node2,size,rel_anchor1,rel_anch
         y = (node1.y * (1-t)**3 + anchor1.y * 3 * t * (1-t)**2 + anchor2.y * 3 * t**2 * (1-t) + node2.y * t**3)
         polygon_positions += [x,y]
     return polygon_positions
-
-
-def draw_half_circle(posx,posy,abs_node1,abs_node2,size,direction,canvas,width=3,color="black"):
-    node1 = Node(abs_node1.x * size,abs_node1.y * size)
-    node2 = Node(abs_node2.x * size,abs_node2.y * size)
-    offset = node1 + (node2-node1)/2
-    x_start = node1.x - offset.x
-    y_start = node1.y - offset.y
-    n = 50
-    for i in range(n):
-        x = x_start * cos(radians(180/n*direction)) - y_start * sin(radians(180/n*direction))
-        y = y_start * cos(radians(180/n*direction)) + x_start * sin(radians(180/n*direction))
-        canvas.create_line(x + offset.x + posx, y + offset.y + posy, x_start + offset.x + posx, y_start + offset.y + posy,fill=color, width=width,tags="l_line")
-        x_start = x
-        y_start = y
 
 def get_half_circle_positions(posx,posy,abs_node1,abs_node2,size,direction) -> list:
     polygon_positions = []
@@ -1391,8 +1398,9 @@ def get_half_circle_positions(posx,posy,abs_node1,abs_node2,size,direction) -> l
         y_start = y
     return polygon_positions
 
-#Distance calculations
+#_________________DISTANCE FUNCTIONS_______________________
 def distance_to_line_segment(line_p1,line_p2,point) -> float:
+    #Written by AI
     """
     Calculate the shortest distance from a point (Node point) to a line segment
     defined by (Node line_p1) and (Node line_p1).
@@ -1417,10 +1425,8 @@ def distance_to_line_segment(line_p1,line_p2,point) -> float:
     # Calculate the distance from the point to the projection
     return sqrt((x3 - projection_x) ** 2 + (y3 - projection_y) ** 2)
 
-dot = lambda v1,v2: v1.x * v2.x + v1.y * v2.y
-length = lambda v: sqrt(v.x**2+v.y**2)
-
 def distance_to_half_circle(circle_point1,circle_point2,direction,point) -> float:
+    #Written by myself
     midpoint = circle_point1 + (circle_point2-circle_point1)/2
     v = circle_point1 - midpoint
     normal = Node(-v.y,v.x) * direction
@@ -1431,6 +1437,7 @@ def distance_to_half_circle(circle_point1,circle_point2,direction,point) -> floa
         return min(length(point-circle_point1),length(point-circle_point2))
 
 def distance_to_bezier(node1,node2, rel_anchor1, rel_anchor2, point, n=50):
+    #Written by AI
     """
     Calculate the minimum distance from a point to a cubic Bezier curve.
     The curve is defined as in draw_bezier.
@@ -1448,11 +1455,17 @@ def distance_to_bezier(node1,node2, rel_anchor1, rel_anchor2, point, n=50):
             min_dist = dist
     return min_dist
 
+#_________________HELPER FUNCTIONS__________________
+dot = lambda v1,v2: v1.x * v2.x + v1.y * v2.y
+
+length = lambda v: sqrt(v.x**2+v.y**2)
+
 def is_inside_slot(x,y,slot:LetterSpace|EditorLetterSpace):
     if isinstance(slot,EditorLetterSpace):
         return (slot.x - slot.width/2) <= x <= (slot.x + slot.width/2) and (slot.y - slot.height/2) <= y <= (slot.y + slot.height/2)
     else:
         return (slot.global_x - slot.width/2) <= x <= (slot.global_x + slot.width/2) and (slot.global_y - slot.height/2) <= y <= (slot.global_y + slot.height/2)
+
 def resized_letter(letter:Letter,zoom:float) -> Letter:
     resized = Letter()
     for segment in letter.segments:

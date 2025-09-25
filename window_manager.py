@@ -13,7 +13,11 @@ import debug_console as debug
 import letter_core as letter
 import saving_agent as saving
 import exporter as export
-#________GENERAL FUNCTIONS______________
+
+#MANY FUNCTIONS WRITTEN WITH AI, THEN CHANGED BY ME
+#What this does: Handling all the windows. Connecting my other modules to the user.
+
+#________VARIABLES______________
 on_windows = sys.platform != "darwin"
 registered = {}
 root_id_to_treeview_id = {}
@@ -25,6 +29,7 @@ write_letter_selector_open = False
 save_window_open = False
 focused = 0
 
+#______________CORE HELPER FUNCTIONS_______________
 def change_tab(name) -> None:
     global write_letter_selector_open
     if name == window.current_frame:
@@ -117,13 +122,6 @@ def choose_color(index):
             write_background_label.configure(background = color)
             write_canvas.root.background_color = color
         write_canvas.update()
-
-def on_toggle_use_custom_fill_color():
-    write_canvas.root.get_letter_space_with_id(write_canvas.selected_ids[0]).fill_color_mode = "CUSTOM" if use_custom_fill_bool_var.get() else "GLOBAL"
-    write_canvas.update()
-def on_toggle_use_custom_outline_color():
-    write_canvas.root.get_letter_space_with_id(write_canvas.selected_ids[0]).outline_color_mode = "CUSTOM" if use_custom_outline_bool_var.get() else "GLOBAL"
-    write_canvas.update()
         
 def move_selected_segment_up():
     index = editor_canvas.selected_segment
@@ -147,72 +145,6 @@ def move_selected_segment_down():
     editor_canvas.saved = False
     editor_canvas.selected_segment += 1
 
-def set_segment_to_empty():
-    editor_canvas.letter.segments[editor_canvas.selected_segment].is_empty = is_segment_empty_var.get()
-    editor_canvas.saved = False
-
-def on_slot_select(event):
-    global previous_selection_scene_treeview
-    selected = list(write_scene_treeview.selection())
-    #Suggestion by Copilot
-    previous = previous_selection_scene_treeview[:]
-    added = []
-    for item in selected:
-        if item not in previous:
-            added.append(item)
-        else:
-            previous.remove(item)
-    removed = previous
-    for added_treeview_id in added:
-        write_canvas.select_id(int(write_scene_treeview.item(added_treeview_id,"tags")[0]))
-    for removed_treeview_id in removed:
-        write_canvas.deselect_id(int(write_scene_treeview.item(removed_treeview_id,"tags")[0]))
-    previous_selection_scene_treeview = selected
-
-def rename_slot_in_treeview(id,new_name):
-    if id not in root_id_to_treeview_id.keys():
-        debug.send(f"ERROR: Id {id} is not registered in the treeview")
-        return
-    write_scene_treeview.item(root_id_to_treeview_id[id], text=new_name)
-
-def clear_scene_treeview():
-    global root_id_to_treeview_id, previous_selection_scene_treeview
-    for id in list(root_id_to_treeview_id.keys()):
-        try:
-            write_scene_treeview.delete(root_id_to_treeview_id[id])
-        except TclError:
-            pass #This is not elegant. The issue I'm trying to fix with this is that the children also deleted when the parent is deleted.
-    root_id_to_treeview_id = {}
-    previous_selection_scene_treeview = []
-def load_scene_treeview(root:letter.WritingRoot):
-    global root_id_to_treeview_id, previous_selection_scene_treeview
-    #Making it a list: Suggestion by copilot
-    for id in list(root_id_to_treeview_id.keys()):
-        if id not in root.letter_spaces.keys():
-            print(id,root_id_to_treeview_id[id])
-            try:
-                write_scene_treeview.delete(root_id_to_treeview_id[id])
-            except TclError:
-                pass #This is not elegant. The issue I'm trying to fix with this is that the children also deleted when the parent is deleted.
-            if root_id_to_treeview_id[id] in previous_selection_scene_treeview:
-                previous_selection_scene_treeview.remove(root_id_to_treeview_id[id])
-            del root_id_to_treeview_id[id]
-    for id in root.root_ids:
-        recursive_load_scene_treeview(root,root.get_letter_space_with_id(id),"")
-    
-def recursive_load_scene_treeview(root:letter.WritingRoot,letter_space:letter.LetterSpace,parent:str):
-    global root_id_to_treeview_id
-    if letter_space.id not in root_id_to_treeview_id.keys():
-        #Insert self
-        me = write_scene_treeview.insert(parent,"end", text = letter_space.letter_name,tags=str(letter_space.id))
-        root_id_to_treeview_id[letter_space.id] = me
-        for id in letter_space.children_ids:
-            recursive_load_scene_treeview(root,root.get_letter_space_with_id(id),me)
-    else:
-        for id in letter_space.children_ids:
-            recursive_load_scene_treeview(root,root.get_letter_space_with_id(id),root_id_to_treeview_id[letter_space.id])
-
-
 def config_canvas_unload_letter():
     positioning_canvas.letter = None
     positioning_canvas.update()
@@ -224,7 +156,6 @@ def write_canvas_unload_letter():
             rename_slot_in_treeview(id,"Unnamed")
     write_canvas.update()
 
-
 def save_button_func():
     if window.current_frame == "EDITOR":
         save_letter_editor()
@@ -232,39 +163,12 @@ def save_button_func():
         save_positioning_config()
     elif window.current_frame == "WRITE":
         save_writing()
+
 def open_button_func():
     if window.current_frame in ["EDITOR","CONFIG"]:
         open_letter_selector()
     else:
         open_writing_window()
-
-def on_zoom_slider_change(event):
-    config_canvas_zoom_stringvar.set(str(config_canvas_zoom_intvar.get()/100))
-    positioning_canvas.zoom = config_canvas_zoom_intvar.get()/100
-    positioning_canvas.zoom_changed()
-
-def on_write_zoom_slider_change(event):
-    write_canvas_zoom_stringvar.set(str(write_canvas_zoom_intvar.get()/100))
-    write_canvas.zoom = write_canvas_zoom_intvar.get()/100
-    write_canvas.zoom_changed()
-
-def on_segment_select(event):
-    selected_index = editor_segment_listbox.curselection()
-    if selected_index:
-         editor_canvas.light_reset(False)
-         editor_canvas.selected_segment = selected_index[0]
-         is_segment_empty_var.set(editor_canvas.letter.segments[editor_canvas.selected_segment].is_empty)
-         editor_canvas.update()
-
-def on_segment_double_click(event):
-    selected_index = editor_segment_listbox.curselection()
-    if selected_index:
-        segment = editor_canvas.letter.segments[selected_index[0]]
-        new_name = simpledialog.askstring("Rename Segment", "Enter new name:", initialvalue=segment.name)
-        if new_name:
-            segment.name = new_name
-            editor_segment_listbox.delete(selected_index)
-            editor_segment_listbox.insert(selected_index, new_name)
 
 def new_segment_button():
     editor_canvas.letter.segments.append(letter.Segment())
@@ -278,20 +182,6 @@ def delete_segment_button():
         editor_canvas.selected_segment = 0
         editor_canvas.light_reset(False)
         editor_canvas.update()
-
-def on_group_double_click(event):
-    selected_index = editor_group_listbox.curselection()
-    if selected_index:
-        group = editor_canvas.letter.groups[selected_index[0]]
-        new_name = simpledialog.askstring("Rename Group", "Enter new name:", initialvalue=group)
-        if new_name:
-            new_name = new_name.upper()
-            editor_canvas.saved = False
-            editor_canvas.letter.groups.pop(selected_index[0])
-            editor_canvas.letter.groups.insert(selected_index[0],new_name)
-            saving.rename_group(get("main").language_name,group,new_name)
-            editor_group_listbox.delete(selected_index)
-            editor_group_listbox.insert(selected_index, new_name)
 
 def delete_group_button():
     selected_index = editor_group_listbox.curselection()
@@ -321,6 +211,7 @@ def turn_selected_connectors_into_beziers():
 def turn_selected_connectors_into_half_circles():
     editor_canvas.keys_pressed.append("c")
     editor_canvas.process_key_presses(True)
+
 def rotate_left():
     rotation = rotation_var.get()
     try:
@@ -343,6 +234,35 @@ def mirror_y():
 def mirror_x():
     editor_canvas.mirror_selection(True,False)
 
+def create_new_letter():
+    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG") or (write_canvas.saved and window.current_frame == "WRITE")):
+        ask_save("new")
+        return
+    if window.current_frame == "EDITOR":
+        editor_canvas.saved = True
+        new_letter = letter.Letter()
+        new_letter.segments.append(letter.Segment())
+        editor_canvas.load_letter(new_letter,"Unnamed")
+    elif window.current_frame == "CONFIG":
+        positioning_canvas.saved = True
+        positioning_canvas.load_letter(None,"Unnamed")
+    elif window.current_frame == "WRITE":
+        write_canvas.saved = True
+        write_canvas.load_text(letter.WritingRoot(),"Unnamed")
+
+#____________CHECKBUTTON FUNCTIONS_______________
+def on_toggle_use_custom_fill_color():
+    write_canvas.root.get_letter_space_with_id(write_canvas.selected_ids[0]).fill_color_mode = "CUSTOM" if use_custom_fill_bool_var.get() else "GLOBAL"
+    write_canvas.update()
+
+def on_toggle_use_custom_outline_color():
+    write_canvas.root.get_letter_space_with_id(write_canvas.selected_ids[0]).outline_color_mode = "CUSTOM" if use_custom_outline_bool_var.get() else "GLOBAL"
+    write_canvas.update()
+
+def set_segment_to_empty():
+    editor_canvas.letter.segments[editor_canvas.selected_segment].is_empty = is_segment_empty_var.get()
+    editor_canvas.saved = False
+
 def on_toggle_draw_nodes():
     editor_canvas.draw_nodes = show_nodes_var.get()
     editor_canvas.update()
@@ -354,7 +274,53 @@ def on_toggle_draw_letter_spaces():
 def on_toggle_background_transparent():
     write_canvas.root.transparent_background = export_background_transparent_var.get()
 
+#_____________SLIDER FUNCTIONS__________________
+def on_zoom_slider_change(event):
+    config_canvas_zoom_stringvar.set(str(config_canvas_zoom_intvar.get()/100))
+    positioning_canvas.zoom = config_canvas_zoom_intvar.get()/100
+    positioning_canvas.zoom_changed()
+
+def on_write_zoom_slider_change(event):
+    write_canvas_zoom_stringvar.set(str(write_canvas_zoom_intvar.get()/100))
+    write_canvas.zoom = write_canvas_zoom_intvar.get()/100
+    write_canvas.zoom_changed()
+
+#______________LISTBOX FUNCTIONS________________
+def on_segment_select(event):
+    selected_index = editor_segment_listbox.curselection()
+    if selected_index:
+         editor_canvas.light_reset(False)
+         editor_canvas.selected_segment = selected_index[0]
+         is_segment_empty_var.set(editor_canvas.letter.segments[editor_canvas.selected_segment].is_empty)
+         editor_canvas.update()
+
+def on_segment_double_click(event):
+    selected_index = editor_segment_listbox.curselection()
+    if selected_index:
+        segment = editor_canvas.letter.segments[selected_index[0]]
+        new_name = simpledialog.askstring("Rename Segment", "Enter new name:", initialvalue=segment.name)
+        if new_name:
+            segment.name = new_name
+            editor_segment_listbox.delete(selected_index)
+            editor_segment_listbox.insert(selected_index, new_name)
+
+def on_group_double_click(event):
+    selected_index = editor_group_listbox.curselection()
+    if selected_index:
+        group = editor_canvas.letter.groups[selected_index[0]]
+        new_name = simpledialog.askstring("Rename Group", "Enter new name:", initialvalue=group)
+        if new_name:
+            new_name = new_name.upper()
+            editor_canvas.saved = False
+            editor_canvas.letter.groups.pop(selected_index[0])
+            editor_canvas.letter.groups.insert(selected_index[0],new_name)
+            saving.rename_group(get("main").language_name,group,new_name)
+            editor_group_listbox.delete(selected_index)
+            editor_group_listbox.insert(selected_index, new_name)
+
+#____________VALIDATION FUNCTIONS________________
 def validate_angle(new_value):
+    #Written by AI
     if new_value == "":
         return True
     try:
@@ -418,6 +384,70 @@ def on_center_change_y(new_value):
         pass
     return True
 
+#_______________TREEVIEW FUNCTIONS (WRITE)__________________
+def load_scene_treeview(root:letter.WritingRoot):
+    global root_id_to_treeview_id, previous_selection_scene_treeview
+    #Making it a list: Suggestion by copilot
+    for id in list(root_id_to_treeview_id.keys()):
+        if id not in root.letter_spaces.keys():
+            print(id,root_id_to_treeview_id[id])
+            try:
+                write_scene_treeview.delete(root_id_to_treeview_id[id])
+            except TclError:
+                pass #This is not elegant. The issue I'm trying to fix with this is that the children also deleted when the parent is deleted.
+            if root_id_to_treeview_id[id] in previous_selection_scene_treeview:
+                previous_selection_scene_treeview.remove(root_id_to_treeview_id[id])
+            del root_id_to_treeview_id[id]
+    for id in root.root_ids:
+        recursive_load_scene_treeview(root,root.get_letter_space_with_id(id),"")
+
+def recursive_load_scene_treeview(root:letter.WritingRoot,letter_space:letter.LetterSpace,parent:str):
+    global root_id_to_treeview_id
+    if letter_space.id not in root_id_to_treeview_id.keys():
+        #Insert self
+        me = write_scene_treeview.insert(parent,"end", text = letter_space.letter_name,tags=str(letter_space.id))
+        root_id_to_treeview_id[letter_space.id] = me
+        for id in letter_space.children_ids:
+            recursive_load_scene_treeview(root,root.get_letter_space_with_id(id),me)
+    else:
+        for id in letter_space.children_ids:
+            recursive_load_scene_treeview(root,root.get_letter_space_with_id(id),root_id_to_treeview_id[letter_space.id])
+
+def clear_scene_treeview():
+    global root_id_to_treeview_id, previous_selection_scene_treeview
+    for id in list(root_id_to_treeview_id.keys()):
+        try:
+            write_scene_treeview.delete(root_id_to_treeview_id[id])
+        except TclError:
+            pass #This is not elegant. The issue I'm trying to fix with this is that the children also deleted when the parent is deleted.
+    root_id_to_treeview_id = {}
+    previous_selection_scene_treeview = []
+
+def rename_slot_in_treeview(id,new_name):
+    if id not in root_id_to_treeview_id.keys():
+        debug.send(f"ERROR: Id {id} is not registered in the treeview")
+        return
+    write_scene_treeview.item(root_id_to_treeview_id[id], text=new_name)
+
+def on_slot_select(event):
+    global previous_selection_scene_treeview
+    selected = list(write_scene_treeview.selection())
+    #Suggestion by Copilot
+    previous = previous_selection_scene_treeview[:]
+    added = []
+    for item in selected:
+        if item not in previous:
+            added.append(item)
+        else:
+            previous.remove(item)
+    removed = previous
+    for added_treeview_id in added:
+        write_canvas.select_id(int(write_scene_treeview.item(added_treeview_id,"tags")[0]))
+    for removed_treeview_id in removed:
+        write_canvas.deselect_id(int(write_scene_treeview.item(removed_treeview_id,"tags")[0]))
+    previous_selection_scene_treeview = selected
+#______________TKINTER WINDOWS (TopLevel)_______________
+#_____OPEN WINDOWS________
 def open_group_selector():
     #Base written by Copilot
     global group_selector_open
@@ -455,7 +485,7 @@ def open_group_selector():
         def close_new_group_dialog():
             new_group_dialog.destroy()
 
-        def choose_color():
+        def choose_color(): #By Copilot
             color_code = colorchooser.askcolor(title="Choose color")[1]
             if color_code:
                 color_var.set(color_code)
@@ -962,6 +992,7 @@ def write_open_letter_selector():
     display_letters("All")
 
 def open_positioning_window(use_editor_version:bool = True):
+    #Partly written by copilot
     if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG") or (write_canvas.saved and window.current_frame == "WRITE")):
         ask_save("open")
         return
@@ -1065,6 +1096,7 @@ def open_positioning_window(use_editor_version:bool = True):
     close_button.pack(side=LEFT, padx=5)
 
 def open_positioning_window_write():
+    #variant of open_positioning_window (by me)
     if window.language_name == "":
         messagebox.showwarning("No selection", "Please select a language.")
         return
@@ -1165,6 +1197,7 @@ def open_positioning_window_write():
     close_button.pack(side=LEFT, padx=5)
 
 def open_writing_window():
+    #Modified open_positioning_window
     if window.language_name == "":
         messagebox.showwarning("No selection", "Please select a language.")
         return
@@ -1232,8 +1265,9 @@ def open_writing_window():
     close_button = Button(button_frame, text="Close", command=on_close)
     close_button.pack(side=LEFT, padx=5)
 
-
+#____SAVE WINDOWS______
 def save_letter_editor():
+    #Almost entirely written by Copilot.
     global letter_selector_open
 
     language = window.language_name
@@ -1313,6 +1347,7 @@ def save_letter_editor():
     cancel_button.pack(side=LEFT, padx=5)
 
 def save_positioning_config():
+    #Variant of save_letter_editor  (by me)
     global letter_selector_open
 
     language = window.language_name
@@ -1425,6 +1460,7 @@ def save_positioning_config():
     cancel_button.pack(side=LEFT, padx=5)
     
 def save_writing():
+    #Varaint of save_letter_editor
     global letter_selector_open
 
     language = window.language_name
@@ -1494,12 +1530,15 @@ def save_writing():
     cancel_button = Button(button_frame, text="Cancel", command=on_cancel)
     cancel_button.pack(side=LEFT, padx=5)
 
+#___OTHER WINDOWS___
 def export_writing():
+    #Copilot suggested the use of asksaveasfilename
     path = filedialog.asksaveasfilename(defaultextension="png",initialfile=write_canvas.text_name,filetypes=[('Picture', '*.png')])
     if path:
         export.export_write(path,write_canvas.root)
 
 def ask_save(action="new"):
+    #Base written by copilot, modified by me.
     global save_window_open
 
     if save_window_open:
@@ -1549,22 +1588,7 @@ def ask_save(action="new"):
     cancel_button = Button(button_frame, text="Cancel", command=on_cancel)
     cancel_button.pack(side=LEFT, padx=5)
 
-def create_new_letter():
-    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG") or (write_canvas.saved and window.current_frame == "WRITE")):
-        ask_save("new")
-        return
-    if window.current_frame == "EDITOR":
-        editor_canvas.saved = True
-        new_letter = letter.Letter()
-        new_letter.segments.append(letter.Segment())
-        editor_canvas.load_letter(new_letter,"Unnamed")
-    elif window.current_frame == "CONFIG":
-        positioning_canvas.saved = True
-        positioning_canvas.load_letter(None,"Unnamed")
-    elif window.current_frame == "WRITE":
-        write_canvas.saved = True
-        write_canvas.load_text(letter.WritingRoot(),"Unnamed")
-
+#_________PROCESSING INSPECTOR FUNCTIONS__________
 def process_inspector_menu(event):
     #Check if anything was changed
     change = False
@@ -1702,10 +1726,11 @@ def process_write_new_height_or_size(event):
     write_canvas.root.height = int(write_height_image_string_var.get())
     write_canvas.update()
 
+#____________MAIN WINDOW_________________
 window = Tk()
 window.language_name = ""
 window.current_frame = "EDITOR" #EDITOR, WRITE, CONFIG
-#Tk Variables
+#_____________TK VARIABLES_________________
 editor_txt_selected_label = StringVar(window)
 editor_txt_selected_label.set("Selected: Placeholder [Placeholder]")
 config_txt_selected_label = StringVar(window)
@@ -1720,7 +1745,7 @@ config_canvas_zoom_intvar = IntVar(window)
 write_canvas_zoom_stringvar = StringVar(window)
 write_canvas_zoom_stringvar.set("1.0")
 write_canvas_zoom_intvar = IntVar(window)
-#Style
+#___________________STYLE__________________
 style = Style(window)
 style.configure("secondary.TFrame", background="#1a1919")
 style.configure("toolbar.TFrame", background="#4a4949")
@@ -1728,7 +1753,7 @@ style.configure("header.TFrame", background="#9e9d9d")
 style.configure("highlight.TListbox", background="#bfbfbf")
 style.configure("Custom.TCombobox", fieldbackground="lightblue", background="white")
 
-
+#____________________SETTING UP MAIN WINDOW___________________
 window.geometry("1000x800")
 background = Frame(window,width=1000,height=800,style="secondary.TFrame")
 background.pack()
@@ -1820,6 +1845,7 @@ editor_canvas.grid_photo = grid_photo
 inspector_frame = Frame(editor_frame, width=282, height=300, style="header.TFrame")
 smart_place(inspector_frame,(715,45),(715,45))
 
+#This concept of writing them in a list was suggested by Copilot
 inspector_labels_x = [
     Label(inspector_frame, text=f"X1:", background=style.lookup("header.TFrame", "background")),
     Label(inspector_frame, text=f"X2:", background=style.lookup("header.TFrame", "background")),
@@ -1856,7 +1882,7 @@ inspector_entries_y = [
 for entry in inspector_entries_x + inspector_entries_y:
     entry.bind("<Return>", process_inspector_menu)
 
-def update_inspector_entries(num_pairs):
+def update_inspector_entries(num_pairs): #Also by copilot
     window.shown_inspector_entries = num_pairs
     for i in range(4):
         if i < num_pairs:
@@ -2240,6 +2266,7 @@ editor_frame.lift()
 config_frame.lower()
 write_frame.lower()
 
+#_____________OTHER_____________
 def reopen_debug_window_on_close():
     debug.revive()
     del registered["debug"]

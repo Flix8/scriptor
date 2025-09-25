@@ -1,6 +1,7 @@
 import json
 #From https://github.com/Marijn-Bergman/copilot-chat-export-formatter/blob/main/format_chat_log.py
 #Modified by Copilot and me
+#What this does: Takes an exported copilot chat and makes it more readable.
 
 def format_chat_log(chat_log):
     formatted_chat_log = []
