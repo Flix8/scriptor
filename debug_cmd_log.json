@@ -1,4 +1,21 @@
 [
+      "get manager.root_id_to_treeview_id",
+      "get manager.write_canvas.selected_ids",
+      "get manager.write_canvas.selected_ids",
+      "get manager.write_canvas.root.letter_spaces[3].parent_id",
+      "get manager.write_canvas.root.letter_spaces",
+      "get manager.write_canvas.selected_ids",
+      "get manager.write_canvas.selected_ids",
+      "get manager.write_canvas.root.letter_spaces[2].parent_id",
+      "get manager.write_canvas.root.letter_spaces",
+      "get manager.write_canvas.update()",
+      "get manager.write_canvas.root.letter_spaces[2].height",
+      "get manager.write_canvas.root.letter_spaces[2].width",
+      "get manager.write_canvas.root.letter_spaces[2].global_y",
+      "get manager.write_canvas.root.letter_spaces[2].global_x",
+      "get manager.write_canvas.root.letter_spaces[2]",
+      "get manager.write_canvas.root.letter_spaces",
+      "manager.writing_canvas",
       "manager.open_group_selector()",
       "manager.write_canvas.root.get_letter_space_with_id(manager.write_canvas.selected_ids[0]).y = 136.2",
       "get manager.write_canvas.root.get_letter_space_with_id(manager.write_canvas.selected_ids[0]).y",
@@ -17,8 +34,5 @@
       "get manager.write_canvas.root.letter_spaces[6].x",
       "get manager.write_canvas.root.letter_spaces[11].letter",
       "get manager.write_canvas.root.letter_spaces[7].letter",
-      "get manager.write_canvas.root.letter_spaces[6].letter",
-      "get manager.write_canvas.root.letter_spaces[6]",
-      "get manager.write_canvas.root.letter_spaces",
-      "manager.write_canvas.root.slots"
+      "get manager.write_canvas.root.letter_spaces[6].letter"
 ]

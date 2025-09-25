@@ -307,6 +307,7 @@ def load_writing(language: str, name_writing: str) -> l.WritingRoot:
     root.global_outline_color = data['global_outline_color']
     root.global_fill_color = data['global_fill_color']
     root.background_color = data['background_color']
+    l.id_counter = max(root.letter_spaces.keys()) + 1
     
     return root
 

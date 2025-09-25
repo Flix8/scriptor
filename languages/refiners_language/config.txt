@@ -7,7 +7,7 @@ Matura:#b8dc65:None
 Number::Grammar
 Modifier::Grammar
 Place::Grammar
-QUESTION::Verb
+Question::Verb
 Relation::Grammar
 Connector::Grammar
 end_groups

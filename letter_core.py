@@ -692,7 +692,7 @@ class WritingCanvas(ScriptorCanvas):
         self.update()
     def load_text(self,root,name):
         self.text_name = name
-        self.light_reset()
+        self.light_reset(True,True)
         self.root = root
         self.update()
     def load_slots(self,slots):
@@ -707,7 +707,7 @@ class WritingCanvas(ScriptorCanvas):
             self.root.load_children_for_id(self.selected_ids[0],slots,True)
             self.reload_slots = True
         self.update()
-    def light_reset(self,reload_hierarchy=True):
+    def light_reset(self,reload_hierarchy=True,clear_hierarchy=False):
         self.deselect_all_slots()
         #Canvas Interaction Stuff___________
         self.last_slot_created = None
@@ -715,10 +715,9 @@ class WritingCanvas(ScriptorCanvas):
         self.to_deselect = None
         #____________________
         self.mode = "normal" #normal/selection_simple/selection_multiple
-        self.selected_ids = []
-        self.num_selected = 0
         self.configuration_data = [0]
         self.reload_slots = reload_hierarchy
+        self.clear_slots = clear_hierarchy
     def on_key(self,history):
         for type,key in history:
             if type == "down" and key not in self.keys_pressed:
@@ -782,6 +781,8 @@ class WritingCanvas(ScriptorCanvas):
                 debug.send(f"Slot {new_slot.id} created with relative pos {x-parent_global_pos.x,y-parent_global_pos.y} and global pos {x,y}")
                 self.last_slot_created = new_slot
                 self.root.load_children_for_id(self.selected_ids[0],[new_slot])
+                self.deselect_all_slots()
+                self.last_pos = None
                 self.reload_slots = True
             elif mode == "normal":
                 #Create LetterSpace at root
@@ -880,8 +881,11 @@ class WritingCanvas(ScriptorCanvas):
         x *= self.zoom
         y *= self.zoom
         if self.last_slot_created is not None:
-            self.last_slot_created.x = x
-            self.last_slot_created.y = y
+            self.last_slot_created.x += x - self.last_slot_created.global_x
+            self.last_slot_created.y += y - self.last_slot_created.global_y
+            self.last_slot_created.global_x = x
+            self.last_slot_created.global_y = y
+            self.configuration_data = [1,x,y]
             self.update()
         if self.last_pos is not None:
             self.saved = False
@@ -947,6 +951,7 @@ class WritingCanvas(ScriptorCanvas):
         self.update()
     def deselect_all_slots(self):
         self.selected_ids = []
+        self.mode = "normal"
         self.num_selected = 0
     def calculate_snapped_position(self,x,y) -> tuple:
         x = (x//self.cursor_step_size)*self.cursor_step_size

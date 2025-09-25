@@ -127,6 +127,9 @@ def on_update():
                     manager.write_selected_label.letter = manager.write_canvas.text_name
                     manager.write_selected_label.language = manager.window.language_name
                     manager.write_selected_label.saved = manager.write_canvas.saved
+                if manager.write_canvas.clear_slots:
+                    manager.clear_scene_treeview()
+                    manager.write_canvas.clear_slots = False
                 if manager.write_canvas.reload_slots:
                     manager.load_scene_treeview(manager.write_canvas.root)
                     manager.write_global_fill_label.configure(background = manager.write_canvas.root.global_fill_color)

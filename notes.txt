@@ -24,21 +24,12 @@ zooming in editor
 
 If things are bigger than normal size -> Also slot this size. Not shrink to include
 
-Bugs:
-When pressing new in write, there is an error about not being able to delete an item in the treeview. Part of the code stops working after that.
 
-Open windows don't close when loading a new letter, they can't be closed afterwards
+_______________________________________Things I'll fix for now:
 
-There is sometimes a mismatch between relative position and global position
-I FOUND IT! WHEN DRAGGING, ONE OF THE TWO ISN'T UPDATED. I DON'T KNOW IF THIS FIXES ALL CASES THOUGH.
 
-The group button only works when having saved (why?)
+_______________________________________Bugs:
 
-Deleting a group doesn't set saved to false
-
-Changing width doesn't set save to false
-
-saving in write doesn't put save to true
 
 Something added itself as a child and parent
 
@@ -48,15 +39,9 @@ Resize doesn't work when coordinate of node is zero
 
 Deleting sometimes leaves inspector open (drag stills works and changes coordinates)
 
-Renaming groups makes them uppercase
-
 Sorting in write didn't work -> Entire open window behaves weird
 
 Mirroring doesn't flip bezier anchors
-
-Open preview shouldn't make grid bigger
-
-When saving writing -> When clicking on a name and changing it, it takes the selected instead of the changed text
 
 Can't scroll in hierarchy write
 

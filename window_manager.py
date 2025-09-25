@@ -7,6 +7,7 @@ from tkinter import filedialog
 from tkinter.ttk import *
 import tkinter.font as font
 from PIL import Image, ImageTk
+import textwrap
 
 import debug_console as debug
 import letter_core as letter
@@ -174,13 +175,25 @@ def rename_slot_in_treeview(id,new_name):
         return
     write_scene_treeview.item(root_id_to_treeview_id[id], text=new_name)
 
+def clear_scene_treeview():
+    global root_id_to_treeview_id, previous_selection_scene_treeview
+    for id in list(root_id_to_treeview_id.keys()):
+        try:
+            write_scene_treeview.delete(root_id_to_treeview_id[id])
+        except TclError:
+            pass #This is not elegant. The issue I'm trying to fix with this is that the children also deleted when the parent is deleted.
+    root_id_to_treeview_id = {}
+    previous_selection_scene_treeview = []
 def load_scene_treeview(root:letter.WritingRoot):
     global root_id_to_treeview_id, previous_selection_scene_treeview
     #Making it a list: Suggestion by copilot
     for id in list(root_id_to_treeview_id.keys()):
         if id not in root.letter_spaces.keys():
             print(id,root_id_to_treeview_id[id])
-            write_scene_treeview.delete(root_id_to_treeview_id[id])
+            try:
+                write_scene_treeview.delete(root_id_to_treeview_id[id])
+            except TclError:
+                pass #This is not elegant. The issue I'm trying to fix with this is that the children also deleted when the parent is deleted.
             if root_id_to_treeview_id[id] in previous_selection_scene_treeview:
                 previous_selection_scene_treeview.remove(root_id_to_treeview_id[id])
             del root_id_to_treeview_id[id]
@@ -285,6 +298,7 @@ def delete_group_button():
     if selected_index:
         editor_group_listbox.delete(selected_index)
         editor_canvas.letter.groups.pop(selected_index[0])
+        editor_canvas.saved = False
 
 def delete_letter_space():
     positioning_canvas.keys_pressed.append("backspace")
@@ -407,7 +421,7 @@ def on_center_change_y(new_value):
 def open_group_selector():
     #Base written by Copilot
     global group_selector_open
-    if not ((editor_canvas.saved and window.current_frame == "EDITOR") or (positioning_canvas.saved and window.current_frame == "CONFIG") or (write_canvas.saved and window.current_frame == "WRITE")):
+    if group_selector_open:
         return
     def on_ok():
         selected_index = listbox.curselection()
@@ -484,7 +498,6 @@ def open_group_selector():
             group = saving.all_groups[selected_index[0]]
             new_name = simpledialog.askstring("Rename Group", "Enter new name:", initialvalue=group.name)
             if new_name:
-                new_name = new_name.upper()
                 editor_canvas.saved = False
                 if group.name in editor_canvas.letter.groups:
                     editor_canvas.letter.groups.pop(selected_index[0])
@@ -672,7 +685,8 @@ def open_letter_selector():
                     # fallback image
                     img = Image.new("RGB", (60, 60), "gray")
                     photo = ImageTk.PhotoImage(img, master=letter_selector)
-                btn = Button(grid_frame, text=letter_name, image=photo, compound="top",
+                button_name = "\n".join(textwrap.wrap(letter_name, width=16, break_long_words=True))
+                btn = Button(grid_frame, text=button_name, image=photo, compound="top",
                              command=lambda name=letter_name: on_open(name))
                 btn.image = photo  # Prevent garbage collection
                 btn.bind("<Double-Button-1>", lambda e, name=letter_name, b=btn: on_letter_rename(name, b))
@@ -867,7 +881,8 @@ def write_open_letter_selector():
                     # fallback image
                     img = Image.new("RGB", (60, 60), "gray")
                     photo = ImageTk.PhotoImage(img, master=letter_selector)
-                btn = Button(grid_frame, text=letter_name, image=photo, compound="top",
+                button_name = "\n".join(textwrap.wrap(letter_name, width=16, break_long_words=True))
+                btn = Button(grid_frame, text=button_name, image=photo, compound="top",
                              command=lambda name=letter_name: on_open(name))
                 btn.image = photo  # Prevent garbage collection
                 btn.bind("<Double-Button-1>", lambda e, name=letter_name, b=btn: on_letter_rename(name, b))
@@ -1418,24 +1433,15 @@ def save_writing():
         return
 
     def on_save():
-        selected_index = listbox.curselection()
-        if selected_index:
-            selected_writing = listbox.get(selected_index)
-            debug.send(f"Saving Writing {selected_writing}[{window.language_name}]")
-            saving.save_writing(window.language_name,selected_writing,write_canvas.root)
-            write_canvas.text_name = selected_writing
+        entered_name = entry.get()
+        if entered_name:
+            debug.send(f"Saving {entered_name}[{window.language_name}]")
+            saving.save_writing(window.language_name,entered_name,write_canvas.root)
+            write_canvas.text_name = entered_name
             write_canvas.saved = True
             close_write_save_selector()
         else:
-            entered_name = entry.get()
-            if entered_name:
-                debug.send(f"Saving {entered_name}[{window.language_name}]")
-                saving.save_writing(window.language_name,entered_name,write_canvas.root)
-                write_canvas.text_name = entered_name
-                editor_canvas.saved = True
-                close_write_save_selector()
-            else:
-                messagebox.showwarning("No name", "Please enter a name or select a letter.")
+            messagebox.showwarning("No name", "Please enter a name or select a letter.")
     
     def on_cancel():
         close_write_save_selector()
@@ -1690,6 +1696,8 @@ def process_write_inspector_menu(event):
         write_canvas.update()
 
 def process_write_new_height_or_size(event):
+    if write_canvas.root.width != write_width_image_string_var.get() or write_canvas.root.height != write_height_image_string_var.get():
+        write_canvas.saved = False
     write_canvas.root.width = int(write_width_image_string_var.get())
     write_canvas.root.height = int(write_height_image_string_var.get())
     write_canvas.update()
